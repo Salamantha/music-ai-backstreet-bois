@@ -26,6 +26,8 @@ export default function Page() {
   const [genrePalette, setGenrePalette] = useState<Record<string, number>>({});
   const [genreOptions, setGenreOptions] = useState<string[]>([]);
   const [tonality, setTonality] = useState<Tonality>("any");
+  // Bumping this tells MidiConnect to throw away the take it is holding.
+  const [resetToken, setResetToken] = useState(0);
 
   // Moving between steps changes what the page is about, so focus follows.
   // Without this a screen-reader user is left where the old content was.
@@ -95,6 +97,15 @@ export default function Page() {
     }
   }
 
+  /** Back to a blank page: no take, no results, no filters, step one. */
+  function startOver() {
+    setResetToken((t) => t + 1);
+    setGenres([]);
+    setTonality("any");
+    setStep(0);
+    reset();
+  }
+
   function reset() {
     setResult(null);
     setError("");
@@ -138,7 +149,9 @@ export default function Page() {
           </div>
         </div>
         <span className={`pill ${backend ? "ok" : "bad"}`}>
-          {backend ? `${backend.personas} musicians` : "backend unreachable"}
+          {backend
+            ? `${backend.personas} musicians looking to play`
+            : "backend unreachable"}
         </span>
       </header>
 
@@ -171,10 +184,30 @@ export default function Page() {
         onChords={onChords}
         onReset={reset}
         busy={busy}
+        resetToken={resetToken}
       />
 
       {step === 0 && (
         <>
+          <div className="panel">
+            <h2>What happens here</h2>
+            <ol className="how">
+              <li>
+                <strong>Plug in.</strong> Connect your ChordCat — or any MIDI
+                keyboard — so the browser can hear what you play.
+              </li>
+              <li>
+                <strong>Play a few chords.</strong> Four is plenty. Anything you
+                like the sound of.
+              </li>
+              <li>
+                <strong>Meet the people who play like you.</strong> We work out
+                your key and your progression, find the songs built on it, and
+                rank everyone else here by how close their harmony is to yours.
+              </li>
+            </ol>
+          </div>
+
           <div className="step-nav">
             <span />
             <button
@@ -218,13 +251,7 @@ export default function Page() {
 
           <div className="step-nav">
             <button onClick={() => setStep(0)}>Back</button>
-            <button
-              className="primary"
-              onClick={() => setStep(2)}
-              disabled={!steps[2].reachable}
-            >
-              Next: connect with musicians
-            </button>
+            <span />
           </div>
         </>
       )}
@@ -277,7 +304,7 @@ export default function Page() {
 
           <div className="step-nav">
             <button onClick={() => setStep(1)}>Back to your chords</button>
-            <span />
+            <button onClick={startOver}>Start over with a new progression</button>
           </div>
         </>
       )}

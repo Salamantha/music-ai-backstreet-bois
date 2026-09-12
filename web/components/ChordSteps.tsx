@@ -145,7 +145,7 @@ export default function ChordSteps({
             disabled={busy || steps.length < 1}
             style={{ padding: "6px 13px", fontSize: 13 }}
           >
-            Analyse {steps.length === 1 ? "1 chord" : steps.length > 1 ? `${steps.length} chords` : ""}
+            Find my matches
           </button>
         </span>
       </div>

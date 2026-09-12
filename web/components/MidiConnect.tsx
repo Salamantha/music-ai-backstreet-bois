@@ -23,6 +23,10 @@ interface Props {
   /** Discard the analysis on screen, because it no longer describes anything
    *  the user can see -- the progression it came from has been cleared. */
   onReset: () => void;
+  /** Bumped by the parent's "Start over" so a capture in progress, the chord
+      cards and the MIDI timeline all clear together. A token rather than a
+      callback ref: the parent owns the intent, this component owns the state. */
+  resetToken: number;
   busy: boolean;
 }
 
@@ -39,7 +43,7 @@ const ONSET_WINDOW_MS = 70;
 const MIN_NOTES_PER_STEP = 2;
 
 export default function MidiConnect({
-  show, onConnected, onChords, onReset, busy,
+  show, onConnected, onChords, onReset, busy, resetToken,
 }: Props) {
   const captureRef = useRef<MidiCapture | null>(null);
   // Web MIDI support cannot be determined during server rendering -- `navigator`
@@ -223,6 +227,19 @@ export default function MidiConnect({
     setRecording(false);
     setError("");
   }
+
+  // The parent's "Start over" reaches in here, because the take lives in this
+  // component. Skipping the first run keeps mount from clearing a fresh state.
+  const firstReset = useRef(true);
+  useEffect(() => {
+    if (firstReset.current) {
+      firstReset.current = false;
+      return;
+    }
+    startOver();
+    // startOver is redefined every render; the token is the real dependency.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resetToken]);
 
   /** Carry on adding to the take already captured. */
   function resume() {

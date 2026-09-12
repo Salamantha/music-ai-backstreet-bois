@@ -366,3 +366,9 @@ main { position: relative; z-index: 1; }
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
   overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
 }
+
+/* The "what happens here" list on step one. Numbers stay visible -- the
+   sequence is the point, and a bare list would lose it. */
+.how { margin: 0.75rem 0 0; padding-left: 1.4rem; display: grid; gap: 0.7rem; }
+.how li { line-height: 1.55; }
+.how li::marker { color: var(--accent-2); font-weight: 700; }

@@ -250,6 +250,12 @@ export function MatchList({ result }: { result: AnalyzeResponse }) {
   return (
     <div className="panel">
       <h2>Musicians you&apos;d click with</h2>
+      <p className="sub">
+        Everyone here has played their own progression into ChordCat Connect.
+        We compared what you played to what they played — the chords you reach
+        for, the keys you sit in, the songs you both turn out to share — and
+        these are the closest. Find them and play something.
+      </p>
       {result.matches.map((m) => (
         <div className="match" key={m.id}>
           <div className="row spread">
@@ -258,7 +264,7 @@ export function MatchList({ result }: { result: AnalyzeResponse }) {
               <span className="meta">· {m.instrument} · {m.city}</span>
             </h3>
             <span className="pill ok">
-              closer than {Math.round(m.percentile * 100)}%
+              better match than {Math.round(m.percentile * 100)}% of the room
             </span>
           </div>
           <p className="why">{m.rationale}</p>
