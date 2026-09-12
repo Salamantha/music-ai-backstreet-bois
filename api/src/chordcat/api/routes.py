@@ -75,6 +75,14 @@ def _chord_event(pitches: list[int], duration_ms: float = 600.0) -> ChordEvent:
     )
 
 
+@router.get("/genres")
+async def genres() -> dict:
+    """Genres that can be chosen before an analysis runs."""
+    from ..domain.taxonomy import selectable_genres
+
+    return {"genres": list(selectable_genres())}
+
+
 @router.post("/identify", response_model=IdentifyResponse)
 async def identify(req: IdentifyRequest) -> IdentifyResponse:
     """Identify one chord as it is being held.

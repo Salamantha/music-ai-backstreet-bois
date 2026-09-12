@@ -129,3 +129,10 @@ export async function analyzeChords(
   }
   return res.json();
 }
+
+/** Genres that can be chosen before an analysis runs. */
+export async function selectableGenres(): Promise<string[]> {
+  const res = await fetch(`${BASE}/api/genres`);
+  if (!res.ok) throw new Error(`Could not load genres (${res.status})`);
+  return (await res.json()).genres as string[];
+}

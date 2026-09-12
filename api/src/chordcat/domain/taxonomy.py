@@ -118,3 +118,18 @@ def map_hooktheory_genres(labels: object) -> tuple[str, ...]:
             if mapped in GENRES and mapped not in out:
                 out.append(mapped)
     return tuple(out)
+
+
+def selectable_genres() -> tuple[str, ...]:
+    """Genres a result can actually carry, for an up-front chooser.
+
+    Only the taxonomy entries something in the data can map onto. Offering the
+    full vocabulary would list genres no song will ever be labelled with, so
+    picking one would silently return nothing.
+    """
+    out: list[str] = []
+    for mapped in HOOKTHEORY_GENRE_MAP.values():
+        for genre in mapped:
+            if genre in GENRES and genre not in out:
+                out.append(genre)
+    return tuple(sorted(out))

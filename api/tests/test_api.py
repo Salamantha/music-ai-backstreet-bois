@@ -203,3 +203,21 @@ def test_analyze_echoes_the_applied_genre_filter(client):
         json={"chords": [{"pitches": [48, 60, 64, 67]}], "genres": ["rock", "pop"]},
     ).json()
     assert body["applied_genres"] == ["rock", "pop"]
+
+
+def test_selectable_genres_endpoint(client):
+    """The up-front chooser needs the list before any analysis has run."""
+    body = client.get("/api/genres").json()
+    assert "rock" in body["genres"]
+    assert "video game" in body["genres"]
+    assert body["genres"] == sorted(body["genres"])
+
+
+def test_selectable_genres_only_offers_reachable_ones(client):
+    """Offering a genre nothing maps onto would silently return no songs."""
+    from chordcat.domain.taxonomy import GENRES, selectable_genres
+
+    offered = set(selectable_genres())
+    assert offered <= GENRES
+    # The taxonomy is deliberately wider than what the data can be labelled with.
+    assert offered < GENRES

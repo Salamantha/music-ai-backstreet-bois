@@ -6,7 +6,10 @@ import MidiConnect from "@/components/MidiConnect";
 import ChordTimeline from "@/components/ChordTimeline";
 import KeyPanel from "@/components/KeyPanel";
 import { MatchList, SongMatches, TasteProfile } from "@/components/Results";
-import { analyzeChords, health, type AnalyzeResponse, type ChordStep } from "@/lib/api";
+import {
+  analyzeChords, health, selectableGenres,
+  type AnalyzeResponse, type ChordStep,
+} from "@/lib/api";
 
 export default function Page() {
   const [result, setResult] = useState<AnalyzeResponse | null>(null);
@@ -18,9 +21,11 @@ export default function Page() {
   // Genres available before filtering. Kept across a filtered re-analysis so
   // narrowing to one genre does not collapse the chooser to that single option.
   const [genrePalette, setGenrePalette] = useState<Record<string, number>>({});
+  const [genreOptions, setGenreOptions] = useState<string[]>([]);
 
   useEffect(() => {
     health().then(setBackend).catch(() => setBackend(null));
+    selectableGenres().then(setGenreOptions).catch(() => setGenreOptions([]));
   }, []);
 
   async function onChords(
@@ -50,12 +55,13 @@ export default function Page() {
     setResult(null);
     setError("");
     setLastChords(null);
-    setGenres([]);
     setGenrePalette({});
   }
 
   function applyGenres(next: string[]) {
     setGenres(next);
+    // Only re-run if there is something to re-run. Chosen before a capture,
+    // the selection simply applies to the next analysis.
     if (lastChords) void onChords(lastChords, undefined, next);
   }
 
@@ -79,6 +85,19 @@ export default function Page() {
         </span>
       </div>
 
+      <GenreFilter
+        options={genreOptions}
+        counts={
+          Object.keys(genrePalette).length > 0
+            ? genrePalette
+            : result?.available_genres ?? {}
+        }
+        selected={genres}
+        onChange={applyGenres}
+        hasResults={result !== null}
+        busy={busy}
+      />
+
       <MidiConnect onChords={onChords} onReset={reset} busy={busy} />
 
       {busy && <div className="panel"><p style={{ margin: 0 }}>Analysing…</p></div>}
@@ -97,16 +116,6 @@ export default function Page() {
           {result.key && (
             <KeyPanel keyInfo={result.key} onOverride={override} busy={busy} />
           )}
-          <GenreFilter
-            available={
-              Object.keys(genrePalette).length > 0
-                ? genrePalette
-                : result.available_genres
-            }
-            selected={genres}
-            onChange={applyGenres}
-            busy={busy}
-          />
           <SongMatches result={result} />
           {result.profile && <TasteProfile profile={result.profile} />}
           <MatchList result={result} />
