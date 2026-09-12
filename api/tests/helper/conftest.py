@@ -14,6 +14,24 @@ from chordcat.api import routes
 
 
 @pytest.fixture(autouse=True)
+def never_call_a_real_model(monkeypatch):
+    """No test may reach a live provider.
+
+    Once a real key is in .env, build_voice() picks it up and every endpoint
+    test becomes a paid network round trip -- the suite went from 2s to 120s
+    the moment one was added. Tests that want to exercise the model layer
+    build a voice explicitly with a stubbed transport instead.
+    """
+    from chordcat.config import Settings
+
+    monkeypatch.setattr(
+        "chordcat.config.get_settings",
+        lambda: Settings(llm_base_url="", llm_model="", llm_api_key="",
+                         anthropic_api_key=""),
+    )
+
+
+@pytest.fixture(autouse=True)
 def isolated_session_store(tmp_path, monkeypatch):
     from chordcat.helper.memory import SqliteSessionStore
 

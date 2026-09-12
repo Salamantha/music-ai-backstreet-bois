@@ -59,7 +59,10 @@ def test_no_auth_header_when_there_is_no_key(monkeypatch):
     """Ollama rejects an empty bearer token."""
     captured: dict = {}
     fake_provider(monkeypatch, "fine", captured)
-    OpenAICompatibleVoice(base_url="http://localhost:11434/v1", model="qwen2.5:7b").speak("p")
+    # api_key explicitly blank: a real key in .env would otherwise supply one.
+    OpenAICompatibleVoice(
+        base_url="http://localhost:11434/v1", model="qwen2.5:7b", api_key=""
+    ).speak("p")
     assert "Authorization" not in captured["headers"]
 
 

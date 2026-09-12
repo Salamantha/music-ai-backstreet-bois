@@ -43,3 +43,16 @@ def test_node_prose_is_always_allowed_through():
 def test_a_key_the_analysis_did_not_detect_is_rejected():
     verdict = validate("You are in F minor here.", FACTS, NODE)
     assert not verdict.ok
+
+
+def test_an_internal_fact_id_is_not_allowed_through():
+    """A real model did exactly this: cited `perf.velocity_stats#0` at the user."""
+    verdict = validate(
+        "You play evenly, per the perf.velocity_stats#0 fact.", FACTS, NODE
+    )
+    assert not verdict.ok
+    assert "perf.velocity_stats#0" in {r.claim for r in verdict.rejections}
+
+
+def test_ordinary_prose_with_a_full_stop_is_not_mistaken_for_a_fact_id():
+    assert validate("It leans somewhere. Then it settles.", FACTS, NODE).ok

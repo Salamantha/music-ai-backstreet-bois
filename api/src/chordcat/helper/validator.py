@@ -23,6 +23,11 @@ CHORD = re.compile(rf"\b([A-G][#b]?)({QUALITIES})?\b")
 MODE_WORDS = ("major", "minor", "dorian", "phrygian", "lydian", "mixolydian", "locrian")
 KEY = re.compile(rf"\b([A-G][#b]?)\s+({'|'.join(MODE_WORDS)})\b", re.I)
 NUMBER = re.compile(r"\b\d+(?:\.\d+)?\b")
+#: Our own fact ids -- `perf.velocity_stats#0` and friends. The prompt lists
+#: them so claims can be traced, and a model will happily quote one straight at
+#: the user. That is machine jargon in a tool whose whole promise is plain
+#: language, so it is rejected rather than merely discouraged.
+FACT_ID = re.compile(r"\b[a-z]+\.[a-z_]+(?:#\d+)?\b")
 
 
 @dataclass(frozen=True, slots=True)
@@ -81,6 +86,9 @@ def validate(text: str, facts: FactSet, node: ConceptNode) -> Verdict:
             continue  # already judged as part of a key name
         if match.group(0) not in chords and match.group(0) not in node_text:
             bad.append(Rejection(match.group(0), "chord not in the FactSet"))
+
+    for leaked in FACT_ID.findall(text):
+        bad.append(Rejection(leaked, "internal fact id leaked into the answer"))
 
     for number in NUMBER.findall(text):
         if number not in numbers:
