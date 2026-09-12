@@ -183,14 +183,23 @@ export default function MidiConnect({ onChords, onReset, busy }: Props) {
     onReset();
   }
 
-  /** Begin a new take, discarding anything captured before. */
+  /** Begin capturing a new take, discarding anything captured before. */
   function start() {
+    startOver();
+    setRecording(true);
+  }
+
+  /** Throw the take away and return to idle, without starting a new capture. */
+  function startOver() {
     captureRef.current!.start();
+    captureRef.current!.stopPlayback();
     resetSteps();
     setHasStoppedCapture(false);
     setCount(0);
     setHeld([]);
-    setRecording(true);
+    setPlaying(false);
+    setRecording(false);
+    setError("");
   }
 
   /** Carry on adding to the take already captured. */
@@ -300,9 +309,12 @@ export default function MidiConnect({ onChords, onReset, busy }: Props) {
                     Add more chords ({steps.length} so far)
                   </button>
                 )}
+                {/* Start over clears the take and waits, rather than
+                    immediately recording again -- discarding work and opening a
+                    live capture are two different intentions. */}
                 <button
                   className={steps.length > 0 ? "" : "primary"}
-                  onClick={start}
+                  onClick={steps.length > 0 ? startOver : start}
                   disabled={!selected || busy}
                 >
                   {steps.length > 0 ? "Start over" : "Start capturing"}
