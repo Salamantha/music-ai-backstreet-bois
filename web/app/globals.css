@@ -424,4 +424,4 @@ main { position: relative; z-index: 1; }
   padding: 1rem 1.1rem 0.9rem;
   margin: 1.1rem 0;
 }
-.setup h4 { font-size: 1rem; margin: 0; }
+.setup h3 { font-size: 1rem; margin: 0; }

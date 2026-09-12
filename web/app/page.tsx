@@ -187,14 +187,7 @@ export default function Page() {
         resetToken={resetToken}
       >
         {step === 1 && (
-          <>
-            <h3 style={{ margin: "0 0 6px" }}>First, what do you play?</h3>
-            <p className="sub" style={{ margin: "0 0 14px" }}>
-              Recommended. This decides which songs your progression is
-              compared against, and so which musicians you are matched with.
-              Skip it and you are matched against every genre at once.
-            </p>
-            <GenreFilter
+          <GenreFilter
               options={genreOptions}
               counts={genrePalette}
               selected={genres}
@@ -202,10 +195,9 @@ export default function Page() {
               tonality={tonality}
               onTonality={applyTonality}
               hasResults={result !== null}
-              busy={busy}
-              bare
-            />
-          </>
+            busy={busy}
+            bare
+          />
         )}
       </MidiConnect>
 

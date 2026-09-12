@@ -23,16 +23,16 @@ interface Props {
    shape of a page. */
 
 const TONALITIES: { value: Tonality; label: string; hint: string }[] = [
-  { value: "any", label: "Any", hint: "Let the analysis decide" },
-  { value: "major", label: "Major", hint: "Read ambiguous keys as major" },
-  { value: "minor", label: "Minor", hint: "Read ambiguous keys as minor" },
+  { value: "any", label: "Any", hint: "Not sure — let the analysis decide" },
+  { value: "major", label: "Major", hint: "Brighter, happier" },
+  { value: "minor", label: "Minor", hint: "Darker, sadder" },
 ];
 
 export default function GenreFilter({
   options, counts, selected, onChange, hasResults, busy, tonality, onTonality,
   bare = false,
 }: Props) {
-  const H = bare ? "h4" : "h2";
+  const H = bare ? "h3" : "h2";
   const active = new Set(selected);
   if (options.length === 0) return null;
 
@@ -75,8 +75,9 @@ export default function GenreFilter({
         </span>
       </div>
       <p className="sub" style={{ margin: "0 0 16px" }}>
-        Relative major and minor share the same notes, so the reading is
-        genuinely ambiguous — say which one you mean and matches will favour it.
+        Major sounds bright and happy; minor sounds darker and sadder. The
+        very same chords can be heard either way, so tell us which you meant
+        and the matches will lean that way.
       </p>
 
       <div className="row spread">
@@ -96,7 +97,7 @@ export default function GenreFilter({
         {selected.length === 0
           ? hasResults
             ? "Showing every match. Pick genres to narrow the songs — and the musicians you get matched with."
-            : "Pick as many as you like."
+            : "Worth picking — otherwise your chords are compared against every genre at once."
           : `Keeping only ${selected.join(", ")}. Songs with no known genre are excluded while a genre is chosen.`}
       </p>
 
