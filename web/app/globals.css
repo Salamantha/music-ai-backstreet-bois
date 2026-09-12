@@ -89,6 +89,12 @@ h3 { font-size: 1rem; font-weight: 700; margin: 0 0 0.35rem; }
 
 /* ---- Stepper -------------------------------------------------------- */
 
+/* On a narrow viewport the status pill wraps onto its own line and lands
+   flush against the first step. Space the header off the stepper so the two
+   read as separate things. */
+main > header { margin-bottom: 1.75rem; }
+main > header > .pill { margin-top: 0.15rem; }
+
 .steps {
   display: flex;
   gap: 0.5rem;
