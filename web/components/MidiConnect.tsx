@@ -17,7 +17,7 @@ interface Props {
    * chords live in here, and unmounting to change step would discard both.
    */
   show: "connect" | "capture" | "none";
-  /** Fired once a device is selected, so the flow can move on. */
+  /** Fired once a device is selected, so the next step becomes reachable. */
   onConnected?: () => void;
   onChords: (steps: { pitches: number[]; duration_ms?: number }[]) => void;
   /** Discard the analysis on screen, because it no longer describes anything

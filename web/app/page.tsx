@@ -156,7 +156,10 @@ export default function Page() {
           MIDI connection or discard captured chords. */}
       <MidiConnect
         show={step === 0 ? "connect" : step === 1 ? "capture" : "none"}
-        onConnected={() => { setConnected(true); setStep(1); }}
+        // Unlocks the next step without navigating to it. Granting MIDI access
+        // is not the same as being ready to play: the right port may not be the
+        // one auto-selected, and the traffic indicator is on this step.
+        onConnected={() => setConnected(true)}
         onChords={onChords}
         onReset={reset}
         busy={busy}
