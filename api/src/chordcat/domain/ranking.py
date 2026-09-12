@@ -44,6 +44,11 @@ class NgramResult:
     total_hits: int = 0
 
 
+def _section_multiplier(n_sections: int) -> float:
+    """Bounded bonus for a song matching in several sections."""
+    return min(MAX_SECTION_MULTIPLIER, 1.0 + 0.25 * (n_sections - 1))
+
+
 def score_songs(
     results: Sequence[NgramResult],
     transition_prob: Mapping[tuple[str, ...], float] | None = None,
@@ -72,22 +77,20 @@ def score_songs(
             * g.fidelity
             * specificity
         )
+        seen_this_ngram: set[tuple[str, str]] = set()
         for hit in result.songs:
             key = (normalize_name(hit.artist), normalize_name(hit.song))
             if key not in sections:
                 display[key] = hit
-            # Extra sections of the same song add evidence, but with sharply
-            # diminishing returns.
-            n_before = len(sections[key])
             sections[key].add(hit.section)
-            if len(sections[key]) > n_before:
-                multiplier = min(
-                    MAX_SECTION_MULTIPLIER, 1.0 + 0.25 * (len(sections[key]) - 1)
-                )
-            else:
-                multiplier = 1.0
-            scores[key] += weight * multiplier
             matched[key].add(g.cp)
+            # Score each song once per window. Additional *sections* of the same
+            # song are extra evidence, but applied as a bounded multiplier at
+            # the end -- accumulating per section instead lets one song with six
+            # matching sections outscore six different songs.
+            if key not in seen_this_ngram:
+                seen_this_ngram.add(key)
+                scores[key] += weight
 
     out = [
         SongHit(
@@ -95,7 +98,7 @@ def score_songs(
             song=display[k].song,
             section=", ".join(sorted(sections[k])),
             url=display[k].url,
-            score=v,
+            score=v * _section_multiplier(len(sections[k])),
             matched_ngrams=tuple(sorted(matched[k])),
         )
         for k, v in scores.items()

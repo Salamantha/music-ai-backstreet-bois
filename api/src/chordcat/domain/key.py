@@ -225,9 +225,29 @@ def detect_key(
 
     order = sorted(range(len(candidates)), key=lambda i: -combined[i])
     best_i = order[0]
-    alternatives = tuple(
-        (candidates[i], probs[i]) for i in order[1 : 1 + cfg.top_alternatives]
-    )
+
+    # Offer alternatives that span different tonal centres. Ranking purely by
+    # score fills the list with five modes of one tonic -- G major, G minor, G
+    # dorian, G lydian -- which is useless as an override affordance, because
+    # the reading the user actually wants is usually a *different* tonic
+    # (typically the relative major or minor).
+    alternatives: list[tuple[Key, float]] = []
+    seen_tonics = {candidates[best_i].tonic_pc}
+    for i in order[1:]:
+        if len(alternatives) >= cfg.top_alternatives:
+            break
+        if candidates[i].tonic_pc in seen_tonics:
+            continue
+        seen_tonics.add(candidates[i].tonic_pc)
+        alternatives.append((candidates[i], probs[i]))
+    # Backfill with same-tonic modes only if there is room left over.
+    for i in order[1:]:
+        if len(alternatives) >= cfg.top_alternatives:
+            break
+        pair = (candidates[i], probs[i])
+        if pair not in alternatives:
+            alternatives.append(pair)
+    alternatives = tuple(alternatives)
 
     return KeyEstimate(
         key=candidates[best_i],
