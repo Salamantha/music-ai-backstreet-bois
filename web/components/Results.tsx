@@ -65,7 +65,7 @@ function ChordString({
           <span
             key={at}
             style={{
-              color: hits.has(at) ? "var(--accent)" : "var(--muted)",
+              color: hits.has(at) ? "var(--accent-3)" : "var(--muted)",
               fontWeight: hits.has(at) ? 700 : 400,
               marginRight: 5,
             }}
@@ -132,7 +132,7 @@ export function SongMatches({ result }: { result: AnalyzeResponse }) {
         <thead>
           <tr>
             <th>Artist</th><th>Song · section</th><th>Key</th>
-            <th>Their chords · yours in green</th>
+            <th>Their chords · yours highlighted</th>
             <th style={{ width: 62 }} title="How much of the song is the progression you played. Results are ordered by this.">
               Match ↓
             </th>

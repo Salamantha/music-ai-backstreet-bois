@@ -6,6 +6,7 @@ import MidiConnect from "@/components/MidiConnect";
 import ChordTimeline from "@/components/ChordTimeline";
 import KeyPanel from "@/components/KeyPanel";
 import Stepper, { type StepDef } from "@/components/Stepper";
+import CatBand, { BAND, CatFace } from "@/components/CatBand";
 import { MatchList, SongMatches, TasteProfile } from "@/components/Results";
 import {
   analyzeChords, health, selectableGenres,
@@ -126,12 +127,20 @@ export default function Page() {
         <div>
           <h1>ChordCat Connect</h1>
           <p className="lede">
-            Play a progression. Find the musicians who hear harmony the way you do.
+            Play a progression. Find the musicians who hear harmony the way you
+            do. Brought to you by The HackStreet Bois.
           </p>
         </div>
-        <span className={`pill ${backend ? "ok" : "bad"}`}>
-          {backend ? `${backend.personas} musicians` : "backend unreachable"}
-        </span>
+        <div className="row" style={{ gap: "0.75rem" }}>
+          <span className="band-mini" aria-hidden="true">
+            {BAND.map((cat) => (
+              <CatFace key={cat.id} cat={cat} size={34} decorative />
+            ))}
+          </span>
+          <span className={`pill ${backend ? "ok" : "bad"}`}>
+            {backend ? `${backend.personas} musicians` : "backend unreachable"}
+          </span>
+        </div>
       </header>
 
       <Stepper steps={steps} current={step} onGo={setStep} />
@@ -255,6 +264,15 @@ export default function Page() {
           <SongMatches result={result} />
           {result.profile && <TasteProfile profile={result.profile} />}
           <MatchList result={result} />
+
+          <div className="panel">
+            <h2>Your hosts</h2>
+            <p className="sub">
+              Six cats, one hackathon, an unreasonable number of chord
+              progressions.
+            </p>
+            <CatBand />
+          </div>
 
           <div className="step-nav">
             <button onClick={() => setStep(1)}>Back to your chords</button>
