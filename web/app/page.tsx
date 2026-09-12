@@ -190,7 +190,7 @@ export default function Page() {
       {step === 0 && (
         <>
           <div className="panel">
-            <h2>What happens here</h2>
+            <h2>How it works</h2>
             <ol className="how">
               <li>
                 <strong>Plug in.</strong> Connect your ChordCat — or any MIDI
