@@ -60,6 +60,8 @@ export interface MidiPort {
   state: string;
   /** "open" once we are actually receiving from it. */
   connection: string;
+  /** Messages seen on this port since connecting, whether selected or not. */
+  messages: number;
 }
 
 export type MidiSupport =
@@ -112,6 +114,9 @@ export class MidiCapture {
   private playbackEndsAt = 0;
   private messageCount = 0;
   private lastMessageAt = 0;
+  /** Per-port message counts, so a silent selection can be spotted. */
+  private portTraffic = new Map<string, number>();
+  private onTraffic: (() => void) | null = null;
   private input: MIDIInput | null = null;
   private events: MidiEvent[] = [];
   private raw: RawMessage[] = [];
@@ -138,6 +143,7 @@ export class MidiCapture {
       manufacturer: i.manufacturer ?? "",
       state: i.state,
       connection: i.connection,
+      messages: this.portTraffic.get(i.id) ?? 0,
     }));
   }
 
@@ -150,6 +156,7 @@ export class MidiCapture {
       manufacturer: o.manufacturer ?? "",
       state: o.state,
       connection: o.connection,
+      messages: 0,
     }));
   }
 
@@ -212,6 +219,33 @@ export class MidiCapture {
     this.playbackEndsAt = 0;
   }
 
+  /**
+   * Count messages on every input, not just the selected one.
+   *
+   * "The port is listed but nothing arrives" is nearly always the wrong port
+   * being selected -- a ChordCat plugged in alongside an IAC bus carrying the
+   * notes, say. Watching them all turns that from a guess into something the
+   * picker can simply show.
+   */
+  async watchAllInputs(onTraffic: () => void): Promise<void> {
+    if (!this.access) return;
+    this.onTraffic = onTraffic;
+    for (const port of this.access.inputs.values()) {
+      if (this.input && port.id === this.input.id) continue;
+      try {
+        await port.open();
+      } catch {
+        continue;  // A port that will not open simply reports no traffic.
+      }
+      port.onmidimessage = () => this.countTraffic(port.id);
+    }
+  }
+
+  private countTraffic(portId: string): void {
+    this.portTraffic.set(portId, (this.portTraffic.get(portId) ?? 0) + 1);
+    this.onTraffic?.();
+  }
+
   onStateChange(cb: () => void): void {
     if (this.access) this.access.onstatechange = () => cb();
   }
@@ -241,6 +275,8 @@ export class MidiCapture {
     this.lastMessageAt = 0;
     this.messageCount = 0;
     port.onmidimessage = (msg) => this.handle(msg);
+    // Re-arm the counters on whatever we just stopped listening to.
+    if (this.onTraffic) await this.watchAllInputs(this.onTraffic);
   }
 
   /** Messages seen on the selected port, so "nothing is arriving" is visible. */
@@ -318,6 +354,7 @@ export class MidiCapture {
 
     this.messageCount++;
     this.lastMessageAt = performance.now();
+    if (this.input) this.countTraffic(this.input.id);
 
     const status = data[0] & 0xf0;
     const channel = (data[0] & 0x0f) + 1;

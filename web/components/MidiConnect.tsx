@@ -138,6 +138,10 @@ export default function MidiConnect({ onChords, onReset, busy }: Props) {
         setOutputs(capture.outputs());
       });
 
+      // Watch every input, so a port carrying notes is visible even when it is
+      // not the one selected.
+      await capture.watchAllInputs(() => setPorts(capture.ports()));
+
       const preferred = found.find(looksLikeChordcat) ?? found[0];
       if (preferred) {
         setSelected(preferred.id);
@@ -299,6 +303,7 @@ export default function MidiConnect({ onChords, onReset, busy }: Props) {
                   {p.name}{p.manufacturer ? ` — ${p.manufacturer}` : ""}
                   {looksLikeChordcat(p) ? "  ✓ ChordCat" : ""}
                   {p.state !== "connected" ? `  (${p.state})` : ""}
+                  {p.messages > 0 ? `  ● ${p.messages}` : ""}
                 </option>
               ))}
             </select>
@@ -354,8 +359,9 @@ export default function MidiConnect({ onChords, onReset, busy }: Props) {
             </span>
             {traffic === 0 && (
               <span className="sub" style={{ margin: 0, fontSize: 12 }}>
-                Play something. If this stays at zero, the port is not the one
-                carrying your notes.
+                {ports.some((p) => p.messages > 0 && p.id !== selected)
+                  ? `Notes are arriving on ${ports.find((p) => p.messages > 0 && p.id !== selected)?.name} — switch to it above.`
+                  : "Play something. If this stays at zero, nothing is reaching the browser from any port."}
               </span>
             )}
           </div>
