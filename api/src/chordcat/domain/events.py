@@ -124,7 +124,9 @@ class KeyEstimate:
     confidence: float
     alternatives: tuple[tuple[Key, float], ...] = ()
     method_scores: tuple[tuple[str, float], ...] = ()
-    source: Literal["detected", "user"] = "detected"
+    #: "matched" means the key was settled by which reading Hooktheory
+    #: actually has songs for, not by pitch-class analysis alone.
+    source: Literal["detected", "user", "matched"] = "detected"
     modulation_suspected: bool = False
 
 

@@ -1,0 +1,2847 @@
+{
+ "schema_version": 1,
+ "taxonomy_version": "v1",
+ "source": "curated",
+ "artists": [
+  {
+   "artist": "ABBA",
+   "genres": [
+    "pop",
+    "disco"
+   ],
+   "subgenres": [],
+   "era": "1970s",
+   "moods": [
+    "euphoric",
+    "nostalgic"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Adele",
+   "genres": [
+    "pop",
+    "soul",
+    "r&b"
+   ],
+   "subgenres": [],
+   "era": "2010s",
+   "moods": [
+    "melancholic",
+    "tender",
+    "triumphant"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Alanis Morissette",
+   "genres": [
+    "alternative",
+    "rock",
+    "singer-songwriter"
+   ],
+   "subgenres": [],
+   "era": "1990s",
+   "moods": [
+    "defiant",
+    "restless"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Amy Winehouse",
+   "genres": [
+    "soul",
+    "jazz",
+    "r&b"
+   ],
+   "subgenres": [
+    "neo soul"
+   ],
+   "era": "2000s",
+   "moods": [
+    "melancholic",
+    "defiant",
+    "warm"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Antonio Carlos Jobim",
+   "genres": [
+    "bossa nova",
+    "jazz",
+    "latin"
+   ],
+   "subgenres": [],
+   "era": "pre-1970",
+   "moods": [
+    "warm",
+    "wistful",
+    "tender"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Aphex Twin",
+   "genres": [
+    "electronic",
+    "ambient",
+    "techno"
+   ],
+   "subgenres": [
+    "idm"
+   ],
+   "era": "1990s",
+   "moods": [
+    "eerie",
+    "hypnotic"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Arcade Fire",
+   "genres": [
+    "indie rock",
+    "alternative"
+   ],
+   "subgenres": [],
+   "era": "2000s",
+   "moods": [
+    "anthemic",
+    "cinematic",
+    "restless"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Arctic Monkeys",
+   "genres": [
+    "indie rock",
+    "alternative",
+    "rock"
+   ],
+   "subgenres": [],
+   "era": "2010s",
+   "moods": [
+    "driving",
+    "defiant",
+    "brooding"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Aretha Franklin",
+   "genres": [
+    "soul",
+    "gospel",
+    "r&b"
+   ],
+   "subgenres": [],
+   "era": "pre-1970",
+   "moods": [
+    "triumphant",
+    "warm"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Avicii",
+   "genres": [
+    "edm",
+    "house",
+    "electronic"
+   ],
+   "subgenres": [
+    "progressive house"
+   ],
+   "era": "2010s",
+   "moods": [
+    "euphoric",
+    "anthemic"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "BLACKPINK",
+   "genres": [
+    "k-pop",
+    "pop",
+    "edm"
+   ],
+   "subgenres": [],
+   "era": "2010s",
+   "moods": [
+    "defiant",
+    "driving"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "BTS",
+   "genres": [
+    "k-pop",
+    "pop",
+    "hip hop"
+   ],
+   "subgenres": [],
+   "era": "2010s",
+   "moods": [
+    "anthemic",
+    "euphoric",
+    "driving"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Backstreet Boys",
+   "genres": [
+    "pop",
+    "teen pop",
+    "r&b"
+   ],
+   "subgenres": [],
+   "era": "1990s",
+   "moods": [
+    "tender",
+    "anthemic"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Bad Bunny",
+   "genres": [
+    "latin",
+    "hip hop",
+    "pop"
+   ],
+   "subgenres": [
+    "reggaeton"
+   ],
+   "era": "2020s",
+   "moods": [
+    "driving",
+    "playful"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Beach House",
+   "genres": [
+    "dream pop",
+    "indie pop",
+    "ambient"
+   ],
+   "subgenres": [],
+   "era": "2010s",
+   "moods": [
+    "dreamy",
+    "hypnotic",
+    "lush"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Bee Gees",
+   "genres": [
+    "disco",
+    "pop",
+    "soul"
+   ],
+   "subgenres": [],
+   "era": "1970s",
+   "moods": [
+    "euphoric",
+    "driving"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Beyoncé",
+   "genres": [
+    "r&b",
+    "pop",
+    "soul"
+   ],
+   "subgenres": [],
+   "era": "2010s",
+   "moods": [
+    "triumphant",
+    "defiant",
+    "driving"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Big Thief",
+   "genres": [
+    "folk",
+    "indie rock",
+    "singer-songwriter"
+   ],
+   "subgenres": [],
+   "era": "2010s",
+   "moods": [
+    "tender",
+    "sparse",
+    "wistful"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Bill Evans",
+   "genres": [
+    "jazz"
+   ],
+   "subgenres": [
+    "modal jazz"
+   ],
+   "era": "pre-1970",
+   "moods": [
+    "tender",
+    "sparse",
+    "wistful"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Billie Eilish",
+   "genres": [
+    "pop",
+    "electronic",
+    "indie pop"
+   ],
+   "subgenres": [
+    "dark pop"
+   ],
+   "era": "2010s",
+   "moods": [
+    "eerie",
+    "sparse",
+    "brooding"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Blur",
+   "genres": [
+    "alternative",
+    "indie rock",
+    "pop"
+   ],
+   "subgenres": [
+    "britpop"
+   ],
+   "era": "1990s",
+   "moods": [
+    "playful",
+    "wistful"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Boards of Canada",
+   "genres": [
+    "ambient",
+    "electronic",
+    "lo-fi"
+   ],
+   "subgenres": [
+    "idm"
+   ],
+   "era": "1990s",
+   "moods": [
+    "nostalgic",
+    "eerie",
+    "hypnotic"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Bob Dylan",
+   "genres": [
+    "folk",
+    "singer-songwriter",
+    "americana"
+   ],
+   "subgenres": [],
+   "era": "pre-1970",
+   "moods": [
+    "defiant",
+    "wistful"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Bob Marley",
+   "genres": [
+    "reggae"
+   ],
+   "subgenres": [],
+   "era": "1970s",
+   "moods": [
+    "warm",
+    "triumphant",
+    "hypnotic"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Bon Iver",
+   "genres": [
+    "folk",
+    "indie pop",
+    "electronic"
+   ],
+   "subgenres": [],
+   "era": "2010s",
+   "moods": [
+    "melancholic",
+    "sparse",
+    "wistful"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Bon Jovi",
+   "genres": [
+    "rock",
+    "classic rock"
+   ],
+   "subgenres": [
+    "arena rock"
+   ],
+   "era": "1980s",
+   "moods": [
+    "anthemic",
+    "defiant"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Britney Spears",
+   "genres": [
+    "pop",
+    "teen pop",
+    "synthpop"
+   ],
+   "subgenres": [],
+   "era": "2000s",
+   "moods": [
+    "playful",
+    "driving"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Bruno Mars",
+   "genres": [
+    "pop",
+    "funk",
+    "r&b"
+   ],
+   "subgenres": [],
+   "era": "2010s",
+   "moods": [
+    "euphoric",
+    "playful",
+    "warm"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Buena Vista Social Club",
+   "genres": [
+    "latin",
+    "world",
+    "jazz"
+   ],
+   "subgenres": [
+    "son cubano"
+   ],
+   "era": "1990s",
+   "moods": [
+    "warm",
+    "nostalgic"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Burial",
+   "genres": [
+    "electronic",
+    "ambient",
+    "drum and bass"
+   ],
+   "subgenres": [
+    "dubstep"
+   ],
+   "era": "2000s",
+   "moods": [
+    "eerie",
+    "melancholic",
+    "hypnotic"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Calvin Harris",
+   "genres": [
+    "edm",
+    "house",
+    "pop"
+   ],
+   "subgenres": [],
+   "era": "2010s",
+   "moods": [
+    "euphoric",
+    "driving"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Celine Dion",
+   "genres": [
+    "pop"
+   ],
+   "subgenres": [
+    "adult contemporary"
+   ],
+   "era": "1990s",
+   "moods": [
+    "tender",
+    "triumphant",
+    "cinematic"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Chappell Roan",
+   "genres": [
+    "pop",
+    "synthpop",
+    "indie pop"
+   ],
+   "subgenres": [],
+   "era": "2020s",
+   "moods": [
+    "euphoric",
+    "playful",
+    "defiant"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Childish Gambino",
+   "genres": [
+    "hip hop",
+    "r&b",
+    "funk"
+   ],
+   "subgenres": [],
+   "era": "2010s",
+   "moods": [
+    "playful",
+    "defiant"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Chris Stapleton",
+   "genres": [
+    "country",
+    "blues",
+    "americana"
+   ],
+   "subgenres": [],
+   "era": "2010s",
+   "moods": [
+    "brooding",
+    "warm"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Clairo",
+   "genres": [
+    "indie pop",
+    "lo-fi",
+    "dream pop"
+   ],
+   "subgenres": [
+    "bedroom pop"
+   ],
+   "era": "2020s",
+   "moods": [
+    "dreamy",
+    "tender",
+    "sparse"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Claude Debussy",
+   "genres": [
+    "classical"
+   ],
+   "subgenres": [
+    "impressionist"
+   ],
+   "era": "pre-1970",
+   "moods": [
+    "dreamy",
+    "lush",
+    "eerie"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Coldplay",
+   "genres": [
+    "alternative",
+    "rock",
+    "pop"
+   ],
+   "subgenres": [],
+   "era": "2000s",
+   "moods": [
+    "anthemic",
+    "wistful",
+    "lush"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Cyndi Lauper",
+   "genres": [
+    "pop",
+    "synthpop"
+   ],
+   "subgenres": [],
+   "era": "1980s",
+   "moods": [
+    "playful",
+    "tender"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Daft Punk",
+   "genres": [
+    "electronic",
+    "house",
+    "disco"
+   ],
+   "subgenres": [
+    "french house"
+   ],
+   "era": "2000s",
+   "moods": [
+    "euphoric",
+    "hypnotic",
+    "driving"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Daniel Caesar",
+   "genres": [
+    "r&b",
+    "soul",
+    "gospel"
+   ],
+   "subgenres": [],
+   "era": "2010s",
+   "moods": [
+    "tender",
+    "warm",
+    "sparse"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "David Bowie",
+   "genres": [
+    "rock",
+    "pop",
+    "psychedelic"
+   ],
+   "subgenres": [
+    "glam rock"
+   ],
+   "era": "1970s",
+   "moods": [
+    "defiant",
+    "dreamy"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Deadmau5",
+   "genres": [
+    "house",
+    "techno",
+    "electronic"
+   ],
+   "subgenres": [
+    "progressive house"
+   ],
+   "era": "2010s",
+   "moods": [
+    "hypnotic",
+    "driving"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Death Cab for Cutie",
+   "genres": [
+    "indie rock",
+    "indie pop",
+    "alternative"
+   ],
+   "subgenres": [],
+   "era": "2000s",
+   "moods": [
+    "melancholic",
+    "tender",
+    "wistful"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Depeche Mode",
+   "genres": [
+    "synthpop",
+    "electronic",
+    "alternative"
+   ],
+   "subgenres": [],
+   "era": "1980s",
+   "moods": [
+    "brooding",
+    "hypnotic"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Doja Cat",
+   "genres": [
+    "pop",
+    "hip hop",
+    "r&b"
+   ],
+   "subgenres": [],
+   "era": "2020s",
+   "moods": [
+    "playful",
+    "driving"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Dolly Parton",
+   "genres": [
+    "country",
+    "folk",
+    "pop"
+   ],
+   "subgenres": [],
+   "era": "1970s",
+   "moods": [
+    "warm",
+    "tender"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Dua Lipa",
+   "genres": [
+    "pop",
+    "disco",
+    "electronic"
+   ],
+   "subgenres": [
+    "nu-disco"
+   ],
+   "era": "2020s",
+   "moods": [
+    "euphoric",
+    "driving"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Duke Ellington",
+   "genres": [
+    "jazz",
+    "swing"
+   ],
+   "subgenres": [],
+   "era": "pre-1970",
+   "moods": [
+    "playful",
+    "lush"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Eagles",
+   "genres": [
+    "classic rock",
+    "country",
+    "americana"
+   ],
+   "subgenres": [
+    "soft rock"
+   ],
+   "era": "1970s",
+   "moods": [
+    "nostalgic",
+    "warm"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Ed Sheeran",
+   "genres": [
+    "pop",
+    "folk",
+    "singer-songwriter"
+   ],
+   "subgenres": [],
+   "era": "2010s",
+   "moods": [
+    "tender",
+    "warm"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Elton John",
+   "genres": [
+    "pop",
+    "classic rock"
+   ],
+   "subgenres": [],
+   "era": "1970s",
+   "moods": [
+    "anthemic",
+    "tender"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Eminem",
+   "genres": [
+    "rap",
+    "hip hop"
+   ],
+   "subgenres": [],
+   "era": "2000s",
+   "moods": [
+    "aggressive",
+    "defiant",
+    "restless"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Erik Satie",
+   "genres": [
+    "classical",
+    "ambient"
+   ],
+   "subgenres": [],
+   "era": "pre-1970",
+   "moods": [
+    "sparse",
+    "melancholic",
+    "dreamy"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Fall Out Boy",
+   "genres": [
+    "emo",
+    "punk",
+    "pop"
+   ],
+   "subgenres": [
+    "pop punk"
+   ],
+   "era": "2000s",
+   "moods": [
+    "driving",
+    "defiant"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Fela Kuti",
+   "genres": [
+    "afrobeat",
+    "funk",
+    "world"
+   ],
+   "subgenres": [],
+   "era": "1970s",
+   "moods": [
+    "hypnotic",
+    "defiant",
+    "driving"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Fleet Foxes",
+   "genres": [
+    "folk",
+    "indie pop"
+   ],
+   "subgenres": [
+    "baroque pop"
+   ],
+   "era": "2010s",
+   "moods": [
+    "lush",
+    "nostalgic",
+    "warm"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Fleetwood Mac",
+   "genres": [
+    "classic rock",
+    "pop",
+    "folk"
+   ],
+   "subgenres": [
+    "soft rock"
+   ],
+   "era": "1970s",
+   "moods": [
+    "wistful",
+    "warm"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Florence + the Machine",
+   "genres": [
+    "indie pop",
+    "alternative",
+    "rock"
+   ],
+   "subgenres": [],
+   "era": "2010s",
+   "moods": [
+    "anthemic",
+    "cinematic",
+    "lush"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Flume",
+   "genres": [
+    "electronic",
+    "edm"
+   ],
+   "subgenres": [
+    "future bass"
+   ],
+   "era": "2010s",
+   "moods": [
+    "hypnotic",
+    "lush"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Frank Ocean",
+   "genres": [
+    "r&b",
+    "soul",
+    "hip hop"
+   ],
+   "subgenres": [],
+   "era": "2010s",
+   "moods": [
+    "tender",
+    "wistful",
+    "sparse"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Frank Sinatra",
+   "genres": [
+    "swing",
+    "jazz",
+    "pop"
+   ],
+   "subgenres": [
+    "traditional pop"
+   ],
+   "era": "pre-1970",
+   "moods": [
+    "warm",
+    "nostalgic"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Frédéric Chopin",
+   "genres": [
+    "classical"
+   ],
+   "subgenres": [
+    "romantic"
+   ],
+   "era": "pre-1970",
+   "moods": [
+    "melancholic",
+    "tender",
+    "lush"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Gorillaz",
+   "genres": [
+    "alternative",
+    "hip hop",
+    "electronic"
+   ],
+   "subgenres": [],
+   "era": "2000s",
+   "moods": [
+    "hypnotic",
+    "eerie",
+    "playful"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Green Day",
+   "genres": [
+    "punk",
+    "rock",
+    "alternative"
+   ],
+   "subgenres": [
+    "pop punk"
+   ],
+   "era": "1990s",
+   "moods": [
+    "defiant",
+    "driving"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Halsey",
+   "genres": [
+    "pop",
+    "indie pop",
+    "electronic"
+   ],
+   "subgenres": [],
+   "era": "2010s",
+   "moods": [
+    "defiant",
+    "brooding"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Hans Zimmer",
+   "genres": [
+    "film score",
+    "classical",
+    "electronic"
+   ],
+   "subgenres": [],
+   "era": "2000s",
+   "moods": [
+    "cinematic",
+    "triumphant",
+    "brooding"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Harry Styles",
+   "genres": [
+    "pop",
+    "rock",
+    "indie pop"
+   ],
+   "subgenres": [],
+   "era": "2020s",
+   "moods": [
+    "warm",
+    "nostalgic",
+    "playful"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Hozier",
+   "genres": [
+    "folk",
+    "blues",
+    "soul"
+   ],
+   "subgenres": [],
+   "era": "2010s",
+   "moods": [
+    "brooding",
+    "warm",
+    "tender"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Imagine Dragons",
+   "genres": [
+    "rock",
+    "pop",
+    "alternative"
+   ],
+   "subgenres": [],
+   "era": "2010s",
+   "moods": [
+    "anthemic",
+    "driving"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Joe Hisaishi",
+   "genres": [
+    "film score",
+    "classical"
+   ],
+   "subgenres": [],
+   "era": "1990s",
+   "moods": [
+    "tender",
+    "cinematic",
+    "nostalgic"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Johann Sebastian Bach",
+   "genres": [
+    "classical"
+   ],
+   "subgenres": [
+    "baroque"
+   ],
+   "era": "pre-1970",
+   "moods": [
+    "triumphant",
+    "hypnotic",
+    "lush"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "John Coltrane",
+   "genres": [
+    "jazz"
+   ],
+   "subgenres": [],
+   "era": "pre-1970",
+   "moods": [
+    "restless",
+    "triumphant"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "John Mayer",
+   "genres": [
+    "singer-songwriter",
+    "blues",
+    "pop"
+   ],
+   "subgenres": [],
+   "era": "2000s",
+   "moods": [
+    "warm",
+    "wistful",
+    "tender"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "John Williams",
+   "genres": [
+    "film score",
+    "classical"
+   ],
+   "subgenres": [],
+   "era": "1980s",
+   "moods": [
+    "triumphant",
+    "cinematic",
+    "anthemic"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Johnny Cash",
+   "genres": [
+    "country",
+    "americana",
+    "folk"
+   ],
+   "subgenres": [],
+   "era": "pre-1970",
+   "moods": [
+    "brooding",
+    "defiant"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Joni Mitchell",
+   "genres": [
+    "folk",
+    "singer-songwriter",
+    "jazz"
+   ],
+   "subgenres": [],
+   "era": "1970s",
+   "moods": [
+    "wistful",
+    "tender",
+    "sparse"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Journey",
+   "genres": [
+    "classic rock",
+    "rock"
+   ],
+   "subgenres": [
+    "arena rock"
+   ],
+   "era": "1980s",
+   "moods": [
+    "anthemic",
+    "triumphant"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Kacey Musgraves",
+   "genres": [
+    "country",
+    "pop",
+    "americana"
+   ],
+   "subgenres": [],
+   "era": "2010s",
+   "moods": [
+    "dreamy",
+    "warm",
+    "wistful"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Kanye West",
+   "genres": [
+    "hip hop",
+    "rap",
+    "soul"
+   ],
+   "subgenres": [],
+   "era": "2000s",
+   "moods": [
+    "defiant",
+    "triumphant",
+    "brooding"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Kendrick Lamar",
+   "genres": [
+    "hip hop",
+    "rap",
+    "jazz"
+   ],
+   "subgenres": [],
+   "era": "2010s",
+   "moods": [
+    "defiant",
+    "restless",
+    "brooding"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Kenshi Yonezu",
+   "genres": [
+    "j-pop",
+    "anime",
+    "pop"
+   ],
+   "subgenres": [],
+   "era": "2010s",
+   "moods": [
+    "restless",
+    "cinematic"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Khalid",
+   "genres": [
+    "r&b",
+    "pop"
+   ],
+   "subgenres": [],
+   "era": "2010s",
+   "moods": [
+    "warm",
+    "wistful"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Koji Kondo",
+   "genres": [
+    "video game",
+    "classical"
+   ],
+   "subgenres": [
+    "chiptune"
+   ],
+   "era": "1980s",
+   "moods": [
+    "playful",
+    "triumphant",
+    "nostalgic"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Lana Del Rey",
+   "genres": [
+    "dream pop",
+    "indie pop",
+    "pop"
+   ],
+   "subgenres": [
+    "baroque pop"
+   ],
+   "era": "2010s",
+   "moods": [
+    "melancholic",
+    "nostalgic",
+    "cinematic"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Laufey",
+   "genres": [
+    "jazz",
+    "bossa nova",
+    "pop"
+   ],
+   "subgenres": [],
+   "era": "2020s",
+   "moods": [
+    "tender",
+    "warm",
+    "wistful"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Led Zeppelin",
+   "genres": [
+    "classic rock",
+    "rock",
+    "blues"
+   ],
+   "subgenres": [
+    "hard rock"
+   ],
+   "era": "1970s",
+   "moods": [
+    "aggressive",
+    "driving"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Leonard Cohen",
+   "genres": [
+    "folk",
+    "singer-songwriter"
+   ],
+   "subgenres": [],
+   "era": "1970s",
+   "moods": [
+    "brooding",
+    "sparse",
+    "tender"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Linkin Park",
+   "genres": [
+    "rock",
+    "alternative",
+    "metal"
+   ],
+   "subgenres": [
+    "nu metal"
+   ],
+   "era": "2000s",
+   "moods": [
+    "aggressive",
+    "brooding",
+    "anthemic"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Lorde",
+   "genres": [
+    "indie pop",
+    "pop",
+    "electronic"
+   ],
+   "subgenres": [
+    "art pop"
+   ],
+   "era": "2010s",
+   "moods": [
+    "brooding",
+    "sparse",
+    "defiant"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Ludwig van Beethoven",
+   "genres": [
+    "classical"
+   ],
+   "subgenres": [],
+   "era": "pre-1970",
+   "moods": [
+    "triumphant",
+    "brooding",
+    "anthemic"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Mac DeMarco",
+   "genres": [
+    "indie rock",
+    "lo-fi",
+    "dream pop"
+   ],
+   "subgenres": [],
+   "era": "2010s",
+   "moods": [
+    "dreamy",
+    "playful",
+    "warm"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Madonna",
+   "genres": [
+    "pop",
+    "synthpop",
+    "disco"
+   ],
+   "subgenres": [],
+   "era": "1980s",
+   "moods": [
+    "defiant",
+    "euphoric"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Mariah Carey",
+   "genres": [
+    "pop",
+    "r&b",
+    "soul"
+   ],
+   "subgenres": [],
+   "era": "1990s",
+   "moods": [
+    "tender",
+    "euphoric"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Maroon 5",
+   "genres": [
+    "pop",
+    "funk",
+    "r&b"
+   ],
+   "subgenres": [],
+   "era": "2000s",
+   "moods": [
+    "playful",
+    "warm"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Marvin Gaye",
+   "genres": [
+    "soul",
+    "motown",
+    "r&b"
+   ],
+   "subgenres": [],
+   "era": "1970s",
+   "moods": [
+    "tender",
+    "warm"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Michael Jackson",
+   "genres": [
+    "pop",
+    "r&b",
+    "funk"
+   ],
+   "subgenres": [],
+   "era": "1980s",
+   "moods": [
+    "euphoric",
+    "driving",
+    "anthemic"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Miles Davis",
+   "genres": [
+    "jazz"
+   ],
+   "subgenres": [
+    "modal jazz"
+   ],
+   "era": "pre-1970",
+   "moods": [
+    "sparse",
+    "brooding",
+    "hypnotic"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Mitski",
+   "genres": [
+    "indie rock",
+    "indie pop",
+    "alternative"
+   ],
+   "subgenres": [],
+   "era": "2010s",
+   "moods": [
+    "melancholic",
+    "defiant",
+    "sparse"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Modest Mouse",
+   "genres": [
+    "indie rock",
+    "alternative"
+   ],
+   "subgenres": [],
+   "era": "2000s",
+   "moods": [
+    "restless",
+    "eerie"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Mumford & Sons",
+   "genres": [
+    "folk",
+    "indie rock",
+    "americana"
+   ],
+   "subgenres": [],
+   "era": "2010s",
+   "moods": [
+    "anthemic",
+    "driving"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "My Chemical Romance",
+   "genres": [
+    "emo",
+    "punk",
+    "rock"
+   ],
+   "subgenres": [],
+   "era": "2000s",
+   "moods": [
+    "anthemic",
+    "defiant",
+    "cinematic"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Nat King Cole",
+   "genres": [
+    "jazz",
+    "swing",
+    "soul"
+   ],
+   "subgenres": [],
+   "era": "pre-1970",
+   "moods": [
+    "warm",
+    "tender"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Neil Young",
+   "genres": [
+    "folk",
+    "classic rock",
+    "americana"
+   ],
+   "subgenres": [],
+   "era": "1970s",
+   "moods": [
+    "melancholic",
+    "defiant"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "NewJeans",
+   "genres": [
+    "k-pop",
+    "pop",
+    "r&b"
+   ],
+   "subgenres": [],
+   "era": "2020s",
+   "moods": [
+    "dreamy",
+    "playful"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Nirvana",
+   "genres": [
+    "grunge",
+    "alternative",
+    "rock"
+   ],
+   "subgenres": [],
+   "era": "1990s",
+   "moods": [
+    "aggressive",
+    "defiant",
+    "brooding"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Nobuo Uematsu",
+   "genres": [
+    "video game",
+    "classical",
+    "film score"
+   ],
+   "subgenres": [],
+   "era": "1990s",
+   "moods": [
+    "cinematic",
+    "triumphant",
+    "melancholic"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Norah Jones",
+   "genres": [
+    "jazz",
+    "singer-songwriter",
+    "folk"
+   ],
+   "subgenres": [],
+   "era": "2000s",
+   "moods": [
+    "warm",
+    "sparse",
+    "tender"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "ODESZA",
+   "genres": [
+    "electronic",
+    "edm",
+    "ambient"
+   ],
+   "subgenres": [],
+   "era": "2010s",
+   "moods": [
+    "euphoric",
+    "lush",
+    "cinematic"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Oasis",
+   "genres": [
+    "rock",
+    "alternative",
+    "indie rock"
+   ],
+   "subgenres": [
+    "britpop"
+   ],
+   "era": "1990s",
+   "moods": [
+    "anthemic",
+    "nostalgic",
+    "defiant"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Olivia Rodrigo",
+   "genres": [
+    "pop",
+    "punk",
+    "indie pop"
+   ],
+   "subgenres": [
+    "pop punk"
+   ],
+   "era": "2020s",
+   "moods": [
+    "defiant",
+    "melancholic",
+    "restless"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Outkast",
+   "genres": [
+    "hip hop",
+    "funk",
+    "rap"
+   ],
+   "subgenres": [],
+   "era": "2000s",
+   "moods": [
+    "playful",
+    "euphoric"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Panic! at the Disco",
+   "genres": [
+    "emo",
+    "pop",
+    "punk"
+   ],
+   "subgenres": [],
+   "era": "2000s",
+   "moods": [
+    "playful",
+    "anthemic"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Paramore",
+   "genres": [
+    "punk",
+    "rock",
+    "emo"
+   ],
+   "subgenres": [
+    "pop punk"
+   ],
+   "era": "2000s",
+   "moods": [
+    "defiant",
+    "driving",
+    "anthemic"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Pearl Jam",
+   "genres": [
+    "grunge",
+    "rock",
+    "alternative"
+   ],
+   "subgenres": [],
+   "era": "1990s",
+   "moods": [
+    "brooding",
+    "driving"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Phil Collins",
+   "genres": [
+    "pop",
+    "rock"
+   ],
+   "subgenres": [],
+   "era": "1980s",
+   "moods": [
+    "brooding",
+    "anthemic"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Phoebe Bridgers",
+   "genres": [
+    "indie rock",
+    "folk",
+    "singer-songwriter"
+   ],
+   "subgenres": [],
+   "era": "2010s",
+   "moods": [
+    "melancholic",
+    "sparse",
+    "eerie"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Pink Floyd",
+   "genres": [
+    "psychedelic",
+    "classic rock",
+    "post-rock"
+   ],
+   "subgenres": [
+    "prog rock"
+   ],
+   "era": "1970s",
+   "moods": [
+    "brooding",
+    "cinematic",
+    "hypnotic"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Post Malone",
+   "genres": [
+    "hip hop",
+    "pop",
+    "rap"
+   ],
+   "subgenres": [],
+   "era": "2010s",
+   "moods": [
+    "melancholic",
+    "hypnotic"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Prince",
+   "genres": [
+    "funk",
+    "pop",
+    "r&b"
+   ],
+   "subgenres": [],
+   "era": "1980s",
+   "moods": [
+    "playful",
+    "defiant",
+    "euphoric"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Queen",
+   "genres": [
+    "classic rock",
+    "rock",
+    "pop"
+   ],
+   "subgenres": [
+    "glam rock"
+   ],
+   "era": "1970s",
+   "moods": [
+    "anthemic",
+    "triumphant",
+    "playful"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "RADWIMPS",
+   "genres": [
+    "j-pop",
+    "rock",
+    "anime"
+   ],
+   "subgenres": [],
+   "era": "2010s",
+   "moods": [
+    "anthemic",
+    "restless",
+    "tender"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Radiohead",
+   "genres": [
+    "alternative",
+    "indie rock",
+    "post-rock"
+   ],
+   "subgenres": [
+    "art rock"
+   ],
+   "era": "1990s",
+   "moods": [
+    "brooding",
+    "eerie",
+    "melancholic"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Red Hot Chili Peppers",
+   "genres": [
+    "funk",
+    "alternative",
+    "rock"
+   ],
+   "subgenres": [
+    "funk rock"
+   ],
+   "era": "1990s",
+   "moods": [
+    "driving",
+    "playful"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Rihanna",
+   "genres": [
+    "pop",
+    "r&b",
+    "edm"
+   ],
+   "subgenres": [],
+   "era": "2010s",
+   "moods": [
+    "defiant",
+    "driving"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "SZA",
+   "genres": [
+    "r&b",
+    "soul",
+    "hip hop"
+   ],
+   "subgenres": [],
+   "era": "2010s",
+   "moods": [
+    "tender",
+    "restless"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Sam Smith",
+   "genres": [
+    "pop",
+    "soul",
+    "r&b"
+   ],
+   "subgenres": [],
+   "era": "2010s",
+   "moods": [
+    "melancholic",
+    "tender"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Sheryl Crow",
+   "genres": [
+    "rock",
+    "americana",
+    "pop"
+   ],
+   "subgenres": [],
+   "era": "1990s",
+   "moods": [
+    "warm",
+    "nostalgic"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Sia",
+   "genres": [
+    "pop",
+    "electronic"
+   ],
+   "subgenres": [],
+   "era": "2010s",
+   "moods": [
+    "anthemic",
+    "melancholic"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Simon & Garfunkel",
+   "genres": [
+    "folk",
+    "singer-songwriter"
+   ],
+   "subgenres": [],
+   "era": "pre-1970",
+   "moods": [
+    "melancholic",
+    "tender"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Soundgarden",
+   "genres": [
+    "grunge",
+    "metal",
+    "alternative"
+   ],
+   "subgenres": [],
+   "era": "1990s",
+   "moods": [
+    "aggressive",
+    "brooding"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Spice Girls",
+   "genres": [
+    "pop",
+    "teen pop"
+   ],
+   "subgenres": [],
+   "era": "1990s",
+   "moods": [
+    "playful",
+    "euphoric"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Stevie Wonder",
+   "genres": [
+    "soul",
+    "funk",
+    "r&b"
+   ],
+   "subgenres": [
+    "motown"
+   ],
+   "era": "1970s",
+   "moods": [
+    "warm",
+    "euphoric",
+    "playful"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Studio Ghibli",
+   "genres": [
+    "film score",
+    "classical",
+    "anime"
+   ],
+   "subgenres": [],
+   "era": "1990s",
+   "moods": [
+    "tender",
+    "nostalgic",
+    "lush"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Sufjan",
+   "genres": [
+    "folk",
+    "indie pop"
+   ],
+   "subgenres": [],
+   "era": "2010s",
+   "moods": [
+    "tender",
+    "sparse"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Sufjan Stevens",
+   "genres": [
+    "folk",
+    "indie pop",
+    "singer-songwriter"
+   ],
+   "subgenres": [],
+   "era": "2000s",
+   "moods": [
+    "tender",
+    "sparse",
+    "melancholic"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "TLC",
+   "genres": [
+    "r&b",
+    "hip hop",
+    "pop"
+   ],
+   "subgenres": [],
+   "era": "1990s",
+   "moods": [
+    "playful",
+    "warm"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "TWICE",
+   "genres": [
+    "k-pop",
+    "pop",
+    "synthpop"
+   ],
+   "subgenres": [],
+   "era": "2010s",
+   "moods": [
+    "playful",
+    "euphoric"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Tame Impala",
+   "genres": [
+    "psychedelic",
+    "indie rock",
+    "electronic"
+   ],
+   "subgenres": [],
+   "era": "2010s",
+   "moods": [
+    "hypnotic",
+    "dreamy",
+    "lush"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Taylor Swift",
+   "genres": [
+    "pop",
+    "country",
+    "indie pop"
+   ],
+   "subgenres": [],
+   "era": "2010s",
+   "moods": [
+    "wistful",
+    "nostalgic",
+    "tender"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Tears for Fears",
+   "genres": [
+    "synthpop",
+    "pop",
+    "alternative"
+   ],
+   "subgenres": [],
+   "era": "1980s",
+   "moods": [
+    "brooding",
+    "anthemic"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "The Beach Boys",
+   "genres": [
+    "pop",
+    "rock"
+   ],
+   "subgenres": [
+    "surf"
+   ],
+   "era": "pre-1970",
+   "moods": [
+    "nostalgic",
+    "wistful",
+    "warm"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "The Beatles",
+   "genres": [
+    "rock",
+    "pop",
+    "psychedelic"
+   ],
+   "subgenres": [
+    "merseybeat"
+   ],
+   "era": "pre-1970",
+   "moods": [
+    "playful",
+    "nostalgic",
+    "warm"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "The Cure",
+   "genres": [
+    "alternative",
+    "rock",
+    "dream pop"
+   ],
+   "subgenres": [
+    "post-punk"
+   ],
+   "era": "1980s",
+   "moods": [
+    "melancholic",
+    "dreamy",
+    "brooding"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "The Jackson 5",
+   "genres": [
+    "motown",
+    "soul",
+    "pop"
+   ],
+   "subgenres": [],
+   "era": "1970s",
+   "moods": [
+    "euphoric",
+    "playful"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "The Killers",
+   "genres": [
+    "indie rock",
+    "alternative",
+    "synthpop"
+   ],
+   "subgenres": [],
+   "era": "2000s",
+   "moods": [
+    "anthemic",
+    "driving"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "The Lumineers",
+   "genres": [
+    "folk",
+    "indie pop",
+    "americana"
+   ],
+   "subgenres": [],
+   "era": "2010s",
+   "moods": [
+    "nostalgic",
+    "warm"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "The National",
+   "genres": [
+    "indie rock",
+    "alternative"
+   ],
+   "subgenres": [],
+   "era": "2010s",
+   "moods": [
+    "brooding",
+    "melancholic",
+    "restless"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "The Police",
+   "genres": [
+    "rock",
+    "reggae",
+    "alternative"
+   ],
+   "subgenres": [
+    "new wave"
+   ],
+   "era": "1980s",
+   "moods": [
+    "restless",
+    "driving"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "The Rolling Stones",
+   "genres": [
+    "rock",
+    "classic rock",
+    "blues"
+   ],
+   "subgenres": [],
+   "era": "pre-1970",
+   "moods": [
+    "defiant",
+    "driving"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "The Smashing Pumpkins",
+   "genres": [
+    "alternative",
+    "rock",
+    "grunge"
+   ],
+   "subgenres": [],
+   "era": "1990s",
+   "moods": [
+    "brooding",
+    "lush"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "The Strokes",
+   "genres": [
+    "indie rock",
+    "alternative",
+    "rock"
+   ],
+   "subgenres": [
+    "garage rock"
+   ],
+   "era": "2000s",
+   "moods": [
+    "driving",
+    "defiant"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "The Weeknd",
+   "genres": [
+    "r&b",
+    "pop",
+    "synthpop"
+   ],
+   "subgenres": [],
+   "era": "2010s",
+   "moods": [
+    "brooding",
+    "hypnotic",
+    "nostalgic"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "The White Stripes",
+   "genres": [
+    "rock",
+    "blues",
+    "punk"
+   ],
+   "subgenres": [
+    "garage rock"
+   ],
+   "era": "2000s",
+   "moods": [
+    "aggressive",
+    "driving"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "The Who",
+   "genres": [
+    "classic rock",
+    "rock"
+   ],
+   "subgenres": [],
+   "era": "pre-1970",
+   "moods": [
+    "defiant",
+    "anthemic"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Third Eye Blind",
+   "genres": [
+    "alternative",
+    "rock"
+   ],
+   "subgenres": [],
+   "era": "1990s",
+   "moods": [
+    "restless",
+    "nostalgic"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Toby Fox",
+   "genres": [
+    "video game",
+    "electronic",
+    "lo-fi"
+   ],
+   "subgenres": [
+    "chiptune"
+   ],
+   "era": "2010s",
+   "moods": [
+    "playful",
+    "eerie",
+    "tender"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Toto",
+   "genres": [
+    "rock",
+    "pop"
+   ],
+   "subgenres": [
+    "yacht rock"
+   ],
+   "era": "1980s",
+   "moods": [
+    "warm",
+    "nostalgic"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Twenty One Pilots",
+   "genres": [
+    "alternative",
+    "hip hop",
+    "pop"
+   ],
+   "subgenres": [],
+   "era": "2010s",
+   "moods": [
+    "restless",
+    "defiant",
+    "anthemic"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "U2",
+   "genres": [
+    "rock",
+    "alternative"
+   ],
+   "subgenres": [],
+   "era": "1980s",
+   "moods": [
+    "anthemic",
+    "cinematic"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Vampire Weekend",
+   "genres": [
+    "indie rock",
+    "indie pop",
+    "afrobeat"
+   ],
+   "subgenres": [],
+   "era": "2010s",
+   "moods": [
+    "playful",
+    "warm"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Wallows",
+   "genres": [
+    "indie rock",
+    "indie pop",
+    "alternative"
+   ],
+   "subgenres": [],
+   "era": "2020s",
+   "moods": [
+    "restless",
+    "nostalgic"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Weezer",
+   "genres": [
+    "alternative",
+    "rock",
+    "indie rock"
+   ],
+   "subgenres": [
+    "power pop"
+   ],
+   "era": "1990s",
+   "moods": [
+    "playful",
+    "nostalgic"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Whitney Houston",
+   "genres": [
+    "pop",
+    "r&b",
+    "soul"
+   ],
+   "subgenres": [],
+   "era": "1980s",
+   "moods": [
+    "triumphant",
+    "tender"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Yoasobi",
+   "genres": [
+    "j-pop",
+    "anime",
+    "electronic"
+   ],
+   "subgenres": [],
+   "era": "2020s",
+   "moods": [
+    "driving",
+    "euphoric"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Yoko Shimomura",
+   "genres": [
+    "video game",
+    "classical",
+    "film score"
+   ],
+   "subgenres": [],
+   "era": "2000s",
+   "moods": [
+    "cinematic",
+    "wistful"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "Zach Bryan",
+   "genres": [
+    "country",
+    "americana",
+    "folk"
+   ],
+   "subgenres": [],
+   "era": "2020s",
+   "moods": [
+    "wistful",
+    "sparse"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "a-ha",
+   "genres": [
+    "synthpop",
+    "pop"
+   ],
+   "subgenres": [],
+   "era": "1980s",
+   "moods": [
+    "wistful",
+    "driving"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  },
+  {
+   "artist": "boygenius",
+   "genres": [
+    "indie rock",
+    "folk",
+    "alternative"
+   ],
+   "subgenres": [],
+   "era": "2020s",
+   "moods": [
+    "melancholic",
+    "tender",
+    "defiant"
+   ],
+   "confidence": 0.9,
+   "unknown": false
+  }
+ ]
+}

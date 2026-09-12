@@ -1,0 +1,141 @@
+"""Merge Hooktheory song hits from many n-gram queries into one ranked list."""
+
+from __future__ import annotations
+
+import math
+import re
+import unicodedata
+from collections import defaultdict
+from dataclasses import dataclass
+from typing import Iterable, Mapping, Sequence
+
+from .events import ArtistHit, SongHit
+from .ngrams import Ngram, rarity
+
+#: A window that opens the take is slightly better evidence of intent.
+W_OPENS_TAKE = 1.15
+#: One song matching in six sections should not outweigh six different songs.
+MAX_SECTION_MULTIPLIER = 1.5
+#: Prolific catalogue artists would otherwise win on volume alone.
+ARTIST_VOLUME_EXPONENT = 0.5
+
+_LEADING_THE = re.compile(r"^(the|a|an)\s+", re.IGNORECASE)
+_PUNCT = re.compile(r"[^\w\s]")
+_WS = re.compile(r"\s+")
+
+
+def normalize_name(name: str) -> str:
+    """Fold an artist or song name for deduplication and cache keys."""
+    folded = unicodedata.normalize("NFKD", name).casefold()
+    folded = "".join(c for c in folded if not unicodedata.combining(c))
+    folded = _PUNCT.sub(" ", folded)
+    folded = _LEADING_THE.sub("", folded.strip())
+    return _WS.sub(" ", folded).strip()
+
+
+@dataclass(frozen=True, slots=True)
+class NgramResult:
+    """What one Hooktheory ``trends/songs`` query returned."""
+
+    ngram: Ngram
+    songs: tuple[SongHit, ...]
+    #: Total hits the query is known to have, across all pages. Falls back to the
+    #: number actually fetched when paging stopped early.
+    total_hits: int = 0
+
+
+def score_songs(
+    results: Sequence[NgramResult],
+    transition_prob: Mapping[tuple[str, ...], float] | None = None,
+) -> tuple[SongHit, ...]:
+    """Rank songs by how strongly the take's windows point at them.
+
+    The `1 / (1 + log(total_hits))` term carries most of the weight: a match on a
+    progression thousands of songs share is nearly worthless, while a match on a
+    rare one is close to an identification.
+    """
+    scores: dict[tuple[str, str], float] = defaultdict(float)
+    sections: dict[tuple[str, str], set[str]] = defaultdict(set)
+    display: dict[tuple[str, str], SongHit] = {}
+    matched: dict[tuple[str, str], set[str]] = defaultdict(set)
+
+    for result in results:
+        g = result.ngram
+        if not result.songs:
+            continue
+        total = max(result.total_hits, len(result.songs))
+        specificity = 1.0 / (1.0 + math.log(max(total, 1)))
+        weight = (
+            (g.n**1.5)
+            * (W_OPENS_TAKE if g.opens_take else 1.0)
+            * rarity(g, dict(transition_prob) if transition_prob else None)
+            * g.fidelity
+            * specificity
+        )
+        for hit in result.songs:
+            key = (normalize_name(hit.artist), normalize_name(hit.song))
+            if key not in sections:
+                display[key] = hit
+            # Extra sections of the same song add evidence, but with sharply
+            # diminishing returns.
+            n_before = len(sections[key])
+            sections[key].add(hit.section)
+            if len(sections[key]) > n_before:
+                multiplier = min(
+                    MAX_SECTION_MULTIPLIER, 1.0 + 0.25 * (len(sections[key]) - 1)
+                )
+            else:
+                multiplier = 1.0
+            scores[key] += weight * multiplier
+            matched[key].add(g.cp)
+
+    out = [
+        SongHit(
+            artist=display[k].artist,
+            song=display[k].song,
+            section=", ".join(sorted(sections[k])),
+            url=display[k].url,
+            score=v,
+            matched_ngrams=tuple(sorted(matched[k])),
+        )
+        for k, v in scores.items()
+    ]
+    out.sort(key=lambda s: (-s.score, normalize_name(s.artist), normalize_name(s.song)))
+    return tuple(out)
+
+
+def rollup_artists(
+    songs: Sequence[SongHit],
+    artist_document_frequency: Mapping[str, int] | None = None,
+    corpus_size: int = 0,
+) -> tuple[ArtistHit, ...]:
+    """Aggregate song scores per artist.
+
+    Two dampers: a sublinear volume term so a large catalogue cannot win by
+    breadth, and an inverse-document-frequency term built from everything the
+    shared cache has ever seen -- so the cross-user cache doubles as a corpus
+    that makes ranking better over time.
+    """
+    grouped: dict[str, list[SongHit]] = defaultdict(list)
+    for s in songs:
+        grouped[normalize_name(s.artist)].append(s)
+
+    hits: list[ArtistHit] = []
+    for key, group in grouped.items():
+        raw = sum(s.score for s in group) / (len(group) ** ARTIST_VOLUME_EXPONENT)
+        if artist_document_frequency and corpus_size > 0:
+            df = artist_document_frequency.get(key, 1)
+            raw *= math.log(1 + corpus_size / max(df, 1))
+        hits.append(
+            ArtistHit(
+                artist=group[0].artist,
+                score=raw,
+                songs=tuple(sorted({s.song for s in group})),
+            )
+        )
+    hits.sort(key=lambda a: (-a.score, normalize_name(a.artist)))
+    return tuple(hits)
+
+
+def top_artist_names(artists: Iterable[ArtistHit], n: int = 5) -> tuple[str, ...]:
+    return tuple(a.artist for a in list(artists)[:n])
