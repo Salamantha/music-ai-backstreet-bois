@@ -67,10 +67,17 @@ export default function Page() {
       reachable: connected || lastChords !== null,
     },
     {
+      id: "results",
+      label: "Results",
+      hint: "Your key, songs and taste",
+      complete: result !== null,
+      reachable: result !== null,
+    },
+    {
       id: "connect",
       label: "Connect",
       hint: "Match with musicians",
-      complete: false,
+      complete: room !== null,
       reachable: result !== null,
     },
   ];
@@ -153,6 +160,7 @@ export default function Page() {
   const heading = [
     "Plug in your instrument",
     "Play your chords",
+    "Your results",
     "Connect with musicians",
   ][step];
 
@@ -298,6 +306,18 @@ export default function Page() {
             }
           />
           {result.profile && <TasteProfile profile={result.profile} />}
+
+          <div className="step-nav">
+            <button onClick={() => setStep(1)}>Back to your chords</button>
+            <button className="primary" onClick={() => setStep(3)}>
+              Next: find musicians
+            </button>
+          </div>
+        </>
+      )}
+
+      {step === 3 && result && (
+        <>
           {!roomEnabled ? (
             result.matches.length > 0 && <MatchList matches={result.matches} />
           ) : room === null ? (
@@ -318,7 +338,7 @@ export default function Page() {
           </div>
 
           <div className="step-nav">
-            <button onClick={() => setStep(1)}>Back to your chords</button>
+            <button onClick={() => setStep(2)}>Back to your results</button>
             <button onClick={startOver}>Start over with a new progression</button>
           </div>
         </>
