@@ -194,6 +194,8 @@ export function matchedPositions(chords: string[], pattern: string[]): Set<numbe
 export function youtubeSearch(artist: string, song: string): string {
   const q = encodeURIComponent(`${artist} ${song}`.replace(/\s+/g, " ").trim());
   return `https://www.youtube.com/results?search_query=${q}`;
+}
+
 export interface HelperFact {
   id: string; kind: string; value: unknown;
   n_observations: number; confidence: number;

@@ -402,22 +402,38 @@ main { position: relative; z-index: 1; }
 @media (prefers-reduced-motion: reduce) {
   .reading > summary::before { transition: none; }
 }
-/* Helper page: the teaching path. Shares the tokens above, nothing else. */
-.helper { max-width: 640px; }
+/* ---- Helper page ---------------------------------------------------
+   The teaching path. Shares every token and primitive above; the only
+   thing it owns is the shape of the ask button and the fact table. */
+.helper { max-width: 44rem; }
+
 .ask {
-  width: 100%; padding: 18px; font-size: 17px; border-radius: var(--radius);
+  width: 100%;
+  padding: 1.1rem;
+  font-size: 1.05rem;
+  border-radius: var(--radius);
+  min-height: 3.5rem;
 }
-.tag {
-  padding: 6px 13px; border-radius: 999px; font-size: 13px; font-weight: 500;
+
+.tag { padding: 0.4rem 0.85rem; border-radius: 999px; font-size: 0.9rem; font-weight: 400; }
+.tag[aria-pressed="true"] {
+  background: var(--accent-3);
+  color: var(--on-bright);
+  border-color: var(--accent-3);
 }
-.tag.on { background: var(--accent); color: #0b1220; border-color: var(--accent); }
-.turn p { font-size: 15px; line-height: 1.6; }
-.turn p:first-child { font-size: 16px; color: var(--text); }
+
+.turn p { line-height: 1.6; }
+.turn p:first-of-type { font-size: 1.05rem; }
+
 .draft-warning {
-  color: var(--warn); border: 1px solid #5d4f2f; border-radius: 8px;
-  padding: 10px 12px; font-size: 13px;
+  color: var(--warn);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 0.7rem 0.85rem;
+  font-size: 0.9rem;
 }
-.facts { width: 100%; font-size: 13px; border-collapse: collapse; }
-.facts td { padding: 4px 8px; border-top: 1px solid var(--line); vertical-align: top; }
+
+.facts { width: 100%; font-size: 0.85rem; border-collapse: collapse; }
+.facts td { padding: 0.3rem 0.5rem; border-top: 1px solid var(--line); vertical-align: top; }
 .facts td:first-child { color: var(--muted); white-space: nowrap; }
 .facts td:last-child { color: var(--muted); text-align: right; white-space: nowrap; }

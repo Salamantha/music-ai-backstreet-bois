@@ -175,7 +175,7 @@ export default function HelperPage() {
         </button>
 
         {phase === "listening" && (
-          <p className="sub" style={{ textAlign: "center", margin: "12px 0 0" }}>
+          <p className="sub" style={{ textAlign: "center", marginBottom: 0 }}>
             Listening on <span className="mono">{portName}</span> &mdash;{" "}
             {noteCount} notes so far
           </p>
@@ -188,7 +188,7 @@ export default function HelperPage() {
             <button
               onClick={() => void useRecorded()}
               disabled={busy}
-              style={{ padding: "2px 8px", fontSize: 13 }}
+              className="quiet"
             >
               use a recorded take
             </button>
@@ -202,7 +202,8 @@ export default function HelperPage() {
           {TAGS.map((tag) => (
             <button
               key={tag}
-              className={tags.includes(tag) ? "tag on" : "tag"}
+              className="tag"
+              aria-pressed={tags.includes(tag)}
               onClick={() =>
                 setTags((prev) =>
                   prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
