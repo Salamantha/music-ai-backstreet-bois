@@ -18,8 +18,49 @@ class NoteEventIn(BaseModel):
     c: int | None = Field(default=None, ge=1, le=16, description="MIDI channel, 1-16")
 
 
+class IdentifyRequest(BaseModel):
+    """A single sounding chord, for live step-entry capture."""
+
+    pitches: list[int] = Field(min_length=1, max_length=16)
+    bass_pitch: int | None = Field(default=None, ge=0, le=127)
+    key_tonic_pc: int | None = Field(default=None, ge=0, le=11)
+    key_mode: str | None = None
+
+
+class CandidateOut(BaseModel):
+    root: str
+    quality: str
+    symbol: str
+    inversion: int
+    extensions: list[str]
+    score: float
+
+
+class IdentifyResponse(BaseModel):
+    symbol: str
+    root: str
+    quality: str
+    inversion: int
+    extensions: list[str]
+    bass: str
+    roman: str | None = None
+    cp: str | None = None
+    pitch_classes: list[str]
+    candidates: list[CandidateOut]
+
+
+class ChordStepIn(BaseModel):
+    """One chord captured as a discrete step."""
+
+    pitches: list[int] = Field(min_length=1, max_length=16)
+    duration_ms: float = Field(default=600.0, gt=0)
+
+
 class AnalyzeRequest(BaseModel):
     events: list[NoteEventIn] = Field(default_factory=list, max_length=20000)
+    #: Alternative to `events`: chords already separated by the client, which is
+    #: how Chord Cruiser step entry works. Avoids segmentation entirely.
+    chords: list[ChordStepIn] = Field(default_factory=list, max_length=512)
     session_end_ms: float | None = None
     key_tonic_pc: int | None = Field(default=None, ge=0, le=11)
     key_mode: str | None = None

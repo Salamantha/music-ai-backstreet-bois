@@ -5,7 +5,7 @@ import MidiConnect from "@/components/MidiConnect";
 import ChordTimeline from "@/components/ChordTimeline";
 import KeyPanel from "@/components/KeyPanel";
 import { MatchList, SongMatches, TasteProfile } from "@/components/Results";
-import { analyze, health, type AnalyzeResponse } from "@/lib/api";
+import { analyze, analyzeChords, health, type AnalyzeResponse, type ChordStep } from "@/lib/api";
 import { DEMOS, synthesize } from "@/lib/demo";
 import type { MidiEvent } from "@/lib/webmidi";
 
@@ -15,6 +15,7 @@ export default function Page() {
   const [error, setError] = useState("");
   const [backend, setBackend] = useState<Record<string, unknown> | null>(null);
   const [take, setTake] = useState<{ events: MidiEvent[]; elapsed: number } | null>(null);
+  const [lastChords, setLastChords] = useState<ChordStep[] | null>(null);
 
   useEffect(() => {
     health().then(setBackend).catch(() => setBackend(null));
@@ -39,11 +40,30 @@ export default function Page() {
 
   function onEvents(events: MidiEvent[], elapsed: number) {
     setTake({ events, elapsed });
+    setLastChords(null);
     void run(events, elapsed);
   }
 
+  async function onChords(chords: ChordStep[], key?: { pc: number; mode: string }) {
+    setBusy(true);
+    setError("");
+    setTake(null);  // a step progression is not re-analysable as raw events
+    setLastChords(chords);
+    try {
+      setResult(
+        await analyzeChords(chords, { keyTonicPc: key?.pc, keyMode: key?.mode }),
+      );
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   function override(pc: number, mode: string) {
+    // Re-analyse whichever capture produced the current result.
     if (take) void run(take.events, take.elapsed, { pc, mode });
+    else if (lastChords) void onChords(lastChords, { pc, mode });
   }
 
   return (
@@ -62,7 +82,7 @@ export default function Page() {
         </span>
       </div>
 
-      <MidiConnect onEvents={onEvents} busy={busy} />
+      <MidiConnect onEvents={onEvents} onChords={onChords} busy={busy} />
 
       <div className="panel">
         <h2>No ChordCat to hand?</h2>

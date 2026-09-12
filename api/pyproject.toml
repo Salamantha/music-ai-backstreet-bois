@@ -33,7 +33,13 @@ chordcat = ["data/*.json", "seed/*.json"]
 testpaths = ["tests"]
 pythonpath = ["tests"]
 asyncio_mode = "auto"
-filterwarnings = ["error::DeprecationWarning"]
+filterwarnings = [
+    # Keep our own deprecations fatal, but don't fail on third-party ones we
+    # cannot fix (starlette's TestClient imports a deprecated anyio alias).
+    "error::DeprecationWarning",
+    "default::DeprecationWarning:anyio.*",
+    "default::DeprecationWarning:starlette.*",
+]
 
 [tool.ruff]
 line-length = 100

@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import ChordSteps, { type Step } from "./ChordSteps";
 import MidiMonitor from "./MidiMonitor";
+import { identify, type Identified } from "@/lib/api";
 import {
   MidiCapture, channelStats, checkSupport, filterChannels, heldNotes,
   looksLikeChordcat, noteName, suggestHarmonyChannels,
@@ -9,12 +11,21 @@ import {
   type RawMessage,
 } from "@/lib/webmidi";
 
+export type CaptureMode = "steps" | "continuous";
+
 interface Props {
   onEvents: (events: MidiEvent[], elapsedMs: number) => void;
+  onChords: (steps: { pitches: number[]; duration_ms?: number }[]) => void;
   busy: boolean;
 }
 
-export default function MidiConnect({ onEvents, busy }: Props) {
+/** A held chord is committed once every note has been released. */
+const RELEASE_COMMIT_MS = 90;
+/** Wait for the voicing to settle before asking the server what it is. */
+const IDENTIFY_DEBOUNCE_MS = 120;
+const MIN_NOTES_PER_STEP = 2;
+
+export default function MidiConnect({ onEvents, onChords, busy }: Props) {
   const captureRef = useRef<MidiCapture | null>(null);
   // Web MIDI support cannot be determined during server rendering -- `navigator`
   // does not exist there -- so resolve it after mount. Computing it in the
@@ -31,6 +42,73 @@ export default function MidiConnect({ onEvents, busy }: Props) {
   const [recent, setRecent] = useState<RawMessage[]>([]);
   const [channels, setChannels] = useState<Set<number>>(new Set());
   const [touchedChannels, setTouchedChannels] = useState(false);
+
+  const [mode, setMode] = useState<CaptureMode>("steps");
+  const [steps, setSteps] = useState<Step[]>([]);
+  const [pending, setPending] = useState<number[]>([]);
+  const [live, setLive] = useState<Identified | null>(null);
+
+  // The MIDI subscription is registered once, so its closure would capture
+  // stale state. Everything the handler reads lives in a ref.
+  const modeRef = useRef<CaptureMode>("steps");
+  const recordingRef = useRef(false);
+  const pendingRef = useRef<number[]>([]);
+  const identifyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const commitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const nextId = useRef(1);
+
+  useEffect(() => { modeRef.current = mode; }, [mode]);
+  useEffect(() => { recordingRef.current = recording; }, [recording]);
+
+  const commitPending = useCallback(() => {
+    const pitches = pendingRef.current;
+    pendingRef.current = [];
+    setPending([]);
+    setLive(null);
+    if (pitches.length < MIN_NOTES_PER_STEP) return;
+    // Identify asynchronously; the step appears immediately either way, so a
+    // slow or failed lookup never costs the player their chord.
+    const id = nextId.current++;
+    setSteps((prev) => [...prev, { id, pitches, chord: null }]);
+    identify(pitches)
+      .then((chord) =>
+        setSteps((prev) =>
+          prev.map((s) => (s.id === id ? { ...s, chord } : s)),
+        ),
+      )
+      .catch(() => undefined);
+  }, []);
+
+  const onHeldChange = useCallback(
+    (held: number[]) => {
+      if (modeRef.current !== "steps" || !recordingRef.current) return;
+
+      if (commitTimer.current) clearTimeout(commitTimer.current);
+
+      if (held.length === 0) {
+        // Everything released. Wait a moment first: the ChordCat staggers its
+        // note-offs by a few ms, and a re-voicing can briefly pass through zero.
+        commitTimer.current = setTimeout(commitPending, RELEASE_COMMIT_MS);
+        return;
+      }
+
+      // Keep the fullest voicing seen while this chord was held, so a chord
+      // whose notes land a few ms apart is captured whole rather than clipped.
+      if (held.length >= pendingRef.current.length) {
+        pendingRef.current = held;
+        setPending(held);
+      }
+
+      if (identifyTimer.current) clearTimeout(identifyTimer.current);
+      identifyTimer.current = setTimeout(() => {
+        const current = pendingRef.current;
+        if (current.length >= MIN_NOTES_PER_STEP) {
+          identify(current).then(setLive).catch(() => setLive(null));
+        }
+      }, IDENTIFY_DEBOUNCE_MS);
+    },
+    [commitPending],
+  );
 
   useEffect(() => {
     setSupport(checkSupport());
@@ -54,8 +132,10 @@ export default function MidiConnect({ onEvents, busy }: Props) {
         capture.select(preferred.id);
       }
       capture.subscribe((_e, all) => {
-        setHeld(heldNotes(all));
+        const currentlyHeld = heldNotes(all);
+        setHeld(currentlyHeld);
         setCount(all.length);
+        onHeldChange(currentlyHeld);
         const next = channelStats(all);
         setStats(next);
         // Preselect the channels that look like harmony, but never fight the
@@ -81,8 +161,16 @@ export default function MidiConnect({ onEvents, busy }: Props) {
     }
   }
 
+  function resetSteps() {
+    setSteps([]);
+    setPending([]);
+    setLive(null);
+    pendingRef.current = [];
+  }
+
   function start() {
     captureRef.current!.start();
+    resetSteps();
     setCount(0);
     setHeld([]);
     setStats([]);
@@ -181,13 +269,48 @@ export default function MidiConnect({ onEvents, busy }: Props) {
             </select>
             {!recording ? (
               <button className="primary" onClick={start} disabled={!selected || busy}>
-                Start recording
+                {mode === "steps" ? "Start capturing" : "Start recording"}
+              </button>
+            ) : mode === "steps" ? (
+              <button
+                className="danger"
+                onClick={() => {
+                  // Flush a chord still being held, so the last one is not lost.
+                  if (pendingRef.current.length >= MIN_NOTES_PER_STEP) commitPending();
+                  setRecording(false);
+                }}
+              >
+                Stop capturing
               </button>
             ) : (
               <button className="danger" onClick={stop}>
                 Stop &amp; analyse ({count} events)
               </button>
             )}
+            <span className="row" style={{ gap: 4, marginLeft: "auto" }}>
+              <button
+                onClick={() => setMode("steps")}
+                disabled={recording}
+                style={{
+                  padding: "6px 11px", fontSize: 13,
+                  borderColor: mode === "steps" ? "var(--accent)" : undefined,
+                }}
+                title="Play one chord at a time (Chord Cruiser)"
+              >
+                Chord by chord
+              </button>
+              <button
+                onClick={() => setMode("continuous")}
+                disabled={recording}
+                style={{
+                  padding: "6px 11px", fontSize: 13,
+                  borderColor: mode === "continuous" ? "var(--accent)" : undefined,
+                }}
+                title="Record a continuous performance and segment it"
+              >
+                Continuous
+              </button>
+            </span>
           </>
         )}
       </div>
@@ -208,7 +331,23 @@ export default function MidiConnect({ onEvents, busy }: Props) {
 
       {error && <p className="error" style={{ marginBottom: 0 }}>{error}</p>}
 
-      {(stats.length > 0 || recent.length > 0) && (
+      {mode === "steps" && (recording || steps.length > 0) && (
+        <div style={{ marginTop: 16, marginLeft: -18, marginRight: -18 }}>
+          <ChordSteps
+            steps={steps}
+            pending={pending}
+            live={live}
+            busy={busy}
+            onRemove={(id) => setSteps((prev) => prev.filter((s) => s.id !== id))}
+            onClear={resetSteps}
+            onAnalyse={() =>
+              onChords(steps.map((s) => ({ pitches: s.pitches, duration_ms: 600 })))
+            }
+          />
+        </div>
+      )}
+
+      {mode === "continuous" && (stats.length > 0 || recent.length > 0) && (
         <div style={{ marginTop: 16, marginLeft: -18, marginRight: -18, marginBottom: -18 }}>
           <MidiMonitor
             stats={stats}

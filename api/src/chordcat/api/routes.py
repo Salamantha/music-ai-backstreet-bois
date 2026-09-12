@@ -8,11 +8,16 @@ import uuid
 from fastapi import APIRouter, HTTPException
 
 from ..deps import get_services
-from ..domain.events import Hole, Key, RawEvent
-from ..domain.pitch import MODES, key_name, pc_name
+from ..domain.chords import identify_chord
+from ..domain.cp import to_cp
+from ..domain.events import ChordEvent, Hole, IdentifiedChord, Key, RawEvent
+from ..domain.pitch import MODES, key_name, pc_name, roman_for
 from ..services.pipeline import analyse
 from .schemas import (
     AnalyzeRequest,
+    CandidateOut,
+    IdentifyRequest,
+    IdentifyResponse,
     AnalyzeResponse,
     ArtistOut,
     ChordOut,
@@ -46,16 +51,107 @@ async def health() -> dict:
     }
 
 
+def _symbol(root_pc: int, quality: str) -> str:
+    return pc_name(root_pc) + _QUALITY_SYMBOL.get(quality, "")
+
+
+def _chord_event(pitches: list[int], duration_ms: float = 600.0) -> ChordEvent:
+    """Build a ChordEvent from a set of simultaneously sounding pitches."""
+    weights: dict[int, float] = {}
+    for p in pitches:
+        weights[p % 12] = weights.get(p % 12, 0.0) + 1.0
+    total = sum(weights.values()) or 1.0
+    weights = {k: v / total for k, v in weights.items()}
+    bass = min(pitches)
+    weights[bass % 12] = weights.get(bass % 12, 0.0) + 0.6
+    return ChordEvent(
+        start_ms=0.0,
+        end_ms=duration_ms,
+        pitches=tuple(sorted(pitches)),
+        bass_pitch=bass,
+        onset_pitches=tuple(sorted(pitches)),
+        pc_weights=tuple(sorted(weights.items())),
+        velocity_mean=100.0,
+    )
+
+
+@router.post("/identify", response_model=IdentifyResponse)
+async def identify(req: IdentifyRequest) -> IdentifyResponse:
+    """Identify one chord as it is being held.
+
+    Deliberately does no network I/O, so it can be called on every change to the
+    set of held notes without touching the shared Hooktheory quota.
+    """
+    pitches = sorted(set(req.pitches))
+    if req.bass_pitch is not None and req.bass_pitch not in pitches:
+        pitches = sorted({*pitches, req.bass_pitch})
+
+    key: Key | None = None
+    if req.key_tonic_pc is not None and req.key_mode in MODES:
+        key = Key(req.key_tonic_pc, req.key_mode)  # type: ignore[arg-type]
+
+    event = _chord_event(pitches)
+    candidates = identify_chord(event, key=key)
+    if not candidates:
+        raise HTTPException(400, "could not identify a chord from those pitches")
+
+    best = candidates[0]
+    roman = cp_token = None
+    if key is not None:
+        result = to_cp(IdentifiedChord(event=event, candidates=candidates), key)
+        cp_token = result.root_position_token
+        roman = roman_for((best.root_pc - key.tonic_pc) % 12, best.quality, key.mode)
+
+    return IdentifyResponse(
+        symbol=_symbol(best.root_pc, best.quality)
+        + ("(" + ",".join(best.extensions) + ")" if best.extensions else ""),
+        root=pc_name(best.root_pc),
+        quality=best.quality,
+        inversion=best.inversion,
+        extensions=list(best.extensions),
+        bass=pc_name(event.bass_pc),
+        roman=roman,
+        cp=cp_token,
+        pitch_classes=[pc_name(p) for p in sorted(event.pcs)],
+        candidates=[
+            CandidateOut(
+                root=pc_name(c.root_pc),
+                quality=c.quality,
+                symbol=_symbol(c.root_pc, c.quality),
+                inversion=c.inversion,
+                extensions=list(c.extensions),
+                score=c.score,
+            )
+            for c in candidates
+        ],
+    )
+
+
 @router.post("/analyze", response_model=AnalyzeResponse)
 async def analyze(req: AnalyzeRequest) -> AnalyzeResponse:
     services = get_services()
 
-    raw = [
-        RawEvent(kind=e.k, t=e.t, pitch=e.p, velocity=e.v, controller=e.n)
-        for e in req.events
-    ]
+    if req.chords:
+        # Step entry: the client already separated the chords, so render them as
+        # a note stream rather than asking segmentation to re-derive boundaries
+        # it cannot know better than the player did.
+        raw = []
+        t = 0.0
+        for step in req.chords:
+            for i, pitch in enumerate(sorted(set(step.pitches))):
+                raw.append(RawEvent("on", t + i * 2.0, pitch, 100))
+            for i, pitch in enumerate(sorted(set(step.pitches))):
+                raw.append(RawEvent("off", t + step.duration_ms - 20 + i, pitch))
+            t += step.duration_ms
+        if req.session_end_ms is None:
+            req = req.model_copy(update={"session_end_ms": t})
+    else:
+        raw = [
+            RawEvent(kind=e.k, t=e.t, pitch=e.p, velocity=e.v, controller=e.n)
+            for e in req.events
+        ]
     if not raw:
-        raise HTTPException(400, "no MIDI events supplied")
+        raise HTTPException(400, "no MIDI events or chords supplied")
 
     override: Key | None = None
     if req.key_tonic_pc is not None and req.key_mode:

@@ -68,3 +68,58 @@ export async function health(): Promise<Record<string, unknown>> {
   if (!res.ok) throw new Error(`Backend unreachable (${res.status})`);
   return res.json();
 }
+
+export interface Candidate {
+  root: string; quality: string; symbol: string;
+  inversion: number; extensions: string[]; score: number;
+}
+export interface Identified {
+  symbol: string; root: string; quality: string; inversion: number;
+  extensions: string[]; bass: string; roman: string | null; cp: string | null;
+  pitch_classes: string[]; candidates: Candidate[];
+}
+
+/** Identify one held chord. Does no network I/O beyond this call -- safe to
+ *  fire on every change to the set of held notes. */
+export async function identify(
+  pitches: number[],
+  key?: { tonicPc: number; mode: string },
+): Promise<Identified> {
+  const res = await fetch(`${BASE}/api/identify`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      pitches,
+      key_tonic_pc: key?.tonicPc,
+      key_mode: key?.mode,
+    }),
+  });
+  if (!res.ok) throw new Error(`Identify failed (${res.status})`);
+  return res.json();
+}
+
+export interface ChordStep {
+  pitches: number[];
+  duration_ms?: number;
+}
+
+/** Analyse a progression the player already separated into chords. */
+export async function analyzeChords(
+  chords: ChordStep[],
+  opts: { keyTonicPc?: number; keyMode?: string } = {},
+): Promise<AnalyzeResponse> {
+  const res = await fetch(`${BASE}/api/analyze`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      chords,
+      key_tonic_pc: opts.keyTonicPc,
+      key_mode: opts.keyMode,
+    }),
+  });
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`Analysis failed (${res.status}): ${detail.slice(0, 300)}`);
+  }
+  return res.json();
+}
