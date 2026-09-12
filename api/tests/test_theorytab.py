@@ -117,8 +117,17 @@ class TestProgressionCoverage:
         """Stripping must not go so far that diminished matches minor."""
         assert progression_coverage(["vii", "I"], ["viio", "I"]) == 0.0
 
-    def test_is_case_insensitive_but_not_degree_insensitive(self):
-        assert progression_coverage(["I", "II"], ["i", "ii"]) == 1.0
+    def test_case_carries_chord_quality_and_must_not_be_folded(self):
+        """`IV` is a major four; `iv` is a minor one. They are different chords.
+
+        Folding case made a major progression match its parallel minor
+        perfectly, which is a different piece of music.
+        """
+        assert progression_coverage(["i", "IV"], ["i", "iv"]) == 0.0
+        assert progression_coverage(["I", "V"], ["i", "v"]) == 0.0
+        assert progression_coverage(["i", "IV"], ["i", "IV"]) == 1.0
+
+    def test_degree_is_significant(self):
         assert progression_coverage(["i", "iii"], ["i", "ii"]) == 0.0
 
     def test_edge_cases(self):

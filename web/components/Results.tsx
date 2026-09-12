@@ -1,7 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { matchedPositions, type AnalyzeResponse, type Profile, type Song } from "@/lib/api";
+import {
+  matchedPositions, stripModifiers,
+  type AnalyzeResponse, type Profile, type Song,
+} from "@/lib/api";
 
 function Bars({ data, alt = false, max = 6 }: {
   data: Record<string, number>; alt?: boolean; max?: number;
@@ -27,7 +30,7 @@ function Bars({ data, alt = false, max = 6 }: {
 }
 
 /** A song's own progression, with the part you played picked out. */
-function ChordString({ song }: { song: Song }) {
+function ChordString({ song, played }: { song: Song; played: string[] }) {
   if (song.song_chords.length === 0) {
     return (
       <span className="mono" style={{ color: "var(--muted)", fontSize: 12 }}>
@@ -72,8 +75,25 @@ function ChordString({ song }: { song: Song }) {
       {from + MAX < song.song_chords.length && (
         <span style={{ color: "var(--muted)" }}>…</span>
       )}
+      {/* The same chords can be written several ways depending on which note is
+          called home, and the search tries more than one. Say which reading
+          found this song, or its numerals look unrelated to the progression
+          shown above -- a `i` appearing where the take reads `vi`. */}
+      {differsFromPlayed(song.matched_chords, played) && (
+        <div style={{ color: "var(--muted)", fontSize: 11, marginTop: 3 }}>
+          your progression as {song.matched_chords.join(" ")}
+        </div>
+      )}
     </span>
   );
+}
+
+/** True when a song matched a different spelling than the one on display. */
+function differsFromPlayed(matched: string[], played: string[]): boolean {
+  if (matched.length === 0 || played.length === 0) return false;
+  const a = matched.map(stripModifiers).join(" ");
+  const b = played.map(stripModifiers).join(" ");
+  return a !== b;
 }
 
 export function SongMatches({ result }: { result: AnalyzeResponse }) {
@@ -140,7 +160,7 @@ export function SongMatches({ result }: { result: AnalyzeResponse }) {
               <td style={{ color: "var(--muted)", whiteSpace: "nowrap" }}>
                 {s.song_key || "—"}
               </td>
-              <td><ChordString song={s} /></td>
+              <td><ChordString song={s} played={result.romans} /></td>
               <td
                 className="mono"
                 title={`relevance score ${s.score.toFixed(2)}`}

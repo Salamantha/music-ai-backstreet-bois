@@ -82,8 +82,13 @@ def progression_coverage(
         return 0.0
     # Normalise both sides the way the query was normalised, or a song written
     # `V vi ii7 iii7` scores zero against the `V vi ii iii` that found it.
-    target = [strip_modifiers(c).casefold() for c in pattern]
-    chords = [strip_modifiers(c).casefold() for c in song_chords]
+    #
+    # Case is *not* folded: in roman numerals it carries the chord quality, so
+    # `IV` is a major four and `iv` a minor one. Folding them made `I V` score a
+    # perfect match against `i v` -- a major progression matching its parallel
+    # minor, which is a different piece of music.
+    target = [strip_modifiers(c) for c in pattern]
+    chords = [strip_modifiers(c) for c in song_chords]
     covered = 0
     i = 0
     while i <= len(chords) - n:
