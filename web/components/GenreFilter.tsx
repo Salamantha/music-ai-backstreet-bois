@@ -93,13 +93,16 @@ export default function GenreFilter({
         )}
       </div>
 
-      <p className="sub" style={{ margin: "8px 0 10px" }}>
-        {selected.length === 0
-          ? hasResults
+      {/* No blurb while setting up -- the buttons say what they do. On the
+          results step it stays, because there it explains an absence: why a
+          song you expected is no longer in the list. */}
+      {!bare && (
+        <p className="sub" style={{ margin: "8px 0 10px" }}>
+          {selected.length === 0
             ? "Showing every match. Pick genres to narrow the songs — and the musicians you get matched with."
-            : "Worth picking — otherwise your chords are compared against every genre at once."
-          : `Keeping only ${selected.join(", ")}. Songs with no known genre are excluded while a genre is chosen.`}
-      </p>
+            : `Keeping only ${selected.join(", ")}. Songs with no known genre are excluded while a genre is chosen.`}
+        </p>
+      )}
 
       <div className="keys">
         {entries.map((genre) => {
