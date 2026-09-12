@@ -1,0 +1,25 @@
+[project]
+name = "musicsim"
+version = "0.1.0"
+description = "Compare melodic/harmonic similarity between music files of different formats (MP3, WAV, MIDI, ...)"
+requires-python = ">=3.10"
+dependencies = [
+    "librosa>=0.10",
+    "pretty_midi>=0.2.10",
+    "numpy>=1.24",
+    "soundfile>=0.12",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "matplotlib>=3.7",
+    "jupyter",
+]
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
