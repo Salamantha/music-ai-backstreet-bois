@@ -266,22 +266,27 @@ export default function Page() {
             <KeyPanel keyInfo={result.key} onOverride={override} busy={busy} />
           )}
 
-          <GenreFilter
-            options={genreOptions}
-            counts={
-              Object.keys(genrePalette).length > 0
-                ? genrePalette
-                : result.available_genres
+          <SongMatches
+            result={result}
+            filter={
+              <GenreFilter
+                options={genreOptions}
+                counts={
+                  Object.keys(genrePalette).length > 0
+                    ? genrePalette
+                    : result.available_genres
+                }
+                selected={genres}
+                onChange={applyGenres}
+                tonality={tonality}
+                onTonality={applyTonality}
+                hasResults
+                busy={busy}
+                bare
+                showTonality={false}
+              />
             }
-            selected={genres}
-            onChange={applyGenres}
-            tonality={tonality}
-            onTonality={applyTonality}
-            hasResults
-            busy={busy}
           />
-
-          <SongMatches result={result} />
           {result.profile && <TasteProfile profile={result.profile} />}
           <MatchList result={result} />
 

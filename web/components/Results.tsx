@@ -98,24 +98,20 @@ function differsFromPlayed(matched: string[], played: string[]): boolean {
   return a !== b;
 }
 
-export function SongMatches({ result }: { result: AnalyzeResponse }) {
+export function SongMatches({ result, filter }: {
+  result: AnalyzeResponse;
+  /** The genre filter, which lives with the songs it filters. */
+  filter?: React.ReactNode;
+}) {
   const [expanded, setExpanded] = useState(false);
-  if (result.songs.length === 0) return null;
+  // With a filter attached the panel must survive an empty result: otherwise
+  // choosing a genre that matches nothing takes away the control that undoes it.
+  if (result.songs.length === 0 && !filter) return null;
   const INITIAL = 20;
   const shown = expanded ? result.songs : result.songs.slice(0, INITIAL);
   return (
     <div className="panel">
-      <div className="row spread">
-        <h2 style={{ margin: 0 }}>Songs using this progression</h2>
-        <span className="row" style={{ gap: 8 }}>
-          <span className="pill">
-            best match first
-          </span>
-          <span className="pill">
-            {result.requests_spent} API request{result.requests_spent === 1 ? "" : "s"}
-          </span>
-        </span>
-      </div>
+      <h2 style={{ margin: 0 }}>Songs using this progression</h2>
       {result.songs.some((s) =>
         differsFromPlayed(s.matched_chords, result.romans),
       ) && (
@@ -128,6 +124,13 @@ export function SongMatches({ result }: { result: AnalyzeResponse }) {
         </p>
       )}
 
+      {filter && <div className="setup">{filter}</div>}
+
+      {result.songs.length === 0 ? (
+        <p className="sub" style={{ margin: 0 }}>
+          No songs left with that genre chosen. Pick another, or clear it above.
+        </p>
+      ) : (
       <table style={{ marginTop: 12 }}>
         <thead>
           <tr>
@@ -195,6 +198,7 @@ export function SongMatches({ result }: { result: AnalyzeResponse }) {
           ))}
         </tbody>
       </table>
+      )}
       {result.songs.length > INITIAL && (
         <button
           onClick={() => setExpanded((v) => !v)}
@@ -210,36 +214,15 @@ export function SongMatches({ result }: { result: AnalyzeResponse }) {
 }
 
 export function TasteProfile({ profile }: { profile: Profile }) {
-  const h = profile.harmonic;
   return (
-    <div className="grid2">
-      <div className="panel">
-        <h2>Taste</h2>
-        <h3 style={{ fontSize: 13, color: "var(--muted)" }}>Genres</h3>
-        <Bars data={profile.genres} />
-        <h3 style={{ fontSize: 13, color: "var(--muted)", marginTop: 14 }}>Moods</h3>
-        <Bars data={profile.moods} alt max={4} />
-        <h3 style={{ fontSize: 13, color: "var(--muted)", marginTop: 14 }}>Eras</h3>
-        <Bars data={profile.eras} alt max={3} />
-      </div>
-      <div className="panel">
-        <h2>How you play</h2>
-        <p className="sub" style={{ marginTop: -4 }}>
-          Measured from your performance alone — no song match needed.
-        </p>
-        <Bars
-          data={{
-            "seventh chords": h.seventh_density,
-            "borrowed chords": h.borrowed_rate,
-            "harmonic variety": h.chord_variety,
-            "progression rarity": Math.min(h.mean_progression_rarity / 2, 1),
-            "pitch coverage": h.key_spread,
-            ...Object.fromEntries(
-              Object.entries(h.cadence_profile).map(([k, v]) => [`${k} cadences`, v]),
-            ),
-          }}
-        />
-      </div>
+    <div className="panel">
+      <h2>Taste</h2>
+      <h3 style={{ fontSize: 13, color: "var(--muted)" }}>Genres</h3>
+      <Bars data={profile.genres} />
+      <h3 style={{ fontSize: 13, color: "var(--muted)", marginTop: 14 }}>Moods</h3>
+      <Bars data={profile.moods} alt max={4} />
+      <h3 style={{ fontSize: 13, color: "var(--muted)", marginTop: 14 }}>Eras</h3>
+      <Bars data={profile.eras} alt max={3} />
     </div>
   );
 }

@@ -16,6 +16,8 @@ interface Props {
   busy: boolean;
   /** Render without the surrounding panel, for use inside another one. */
   bare?: boolean;
+  /** False once the choice has already been made and shown elsewhere. */
+  showTonality?: boolean;
 }
 
 /* Nested inside the capture panel these sit a level deeper, and a heading
@@ -30,7 +32,7 @@ const TONALITIES: { value: Tonality; label: string; hint: string }[] = [
 
 export default function GenreFilter({
   options, counts, selected, onChange, hasResults, busy, tonality, onTonality,
-  bare = false,
+  bare = false, showTonality = true,
 }: Props) {
   const H = bare ? "h3" : "h2";
   const active = new Set(selected);
@@ -51,6 +53,8 @@ export default function GenreFilter({
 
   return (
     <div className={bare ? "" : "panel"}>
+      {showTonality && (
+        <>
       <div className="row spread" style={{ marginBottom: 12 }}>
         <H style={{ margin: 0 }}>Tonality</H>
         <span className="row" style={{ gap: 4 }}>
@@ -78,6 +82,8 @@ export default function GenreFilter({
         Major tends to sound brighter and happier. Minor usually sounds a
         little darker or sadder.
       </p>
+        </>
+      )}
 
       <div className="row spread">
         <H style={{ margin: 0 }}>Genres</H>
