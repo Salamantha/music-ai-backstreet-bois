@@ -151,7 +151,8 @@ export default function ChordSteps({
       </div>
 
       <p className="sub">
-        Drag a chord to reorder it, or use its arrows. Remove one with ×.
+        Drag a chord to move it, or use the Move earlier, Move later and Remove
+        buttons on each one.
       </p>
 
       <div className="chords">
@@ -179,16 +180,16 @@ export default function ChordSteps({
                 <button
                   onClick={() => onReorder(i, i - 1)}
                   disabled={busy || i === 0}
-                  aria-label={`move ${s.chord?.symbol ?? "chord"} earlier`}
-                  title="move earlier"
+                  aria-label={`Move ${s.chord?.symbol ?? "chord"} earlier`}
+                  title={`Move ${s.chord?.symbol ?? "chord"} earlier`}
                 >
                   ‹
                 </button>
                 <button
                   onClick={() => onReorder(i, i + 1)}
                   disabled={busy || i === steps.length - 1}
-                  aria-label={`move ${s.chord?.symbol ?? "chord"} later`}
-                  title="move later"
+                  aria-label={`Move ${s.chord?.symbol ?? "chord"} later`}
+                  title={`Move ${s.chord?.symbol ?? "chord"} later`}
                 >
                   ›
                 </button>
@@ -200,8 +201,8 @@ export default function ChordSteps({
                 className="step-remove"
                 onClick={() => onRemove(s.id)}
                 disabled={busy}
-                aria-label={`remove ${s.chord?.symbol ?? "chord"}`}
-                title="remove this chord"
+                aria-label={`Remove ${s.chord?.symbol ?? "chord"}`}
+                title={`Remove ${s.chord?.symbol ?? "chord"}`}
               >
                 ×
               </button>
