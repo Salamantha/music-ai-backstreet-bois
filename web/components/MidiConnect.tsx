@@ -436,14 +436,15 @@ export default function MidiConnect({
         )}
       </div>
 
+      {/* Held notes while they sound, and a prompt while listening. Nothing at
+          all when idle: an "idle" badge is a label for the absence of activity,
+          which the Start button already communicates. */}
       <div className="live" style={{ marginTop: "0.9rem" }} role="status" aria-live="polite">
-        {held.length === 0 ? (
-          <span className="pill">
-            {recording ? "listening — play a chord" : "idle"}
-          </span>
-        ) : (
-          held.map((p) => <span key={p} className="note">{noteName(p)}</span>)
-        )}
+        {held.length > 0
+          ? held.map((p) => <span key={p} className="note">{noteName(p)}</span>)
+          : recording && (
+              <span className="pill">listening — play a chord</span>
+            )}
       </div>
 
       {error && <p className="error">{error}</p>}
