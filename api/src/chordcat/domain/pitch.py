@@ -32,6 +32,26 @@ MODE_SCALES: Final[dict[Mode, tuple[int, ...]]] = {
     "locrian": (0, 1, 3, 5, 6, 8, 10),
 }
 
+#: Semitones from the parent major scale's tonic up to each mode's tonic.
+#: D dorian belongs to the C major scale because dorian sits on the 2nd degree,
+#: so its parent tonic is D minus 2. Deriving this from the order of `MODES`
+#: would be wrong -- that tuple is not in scale-degree order.
+PARENT_MAJOR_OFFSET: Final[dict[Mode, int]] = {
+    "major": 0,
+    "dorian": 2,
+    "phrygian": 4,
+    "lydian": 5,
+    "mixolydian": 7,
+    "minor": 9,
+    "locrian": 11,
+}
+
+
+def parent_major_tonic(tonic_pc: int, mode: Mode) -> int:
+    """Tonic of the major scale containing exactly this mode's pitch classes."""
+    return (tonic_pc - PARENT_MAJOR_OFFSET[mode]) % 12
+
+
 #: Scale degree (0-indexed) whose alteration characterises each mode against the
 #: major scale. Used to bias the rotated Krumhansl profiles in key detection.
 MODE_CHARACTERISTIC_DEGREE: Final[dict[Mode, int]] = {

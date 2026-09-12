@@ -26,10 +26,12 @@ from ..domain.events import (
     SongHit,
 )
 from ..domain.key import detect_key
+from ..domain.pitch import parent_major_tonic
 from ..domain.ngrams import NgramConfig
 from ..domain.profile import TasteProfile, build_profile, harmonic_features
 from ..domain.ranking import normalize_name
 from ..domain.segment import SegmentConfig, events_from_raw
+from ..domain.ranking import rollup_artists, score_songs
 from .search import SearchOutcome, build_transition_table, search_progression
 
 log = logging.getLogger(__name__)
@@ -200,6 +202,9 @@ async def build_taste_profile(
 
 #: How many alternative keys to try before spending budget on narrower windows.
 MAX_KEY_RETRIES = 2
+#: Below this many songs the primary spelling has not told us much, so it is
+#: worth also querying how the same chords read in the relative key.
+MERGE_ALTERNATIVE_BELOW = 10
 
 
 async def _search_with_key_retry(
@@ -252,14 +257,27 @@ async def _search_with_key_retry(
         return result, table
 
     outcome, transitions = await run(sequence, budget)
-    if outcome.songs or key_override is not None:
+    if key_override is not None or len(outcome.songs) >= MERGE_ALTERNATIVE_BELOW:
         return outcome, estimate, chords, sequence, transitions
 
+    # The same chords can be written several ways depending on which note is
+    # called home, and Hooktheory's song index is very unevenly populated across
+    # those spellings: a dorian i-ii returns a handful of songs while the
+    # identical chords written as ii-iii in the relative major return hundreds.
+    # A player asking "what songs use my chords" wants both, so query the
+    # respellings and merge them rather than treating them as rival hypotheses.
+    #
+    # Keep the originally detected key at the head of the override list: it was
+    # the best reading of the notes themselves, and it is the first thing a
+    # player who disagrees with a correction will reach for.
+    alternatives = ((estimate.key, estimate.confidence), *estimate.alternatives)
+    best = outcome
+    best_key, best_chords, best_sequence = estimate, chords, sequence
+    merged_results = list(outcome.results)
+    spent = outcome.requests_spent
+    queried = list(outcome.queried)
+
     for alt_key, alt_confidence in _retry_keys(estimate)[:MAX_KEY_RETRIES]:
-        log.info(
-            "no matches under %s; retrying as %s",
-            estimate.key, alt_key,
-        )
         alt_chords = merge_identified(
             identify_all(tuple(c.event for c in first_pass), key=alt_key),
             segment_cfg.min_chord_dur_ms,
@@ -267,24 +285,24 @@ async def _search_with_key_retry(
         )
         alt_sequence = progression_to_cp(alt_chords, alt_key, cp_cfg)
         alt_outcome, alt_transitions = await run(alt_sequence, budget)
-        if alt_outcome.songs:
-            # Hooktheory matching this reading and not the other is real
-            # evidence about the key, usually better evidence than the
-            # pitch-class analysis that lost. Reporting the losing candidate's
-            # score here would show "0% confident" for a key we just confirmed.
-            # Put the originally detected key at the head of the alternatives:
-            # it was the best reading of the notes themselves, and if the user
-            # disagrees with the correction it is the first thing they will
-            # reach for. Without this it vanishes from the override list.
-            alternatives = (
-                (estimate.key, estimate.confidence),
-                *(
-                    (k, c)
-                    for k, c in estimate.alternatives
-                    if (k.tonic_pc, k.mode) != (alt_key.tonic_pc, alt_key.mode)
-                ),
-            )
-            resolved = KeyEstimate(
+        spent += alt_outcome.requests_spent
+        queried.extend(alt_outcome.queried)
+        if not alt_outcome.songs:
+            continue
+
+        log.info(
+            "respelling as %s yielded %d songs; merging",
+            alt_key, len(alt_outcome.songs),
+        )
+        merged_results.extend(alt_outcome.results)
+        # Report whichever reading the database actually knows best. Hooktheory
+        # having songs for one spelling and not another is real evidence about
+        # the key -- usually better evidence than pitch-class analysis alone.
+        if len(alt_outcome.songs) > len(best.songs):
+            best = alt_outcome
+            best_chords, best_sequence = alt_chords, alt_sequence
+            transitions = alt_transitions
+            best_key = KeyEstimate(
                 key=alt_key,
                 confidence=max(alt_confidence, estimate.confidence),
                 alternatives=alternatives,
@@ -292,7 +310,24 @@ async def _search_with_key_retry(
                 source="matched",
                 modulation_suspected=estimate.modulation_suspected,
             )
-            return alt_outcome, resolved, alt_chords, alt_sequence, alt_transitions
+
+    if merged_results:
+        songs = score_songs(merged_results, transitions)
+        if songs:
+            return (
+                SearchOutcome(
+                    songs=songs,
+                    artists=rollup_artists(
+                        songs, artist_document_frequency, corpus_size
+                    ),
+                    results=tuple(merged_results),
+                    ngrams=best.ngrams,
+                    requests_spent=spent,
+                    queried=queried,
+                    stopped_early=best.stopped_early,
+                ),
+                best_key, best_chords, best_sequence, transitions,
+            )
 
     # Every key reading came up empty; now it is worth widening the windows.
     candidate = generate_ngrams(sequence, ngram_cfg)
@@ -315,32 +350,37 @@ async def _search_with_key_retry(
 def _retry_keys(estimate: KeyEstimate) -> list[tuple[Key, float]]:
     """Order the alternative keys worth re-querying.
 
-    The relative major and relative minor go first regardless of their detection
-    score. They are the readings that share a pitch-class set with the detected
-    key, so they are both the most likely to be right and the only ones that
-    reliably change the `cp` tokens into something Hooktheory has catalogued.
-    Scored alternatives such as a phrygian reading follow behind.
+    The parent major scale goes first: it shares a pitch-class set with the
+    detected key, so it is both the most likely alternative reading and the one
+    whose `cp` tokens are most likely to be well populated in Hooktheory's song
+    index, which is heavily skewed toward major-scale spellings.
+
+    Each mode sits on a different degree of that parent scale, so the parent's
+    tonic is the mode's tonic minus that degree's offset -- D dorian belongs to
+    C major (D minus 2), not F major. Assuming the relative-minor rule of +3
+    for every mode sends dorian and mixolydian progressions to the wrong key.
     """
     detected = estimate.key
-    preferred: list[tuple[Key, float]] = []
     scored = {(k.tonic_pc, k.mode): c for k, c in estimate.alternatives}
+    preferred: list[tuple[Key, float]] = []
 
-    if detected.mode in ("minor", "dorian", "phrygian"):
-        relative = Key((detected.tonic_pc + 3) % 12, "major")
-    elif detected.mode in ("major", "lydian", "mixolydian"):
-        relative = Key((detected.tonic_pc + 9) % 12, "minor")
-    else:
-        relative = Key((detected.tonic_pc + 3) % 12, "major")
+    def add(key: Key) -> None:
+        if (key.tonic_pc, key.mode) == (detected.tonic_pc, detected.mode):
+            return
+        if any((key.tonic_pc, key.mode) == (k.tonic_pc, k.mode) for k, _ in preferred):
+            return
+        preferred.append((key, scored.get((key.tonic_pc, key.mode), 0.0)))
 
-    preferred.append((relative, scored.get((relative.tonic_pc, relative.mode), 0.0)))
+    parent_major = Key(parent_major_tonic(detected.tonic_pc, detected.mode), "major")
+    add(parent_major)
 
-    parallel = Key(
-        detected.tonic_pc, "minor" if detected.mode != "minor" else "major"
-    )
-    preferred.append((parallel, scored.get((parallel.tonic_pc, parallel.mode), 0.0)))
+    # The relative minor of that parent scale, which is where Hooktheory files a
+    # great deal of minor-key material.
+    add(Key((parent_major.tonic_pc + 9) % 12, "minor"))
+    # The parallel major/minor, for a genuine mode mixture.
+    add(Key(detected.tonic_pc, "minor" if detected.mode != "minor" else "major"))
 
-    seen = {(k.tonic_pc, k.mode) for k, _ in preferred}
     for k, c in estimate.alternatives:
-        if (k.tonic_pc, k.mode) not in seen:
-            preferred.append((k, c))
+        add(k)
+        preferred[-1] = (k, c) if preferred and preferred[-1][0] is k else preferred[-1]
     return preferred

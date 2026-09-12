@@ -56,3 +56,43 @@ def test_dorian_beats_its_relative_minor_on_a_dorian_vamp():
         key_name(k.tonic_pc, k.mode) for k, _ in estimate.alternatives
     }
     assert "D dorian" in candidates
+
+
+def test_parent_major_shares_the_modes_pitch_classes():
+    """Every mode belongs to exactly one major scale.
+
+    Deriving the parent from the relative-minor rule of +3 is wrong for every
+    mode except aeolian, and sends dorian progressions to the wrong key -- which
+    matters because `cp` tokens are key-relative.
+    """
+    from chordcat.domain.pitch import MODES, parent_major_tonic, scale_pcs
+
+    for mode in MODES:
+        for tonic in range(12):
+            parent = parent_major_tonic(tonic, mode)
+            assert scale_pcs(tonic, mode) == scale_pcs(parent, "major"), (
+                f"{mode} on {tonic} -> parent {parent}"
+            )
+
+
+def test_retry_keys_lead_with_the_parent_major():
+    from chordcat.domain.events import Key, KeyEstimate
+    from chordcat.services.pipeline import _retry_keys
+
+    # D dorian belongs to C major, not F major.
+    first = _retry_keys(KeyEstimate(Key(2, "dorian"), 0.4))[0][0]
+    assert (first.tonic_pc, first.mode) == (0, "major")
+
+    # A minor also belongs to C major.
+    first = _retry_keys(KeyEstimate(Key(9, "minor"), 0.4))[0][0]
+    assert (first.tonic_pc, first.mode) == (0, "major")
+
+
+def test_retry_keys_never_repeat_the_detected_key():
+    from chordcat.domain.events import Key, KeyEstimate
+    from chordcat.services.pipeline import _retry_keys
+
+    estimate = KeyEstimate(Key(0, "major"), 0.5)
+    keys = [(k.tonic_pc, k.mode) for k, _ in _retry_keys(estimate)]
+    assert (0, "major") not in keys
+    assert len(keys) == len(set(keys))
