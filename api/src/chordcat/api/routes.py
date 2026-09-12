@@ -10,7 +10,14 @@ from fastapi import APIRouter, HTTPException
 from ..deps import get_services
 from ..domain.chords import identify_chord
 from ..domain.cp import to_cp
-from ..domain.events import ChordEvent, Hole, IdentifiedChord, Key, RawEvent
+from ..domain.events import (
+    ChordEvent,
+    HarmonicFeatures,
+    Hole,
+    IdentifiedChord,
+    Key,
+    RawEvent,
+)
 from ..domain.pitch import (
     MODES,
     chord_name,
@@ -20,16 +27,20 @@ from ..domain.pitch import (
     roman_for,
     spell_in_key,
 )
+from ..domain.profile import TasteProfile
+from ..services.matching import Match, PersonaPool, persona_from_dict, profile_to_dict
 from ..services.pipeline import analyse
 from .schemas import (
     AnalyzeRequest,
-    CandidateOut,
-    IdentifyRequest,
-    IdentifyResponse,
     AnalyzeResponse,
     ArtistOut,
+    CandidateOut,
     ChordOut,
     HarmonicOut,
+    IdentifyRequest,
+    IdentifyResponse,
+    JoinRoomRequest,
+    JoinRoomResponse,
     KeyOut,
     MatchOut,
     ProfileOut,
@@ -56,7 +67,82 @@ async def health() -> dict:
         "genre_labels": getattr(getattr(s.genres, "static", s.genres), "size", 0),
         "personas": len(s.pool.personas),
         "offline": s.settings.chordcat_offline,
+        "room": s.room is not None,
     }
+
+
+def _match_out(m: Match) -> MatchOut:
+    return MatchOut(
+        id=m.persona.id,
+        name=m.persona.name,
+        instrument=m.persona.instrument,
+        city=m.persona.city,
+        bio=m.persona.bio,
+        score=m.breakdown.total,
+        percentile=m.percentile,
+        components={
+            "genre": m.breakdown.genre,
+            "artist": m.breakdown.artist,
+            "harmonic": m.breakdown.harmonic,
+            "mood": m.breakdown.mood,
+            "era": m.breakdown.era,
+        },
+        shared_artists=list(m.breakdown.shared_artists),
+        shared_genres=list(m.breakdown.shared_genres),
+        shared_harmonic=list(m.breakdown.shared_harmonic),
+        rationale=m.rationale,
+        signature_progression=m.persona.signature_progression,
+    )
+
+
+@router.post("/room/join", response_model=JoinRoomResponse)
+async def join_room(req: JoinRoomRequest) -> JoinRoomResponse:
+    """Store the caller's profile and rank them against everyone else."""
+    services = get_services()
+    if services.room is None:
+        raise HTTPException(status_code=503, detail="The room is not configured.")
+
+    h = req.profile.harmonic
+    profile = TasteProfile(
+        genre_weights=dict(req.profile.genres),
+        artist_weights=dict(req.profile.artists),
+        era_weights=dict(req.profile.eras),
+        mood_weights=dict(req.profile.moods),
+        harmonic=HarmonicFeatures(
+            modal_usage={h.mode: 1.0},
+            seventh_density=h.seventh_density,
+            borrowed_rate=h.borrowed_rate,
+            mean_progression_rarity=h.mean_progression_rarity,
+            cadence_profile=dict(h.cadence_profile),
+            key_spread=h.key_spread,
+            chord_variety=h.chord_variety,
+            mean_chord_duration_s=h.mean_chord_duration_s,
+        ),
+    )
+
+    try:
+        await services.room.upsert_member(
+            {
+                "client_id": req.client_id,
+                "name": req.name.strip(),
+                "city": req.city.strip(),
+                "instrument": req.instrument.strip(),
+                "signature_progression": req.signature_progression,
+                "mode": req.mode,
+                "profile": profile_to_dict(profile),
+            }
+        )
+        rows = await services.room.list_members()
+    except Exception as exc:  # noqa: BLE001 - surface any store failure as 502
+        log.exception("room store failed")
+        raise HTTPException(status_code=502, detail="Could not reach the room.") from exc
+
+    others = tuple(persona_from_dict(r) for r in rows if r.get("client_id") != req.client_id)
+    pool = PersonaPool(personas=others, calibration=services.pool.calibration)
+    return JoinRoomResponse(
+        room_size=len(rows),
+        matches=[_match_out(m) for m in pool.rank(profile, limit=8)],
+    )
 
 
 def _symbol(root_pc: int, quality: str, key: Key | None = None) -> str:
@@ -285,30 +371,7 @@ async def analyze(req: AnalyzeRequest) -> AnalyzeResponse:
             ),
             taste_document=p.taste_document(),
         )
-        matches = [
-            MatchOut(
-                id=m.persona.id,
-                name=m.persona.name,
-                instrument=m.persona.instrument,
-                city=m.persona.city,
-                bio=m.persona.bio,
-                score=m.breakdown.total,
-                percentile=m.percentile,
-                components={
-                    "genre": m.breakdown.genre,
-                    "artist": m.breakdown.artist,
-                    "harmonic": m.breakdown.harmonic,
-                    "mood": m.breakdown.mood,
-                    "era": m.breakdown.era,
-                },
-                shared_artists=list(m.breakdown.shared_artists),
-                shared_genres=list(m.breakdown.shared_genres),
-                shared_harmonic=list(m.breakdown.shared_harmonic),
-                rationale=m.rationale,
-                signature_progression=m.persona.signature_progression,
-            )
-            for m in services.pool.rank(p, limit=8)
-        ]
+        matches = [_match_out(m) for m in services.pool.rank(p, limit=8)]
 
     notes: list[str] = []
 

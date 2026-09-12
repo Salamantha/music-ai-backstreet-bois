@@ -150,6 +150,35 @@ export async function analyzeChords(
   return res.json();
 }
 
+export interface JoinRoomRequest {
+  client_id: string;
+  name: string;
+  city: string;
+  instrument: string;
+  signature_progression: string;
+  mode: string;
+  profile: Profile;
+}
+
+export interface JoinRoomResponse {
+  room_size: number;
+  matches: Match[];
+}
+
+/** Store the player's profile in the room and rank them against everyone else. */
+export async function joinRoom(req: JoinRoomRequest): Promise<JoinRoomResponse> {
+  const res = await fetch(`${BASE}/api/room/join`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(req),
+  });
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`Could not join the room (${res.status}): ${detail.slice(0, 300)}`);
+  }
+  return res.json();
+}
+
 /** Genres that can be chosen before an analysis runs. */
 export async function selectableGenres(): Promise<string[]> {
   const res = await fetch(`${BASE}/api/genres`);

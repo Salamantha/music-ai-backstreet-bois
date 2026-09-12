@@ -47,9 +47,18 @@ class Settings(BaseSettings):
     #: sanctioned Trends API and can be turned off independently.
     theorytab_enabled: bool = True
 
+    #: Supabase project holding the room of real musicians. Without it the API
+    #: falls back to the synthetic persona pool.
+    supabase_url: str = ""
+    supabase_key: str = ""
+
     @property
     def has_hooktheory(self) -> bool:
         return bool(self.hooktheory_username and self.hooktheory_password)
+
+    @property
+    def has_supabase(self) -> bool:
+        return bool(self.supabase_url and self.supabase_key)
 
     @property
     def has_anthropic(self) -> bool:

@@ -157,6 +157,32 @@ class MatchOut(BaseModel):
     signature_progression: str
 
 
+class ProfileIn(BaseModel):
+    """The profile the browser got back from /analyze, sent back verbatim."""
+
+    genres: dict[str, float] = Field(default_factory=dict)
+    artists: dict[str, float] = Field(default_factory=dict)
+    eras: dict[str, float] = Field(default_factory=dict)
+    moods: dict[str, float] = Field(default_factory=dict)
+    harmonic: HarmonicOut
+
+
+class JoinRoomRequest(BaseModel):
+    client_id: str = Field(min_length=1, max_length=64)
+    name: str = Field(min_length=1, max_length=80)
+    city: str = Field(default="", max_length=120)
+    instrument: str = Field(default="", max_length=40)
+    signature_progression: str = Field(default="", max_length=200)
+    mode: str = Field(default="major", max_length=20)
+    profile: ProfileIn
+
+
+class JoinRoomResponse(BaseModel):
+    #: Everyone with a profile, including the caller.
+    room_size: int
+    matches: list[MatchOut]
+
+
 class AnalyzeResponse(BaseModel):
     session_id: str
     chords: list[ChordOut]
