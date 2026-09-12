@@ -1,85 +1,114 @@
-# music-ai-backstreet-bois
+# Chordcat Voice
 
-**ChordCat Connect** — turn chords played on an [AlphaTheta ChordCat](https://alphatheta.com/en/product/production/chordcat/gray/)
-into a musical identity, and use that identity to connect like-minded musicians in real life.
+An external accessibility layer for the AlphaTheta Chordcat. The device ships with
+no speech output — state is carried by LED colour and a small display — so a blind
+or low-vision musician can't use it. This adds the missing voice over MIDI, without
+touching the firmware.
 
-    Web MIDI (browser)  ->  FastAPI  ->  chord segmentation + identification
-                                     ->  key/mode detection
-                                     ->  Roman numerals -> Hooktheory `cp` tokens
-                                     ->  windowed Hooktheory TheoryTab search
-                                     ->  Claude genre/taste profiling
-                                     ->  fused-vector matching against a musician pool
+Three things it does:
 
-## Layout
+- **Announces** every chord played, in plain language.
+- **Suggests** what comes next, using next-chord probabilities from Hooktheory's
+  75,000-song corpus.
+- **Harmonises** a hummed melody into chords and sends them back to the device.
 
-| Path | What |
+## Install
+
+```bash
+npm i tonal pitchy
+```
+
+Drop `lib/` and `hooks/` into your Next.js app. Then:
+
+```bash
+cd server
+pip install fastapi uvicorn httpx
+export HOOKTHEORY_USER=you HOOKTHEORY_PASS=secret
+uvicorn hooktheory_proxy:app --port 8000
+```
+
+Set `NEXT_PUBLIC_HOOKTHEORY_PROXY=http://localhost:8000` in `.env.local`.
+
+## Use
+
+```jsx
+"use client";
+import { useChordcatVoice } from "@/hooks/useChordcatVoice";
+
+export default function Page() {
+  const v = useChordcatVoice({ key: "C", mode: "major", bpm: 100 });
+
+  return (
+    <main>
+      <button onClick={v.status === "listening" ? v.stop : v.start}>
+        {v.status === "listening" ? "Stop" : "Start"}
+      </button>
+      {v.error && <p role="alert">{v.error}</p>}
+      <p aria-live="polite">{v.progression.join(" · ")}</p>
+    </main>
+  );
+}
+```
+
+Keyboard: **S** suggestion · **M** song match · **P** repeat progression ·
+**H** hold to hum · **Esc** stop speaking.
+
+## Files
+
+| File | What it does |
 |---|---|
-| `api/src/chordcat/domain/` | Pure music-theory core. No clock, no network, no RNG. 100% unit tested. |
-| `api/src/chordcat/adapters/` | I/O behind `typing.Protocol`: Hooktheory HTTP, rate limiter, cache, Claude. |
-| `api/src/chordcat/services/` | Orchestration. The only place that awaits. |
-| `scripts/` | One-off probes and generators (see below). |
-| `web/` | Next.js frontend; reads the ChordCat over the Web MIDI API. |
+| `lib/speech.js` | TTS with barge-in, rate control, phrase builders |
+| `lib/midi.js` | Web MIDI in/out, device matching, chord playback |
+| `lib/chords.js` | MIDI → chord names, chord → Hooktheory degree |
+| `lib/pitch.js` | Mic → discrete sung notes, with smoothing |
+| `lib/harmonize.js` | Melody → chord progression, key inference |
+| `lib/hooktheory.js` | Cached client for the proxy |
+| `hooks/useChordcatVoice.js` | Everything wired together |
+| `server/hooktheory_proxy.py` | Auth, cache, rate-limit survival |
 
-## Setup
+## Before you demo
 
-```bash
-cp .env.example .env     # fill in HOOKTHEORY_* and ANTHROPIC_API_KEY
-cd api && python3 -m venv .venv && . .venv/bin/activate && pip install -e '.[dev]'
-```
+1. **Chordcat firmware must be v1.30 or later.** Real-time recording of incoming
+   MIDI landed there. On older firmware the hum feature will pass notes through
+   but the device won't capture them.
+2. **Use Chrome.** Web MIDI doesn't exist in Safari or Firefox.
+3. **https:// or localhost.** Web MIDI and `getUserMedia` both require a secure
+   context. A preview deployment is fine; a plain LAN IP is not.
+4. **Pre-warm the cache**, then confirm it filled:
+   ```bash
+   curl "http://localhost:8000/api/prewarm?progressions=1,5,6,4;6,4,1,5;1,4,5"
+   curl "http://localhost:8000/api/cache"
+   ```
+   Once warm, the demo runs with the wifi off.
+5. **Unlock speech inside a click handler.** `start()` already does this; if you
+   restructure, keep `unlockSpeech()` in the user-gesture call stack or the
+   browser will silently swallow every utterance.
+6. **Tune `clarityThreshold`** in `lib/pitch.js` to the room. 0.9 is a starting
+   point; drop to 0.85 if the tracker ignores quiet humming, raise to 0.93 if it
+   picks up chatter. Test in the actual presentation room if you can.
 
-`sentence-transformers` is optional (`pip install -e '.[dev,embeddings]'`); without it the
-matcher degrades to music-native features only and logs a warning.
+## Known limitations
 
-## Run
+Say these out loud if a judge asks. They're design decisions, not bugs.
 
-```bash
-cd api && uvicorn chordcat.main:app --reload     # http://localhost:8000
-cd web && npm run dev                            # http://localhost:3000
-```
+- **Minor keys report in the relative major.** Hooktheory numbers everything
+  against the major scale, so A minor comes back as vi–IV–I–V rather than
+  i–VI–III–VII. Matches Hooktheory's own Trends page.
+- **Diatonic triads only.** Inversions, slash chords and applied dominants can't
+  be expressed in the `cp` param cleanly, so they're dropped rather than guessed
+  at. `toChildPath` stops at the first chord it can't express.
+- **Key is user-selected, not detected, in chord mode.** The player already set a
+  key on the Chordcat. `inferKey()` exists for hum mode, where there's nothing
+  else to go on.
+- **Harmonisation is one chord per bar.** No passing chords, no secondary
+  dominants, no voice leading beyond fixed root-position triads.
+- **The fallback transition table is approximate.** It exists so a network
+  failure doesn't kill the demo. Don't present its numbers as data.
 
-Open the frontend in **Chrome, Edge, or Firefox 108+**. Safari does not implement the
-Web MIDI API on any platform and has no roadmap to.
+## Licence note
 
-## Song sources
-
-Two, because one is not enough.
-
-| Source | What it is | Why |
-|---|---|---|
-| **Trends API** | `api.hooktheory.com/v1` — the sanctioned API, `cp` tokens | Chord-transition probabilities, and song matches |
-| **TheoryTab search** | the public advanced-search page, roman numerals | The Trends song index is a stale snapshot |
-
-The second source exists because of a concrete gap. Arctic Monkeys' "505" is in
-TheoryTab as D Dorian `i ii i ii`; the correct Trends token for that progression
-is `2,3` (verified — other D-dorian i–ii songs are there); and an exhaustive
-scan of `2,3`, all 17 pages and 338 songs, does not contain it. The Trends index
-advertises "75,000+" songs while TheoryTab search reports 79,896, returns
-`http://` URLs, and its docs leak a `local.www.` dev host. It is old.
-
-**TheoryTab search is not an API.** It parses the server-rendered search page —
-there is no JSON endpoint behind it. So:
-
-- every field is optional and a parse failure degrades to "no results", never an
-  exception into someone's analysis
-- requests are serialised, spaced over a second apart, and aggressively cached
-- `robots.txt` allows the path (`User-agent: *` / `Allow: /`) and signals
-  `use=reference`, which is what this is
-- it can be disabled on its own with `THEORYTAB_ENABLED=0`
-
-It also queries in **roman numerals rather than `cp` tokens**, which suits a
-chord-voicing device: with `ignoreModifiers` on, `i ii` matches a song whose
-chords are really i11 and ii9 — exactly what the ChordCat sends. And Hooktheory's
-own genre labels come free with each result, which beats guessing at them.
-
-## Scripts (run in this order on a fresh install)
-
-```bash
-python scripts/probe_hooktheory.py    # credential smoke test
-python scripts/probe_cp_tokens.py     # builds api/src/chordcat/data/cp_table.json
-python scripts/warm_nodes_tree.py     # BFS the global chord-transition tree into the cache
-python scripts/generate_pool.py       # regenerate the synthetic musician pool (rarely needed)
-```
-
-The Hooktheory API allows **10 requests / 10 seconds against the whole account**, so
-`warm_nodes_tree.py` takes hours. It only has to run once, ever: the tree is global and
-static, and warming it makes progression-rarity scoring and dead-path pruning free.
+This shares an *idea* with Charles Vestal's Move Everything — adding a screen
+reader to a groovebox that shipped without one — but none of its code. Move
+Everything is GPL-3.0 and runs on the Ableton Move's embedded Linux. The Chordcat
+has closed firmware and no shell, so this takes the external-companion route
+instead. Keep it that way unless you intend to relicense.
