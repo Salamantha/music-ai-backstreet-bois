@@ -37,6 +37,8 @@ cd api && uvicorn chordcat.main:app --reload     # http://localhost:8000
 cd web && npm run dev                            # http://localhost:3000
 ```
 
+Two pages: `/` matches you to musicians, `/helper` explains what to try next.
+
 Open the frontend in **Chrome, Edge, or Firefox 108+**. Safari does not implement the
 Web MIDI API on any platform and has no roadmap to.
 

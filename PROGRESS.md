@@ -1,5 +1,50 @@
 # PROGRESS
 
+## 2026-09-12 — the helper actually speaks now
+
+**Why it felt dumb.** The LLM had never run. No `.env`, so `has_anthropic` was False and
+every turn fell through to `TemplateVoice`. The whole hardware test was a system with zero
+AI in it, reading engineer-written placeholder prose.
+
+**Done** (branch rebased onto `origin/vishnu`, 238 tests, new code ruff-clean)
+- **Rebase.** Inherited the three-step flow, indigo theme, cats and Atkinson Hyperlegible.
+  The helper page needed no colour of its own — it was already on shared tokens.
+- **A voice.** `OpenAICompatibleVoice` over httpx (already a dependency). Groq, Together,
+  OpenRouter and local Ollama are one wire format, so provider is config not code.
+  `build_voice()` prefers the open endpoint, then Anthropic, then the template.
+- **Memory.** Own sqlite tables, keyed by `session_id`. Survives a refresh, so it stops
+  repeating itself.
+- **`change.*` facts.** `diff_facts()` compares this take to the last one. Measured, not
+  guessed, so the validator governs them like any other fact. 20% relative tolerance —
+  a fifth is a change, smaller is take-to-take noise.
+- **Song context.** `HelperTurnRequest.songs` — passed in, never fetched, so a turn still
+  spends no Hooktheory quota.
+- **Conversation UI.** Turn list, text box, MIDI port picker, "Just show me" → counted
+  override.
+
+**Run it**
+```
+cd api && PYTHONPATH=src .venv/bin/uvicorn chordcat.main:app --reload --reload-dir src
+cd web && npm run dev
+```
+`PYTHONPATH=src` matters: this venv's editable-install `.pth` goes stale repeatedly and
+uvicorn then cannot import chordcat. pytest is now immune (`pythonpath = ["src","tests"]`).
+
+**Still blocked on you / the team**
+- **No LLM key.** Set `LLM_BASE_URL` + `LLM_MODEL` + `LLM_API_KEY` in `.env` (see
+  `.env.example`). Ollama is installed and running on this machine with no models pulled —
+  `ollama pull qwen2.5:7b` would work with no key at all.
+- **No Hooktheory credentials**, so there are no song matches to pass as context.
+- **21 nodes still `status: draft`.** A real model phrasing placeholder text reads better
+  but still is not right. Tutor is the blocker.
+- **Malcolm's sing→harmonise modules** (`pitch.js`, `harmonize.js`) are the Phase 5 plan.
+  `main` deleted all nine of his files — confirm with him before reviving.
+
+**Open, deliberately untuned:** five frontier nodes still tie; tie-break is alphabetical.
+Needs the tutor's 10 rows, not a guess fitted to one.
+
+---
+
 ## 2026-09-12 — one-button hardware test
 
 **How to run it** (two terminals, then open http://localhost:3000/helper)
