@@ -32,7 +32,9 @@ chordcat = ["data/*.json", "seed/*.json", "helper/concepts/*.yaml"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["tests"]
+# "src" too, so the suite runs from a clean checkout even when the
+# editable install is absent or its .pth has gone stale.
+pythonpath = ["src", "tests"]
 asyncio_mode = "auto"
 filterwarnings = [
     # Keep our own deprecations fatal, but don't fail on third-party ones we

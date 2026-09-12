@@ -10,6 +10,7 @@ loses them permanently and they cannot catch the error themselves.
 from __future__ import annotations
 
 import logging
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from typing import Protocol
 
@@ -31,6 +32,9 @@ They cannot read music and have no training. Rules, all hard:
 - Do not write music for them and do not describe notes to play.
 - Four short paragraphs: what you noticed, the one option, what it means and what
   it does to the sound, how to do it on the device.
+- If a fact is marked CHANGE SINCE LAST TAKE, lead with it -- noticing what they
+  just changed is the most useful thing you can say.
+- Never repeat a suggestion you have already made this session.
 """
 
 
@@ -45,10 +49,18 @@ class Response:
     rejections: tuple[Rejection, ...] = ()
 
 
-def build_prompt(facts: FactSet, choice: Choice, user_text: str | None = None) -> str:
+def build_prompt(
+    facts: FactSet,
+    choice: Choice,
+    user_text: str | None = None,
+    *,
+    history: Sequence[tuple[str | None, str]] = (),
+    songs: Sequence[str] = (),
+) -> str:
     lines = [TURN_CONTRACT, "", "FACTS (the only things you may assert):"]
     for fact in facts:
-        lines.append(f"  {fact.id} = {fact.value!r}  (n={fact.n_observations})")
+        marker = " [CHANGE SINCE LAST TAKE]" if fact.namespace == "change" else ""
+        lines.append(f"  {fact.id} = {fact.value!r}  (n={fact.n_observations}){marker}")
     node = choice.node
     lines += [
         "",
@@ -61,6 +73,18 @@ def build_prompt(facts: FactSet, choice: Choice, user_text: str | None = None) -
         f"  on the device: {node.on_device}",
         f"  why this one: it is one step from {', '.join(choice.why) or 'what they played'}",
     ]
+    if songs:
+        lines += [
+            "",
+            "SONGS THAT USE A SHAPE LIKE THIS (colour only -- never claim they "
+            "played these songs):",
+            *(f"  {s}" for s in songs),
+        ]
+    if history:
+        lines += ["", "WHAT YOU ALREADY TOLD THEM THIS SESSION (do not repeat it):"]
+        for node_id, said in history[-3:]:
+            first = said.strip().split("\n\n")[0]
+            lines.append(f"  [{node_id}] {first}")
     if user_text:
         lines += ["", f"WHAT THEY SAID: {user_text}"]
     return "\n".join(lines)
@@ -70,7 +94,13 @@ def build_prompt(facts: FactSet, choice: Choice, user_text: str | None = None) -
 class TemplateVoice:
     """No model at all. The offline default."""
 
-    def respond(self, facts: FactSet, choice: Choice, user_text: str | None = None) -> Response:
+    def respond(
+        self,
+        facts: FactSet,
+        choice: Choice,
+        user_text: str | None = None,
+        **_: object,
+    ) -> Response:
         return Response(render_turn(facts, choice).text(), used_fallback=True)
 
 
@@ -92,8 +122,16 @@ class LayeredVoice:
     def rejection_rate(self) -> float:
         return (self.rejected / self.attempts) if self.attempts else 0.0
 
-    def respond(self, facts: FactSet, choice: Choice, user_text: str | None = None) -> Response:
-        prompt = build_prompt(facts, choice, user_text)
+    def respond(
+        self,
+        facts: FactSet,
+        choice: Choice,
+        user_text: str | None = None,
+        *,
+        history: Sequence[tuple[str | None, str]] = (),
+        songs: Sequence[str] = (),
+    ) -> Response:
+        prompt = build_prompt(facts, choice, user_text, history=history, songs=songs)
         for _ in range(self.max_retries + 1):
             self.attempts += 1
             try:
@@ -110,6 +148,64 @@ class LayeredVoice:
         return Response(
             render_turn(facts, choice).text(), used_fallback=True, rejections=self._last
         )
+
+
+@dataclass(slots=True)
+class OpenAICompatibleVoice:
+    """Any provider that speaks /chat/completions.
+
+    Groq, Together, OpenRouter and a local Ollama are all the same wire format,
+    so one class covers every option and swapping provider is a config change.
+    Uses httpx, which the project already depends on, rather than pulling in a
+    vendor SDK for one POST.
+
+    A small open model is safe in this position specifically because
+    :mod:`chordcat.helper.validator` rejects any chord, key or number that is
+    not in the FactSet. The worst a weak model can do here is get rejected and
+    fall through to the template.
+    """
+
+    base_url: str = ""
+    model: str = ""
+    api_key: str = ""
+    max_tokens: int = 600
+    timeout_s: float = 30.0
+
+    def speak(self, prompt: str) -> str:
+        import httpx
+
+        from ..config import get_settings
+
+        settings = get_settings()
+        base = (self.base_url or settings.llm_base_url).rstrip("/")
+        model = self.model or settings.llm_model
+        key = self.api_key or settings.llm_api_key
+        if not base or not model:
+            raise RuntimeError("no LLM endpoint configured")
+        if settings.chordcat_offline:
+            raise RuntimeError("offline mode forbids the network")
+
+        headers = {"Content-Type": "application/json"}
+        # Ollama needs no key; hosted providers do. Sending an empty bearer
+        # token upsets some of them, so only set it when there is one.
+        if key:
+            headers["Authorization"] = f"Bearer {key}"
+
+        response = httpx.post(
+            f"{base}/chat/completions",
+            headers=headers,
+            json={
+                "model": model,
+                "max_tokens": self.max_tokens or settings.llm_max_tokens,
+                # Low, not zero: the phrasing should vary between turns, but
+                # this is not the place for invention.
+                "temperature": 0.4,
+                "messages": [{"role": "user", "content": prompt}],
+            },
+            timeout=self.timeout_s,
+        )
+        response.raise_for_status()
+        return response.json()["choices"][0]["message"]["content"]
 
 
 @dataclass(slots=True)
@@ -134,3 +230,24 @@ class ClaudeVoice:
             messages=[{"role": "user", "content": prompt}],
         )
         return "".join(block.text for block in message.content if block.type == "text")
+
+
+def build_voice() -> TemplateVoice | LayeredVoice:
+    """Pick the best available voice, with the template as the floor.
+
+    Order is deliberate: a configured open-source endpoint wins, because that
+    is the helper's own setting; Anthropic is the fallback only because a key
+    may already be present for genre labelling. If neither is configured the
+    app still answers -- from a template, and it says so -- rather than going
+    silent, which is the one outcome that makes it useless.
+    """
+    from ..config import get_settings
+
+    settings = get_settings()
+    if settings.chordcat_offline:
+        return TemplateVoice()
+    if settings.has_llm:
+        return LayeredVoice(OpenAICompatibleVoice())
+    if settings.has_anthropic:
+        return LayeredVoice(ClaudeVoice())
+    return TemplateVoice()

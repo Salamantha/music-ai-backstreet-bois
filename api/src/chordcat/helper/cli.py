@@ -14,7 +14,7 @@ from pathlib import Path
 from .analysis import run_all
 from .concepts.graph import Choice, choose
 from .concepts.schema import APPROVED, UNFILLED_DEVICE, load_nodes
-from .converse import ClaudeVoice, LayeredVoice, Response, TemplateVoice
+from .converse import Response, TemplateVoice, build_voice
 from .facts import FactSet
 from .prepare import prepare
 from .sources import FixtureSource
@@ -33,7 +33,7 @@ def analyse_capture(path: Path, *, channel: int | None = None, live: bool = Fals
     choice = choose(facts, session, load_nodes())
     if choice is None:
         return TurnResult(facts, None, Response("Not enough played yet to say anything.", True))
-    voice = LayeredVoice(ClaudeVoice()) if live else TemplateVoice()
+    voice = build_voice() if live else TemplateVoice()
     return TurnResult(facts, choice, voice.respond(facts, choice, session.user_text))
 
 

@@ -279,7 +279,10 @@ export interface HelperFact {
   n_observations: number; confidence: number;
 }
 
+export interface HelperChange { kind: string; value: unknown }
+
 export interface HelperTurn {
+  session_id: string;
   node_id: string | null;
   plain_name: string | null;
   text: string;
@@ -292,14 +295,25 @@ export interface HelperTurn {
   facts: HelperFact[];
   chords: string[];
   key: string | null;
+  changes: HelperChange[];
+  turn_number: number;
+}
+
+export interface HelperSongContext {
+  artist: string;
+  song: string;
+  matched_chords: string[];
 }
 
 export interface HelperTurnRequest {
   events: MidiEvent[];
   elapsed_ms: number;
+  /** Carried by the client; the server owns the memory behind it. */
+  session_id?: string;
   harmony_channel?: number | null;
   user_text?: string | null;
   intent_tags?: string[];
+  songs?: HelperSongContext[];
   suggested_nodes?: string[];
   tried_nodes?: string[];
 }
@@ -320,4 +334,15 @@ export async function helperDemo(): Promise<HelperTurnRequest & { elapsed_ms: nu
   const res = await fetch(`${BASE}/api/helper/demo`);
   if (!res.ok) throw new Error(`no recorded take available (${res.status})`);
   return res.json();
+}
+
+/**
+ * Record that the user asked to be shown the chord rather than told about it.
+ *
+ * Fire-and-forget: a failure here must never interrupt the thing the user
+ * actually pressed the button for.
+ */
+export async function helperOverride(sessionId: string, nodeId: string | null): Promise<void> {
+  const q = new URLSearchParams({ session_id: sessionId, node_id: nodeId ?? "" });
+  await fetch(`${BASE}/api/helper/override?${q}`, { method: "POST" }).catch(() => {});
 }

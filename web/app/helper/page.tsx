@@ -1,18 +1,23 @@
 "use client";
 
 /**
- * One button, one answer.
+ * The teaching path: a conversation about what you just played.
  *
- * A deliberately separate route from the matching app: this is the teaching
- * path, it shares none of that UI, and keeping it apart means testing the
- * helper on real hardware never touches anyone else's screen.
+ * A deliberately separate route from the matching app. This component shares
+ * none of that UI and testing it on hardware never disturbs that screen.
+ *
+ * It works with any MIDI device. The ChordCat is preferred by name because it
+ * interleaves eight sequencer tracks and needs a harmony channel picked out,
+ * but a plain keyboard sends on one channel and falls through the same path.
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { helperDemo, helperTurn, type HelperTurn } from "@/lib/api";
+import {
+  helperDemo, helperOverride, helperTurn, type HelperTurn,
+} from "@/lib/api";
 import {
   MidiCapture, channelStats, checkSupport, looksLikeChordcat,
-  suggestHarmonyChannels, type MidiEvent,
+  suggestHarmonyChannels, type MidiEvent, type MidiPort,
 } from "@/lib/webmidi";
 
 /** Musician's words. These mirror INTENT_TAGS on the server. */
@@ -27,14 +32,18 @@ export default function HelperPage() {
   const captureRef = useRef<MidiCapture | null>(null);
   const [phase, setPhase] = useState<Phase>("idle");
   const [error, setError] = useState("");
-  const [portName, setPortName] = useState("");
+  const [ports, setPorts] = useState<MidiPort[]>([]);
+  const [portId, setPortId] = useState("");
   const [noteCount, setNoteCount] = useState(0);
-  const [turn, setTurn] = useState<HelperTurn | null>(null);
+
+  const [turns, setTurns] = useState<HelperTurn[]>([]);
+  const [sessionId, setSessionId] = useState("");
   const [tags, setTags] = useState<string[]>([]);
-  const [asked, setAsked] = useState<string[]>([]);
-  const [showFacts, setShowFacts] = useState(false);
-  /** Kept so a take can be saved as a test fixture after the fact. */
+  const [said, setSaid] = useState("");
+  const [shown, setShown] = useState<Record<number, boolean>>({});
   const [lastTake, setLastTake] = useState<{ events: MidiEvent[]; elapsed: number } | null>(null);
+
+  const liveRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const capture = new MidiCapture();
@@ -42,27 +51,34 @@ export default function HelperPage() {
     return () => capture.disconnect();
   }, []);
 
-  const listen = useCallback(async () => {
+  const connect = useCallback(async () => {
     setError("");
-    setTurn(null);
     const capture = captureRef.current!;
+    const support = checkSupport();
+    if (!support.supported) throw new Error(support.reason);
+
+    const found = await capture.connect();
+    if (found.length === 0) {
+      throw new Error("No MIDI inputs found. Is the device plugged in and switched on?");
+    }
+    setPorts(found);
+
+    // A ChordCat by name, else whatever is already sending notes, else the
+    // first one. A wrong guess is recoverable from the picker; no input is not.
+    const wanted =
+      found.find((p) => p.id === portId) ??
+      found.find(looksLikeChordcat) ??
+      found.find((p) => p.messages > 0) ??
+      found[0];
+    await capture.select(wanted.id);
+    setPortId(wanted.id);
+    return capture;
+  }, [portId]);
+
+  const listen = useCallback(async () => {
     try {
-      const support = checkSupport();
-      if (!support.supported) throw new Error(support.reason);
-
       setPhase("connecting");
-      const ports = await capture.connect();
-      if (ports.length === 0) throw new Error("No MIDI inputs. Is the ChordCat plugged in?");
-
-      // Prefer the ChordCat by name, then anything already sending notes, then
-      // whatever is first -- a wrong guess is recoverable, no input is not.
-      const port =
-        ports.find(looksLikeChordcat) ??
-        ports.find((p) => p.messages > 0) ??
-        ports[0];
-      await capture.select(port.id);
-      setPortName(port.name);
-
+      const capture = await connect();
       capture.subscribe((_e, all) => setNoteCount(all.length));
       capture.start();
       setNoteCount(0);
@@ -71,67 +87,65 @@ export default function HelperPage() {
       setError(e instanceof Error ? e.message : String(e));
       setPhase("idle");
     }
-  }, []);
+  }, [connect]);
 
-  const ask = useCallback(async () => {
+  const ask = useCallback(
+    async (events: MidiEvent[], elapsed: number) => {
+      if (events.length === 0) {
+        setError("Nothing came through. Check the device is playing into this port.");
+        setPhase("idle");
+        return;
+      }
+      setLastTake({ events, elapsed });
+      setPhase("thinking");
+      setError("");
+      try {
+        // Pick the track carrying harmony before analysing: a ChordCat sends
+        // all eight sequencer tracks at once, a keyboard sends only one.
+        const harmony = [...suggestHarmonyChannels(channelStats(events))][0] ?? null;
+        const turn = await helperTurn({
+          events,
+          elapsed_ms: elapsed,
+          session_id: sessionId || undefined,
+          harmony_channel: harmony,
+          intent_tags: tags,
+          user_text: said.trim() || null,
+        });
+        setSessionId(turn.session_id);
+        setTurns((prev) => [...prev, turn]);
+        setSaid("");
+        setPhase("answered");
+      } catch (e) {
+        setError(e instanceof Error ? e.message : String(e));
+        setPhase("idle");
+      }
+    },
+    [sessionId, tags, said],
+  );
+
+  const stopAndAsk = useCallback(() => {
     const capture = captureRef.current!;
-    const events = capture.snapshot();
-    const elapsed = capture.elapsed();
-    setLastTake({ events, elapsed });
+    void ask(capture.snapshot(), capture.elapsed());
+  }, [ask]);
 
-    if (events.length === 0) {
-      setError("Nothing came through. Check the ChordCat is playing into this port.");
-      setPhase("idle");
-      return;
-    }
-
-    setPhase("thinking");
-    setError("");
-    try {
-      // The ChordCat interleaves all eight sequencer tracks on separate
-      // channels, so the harmony track has to be picked out before analysis.
-      const stats = channelStats(events);
-      const harmony = [...suggestHarmonyChannels(stats)][0] ?? null;
-
-      const result = await helperTurn({
-        events,
-        elapsed_ms: elapsed,
-        harmony_channel: harmony,
-        intent_tags: tags,
-        suggested_nodes: asked,
-      });
-      setTurn(result);
-      if (result.node_id) setAsked((prev) => [...prev, result.node_id!]);
-      setPhase("answered");
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-      setPhase("idle");
-    }
-  }, [tags, asked]);
-
-  /** Run the bundled recording, for when the ChordCat is not in the room. */
+  /** Run the bundled recording, for when no device is to hand. */
   const useRecorded = useCallback(async () => {
     setPhase("thinking");
-    setError("");
     try {
       const take = await helperDemo();
-      setLastTake({ events: take.events, elapsed: take.elapsed_ms });
-      const result = await helperTurn({ ...take, intent_tags: tags, suggested_nodes: asked });
-      setTurn(result);
-      if (result.node_id) setAsked((prev) => [...prev, result.node_id!]);
-      setPhase("answered");
+      await ask(take.events, take.elapsed_ms);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
       setPhase("idle");
     }
-  }, [tags, asked]);
+  }, [ask]);
 
   function saveTake() {
     if (!lastTake) return;
     const stats = channelStats(lastTake.events);
     const body = {
       note: "Captured from the helper page.",
-      device: "Chordcat",
+      device: ports.find((p) => p.id === portId)?.name ?? "unknown",
       elapsed_ms: lastTake.elapsed,
       harmony_channel: [...suggestHarmonyChannels(stats)][0] ?? null,
       channel_stats: stats,
@@ -142,54 +156,73 @@ export default function HelperPage() {
     );
     const a = document.createElement("a");
     a.href = url;
-    a.download = `chordcat-take-${new Date().toISOString().slice(0, 19)}.json`;
+    a.download = `take-${new Date().toISOString().slice(0, 19)}.json`;
     a.click();
     URL.revokeObjectURL(url);
   }
 
+  const busy = phase === "connecting" || phase === "thinking";
   const label = {
-    idle: "Listen to me play",
+    idle: turns.length ? "Play me something else" : "Listen to me play",
     connecting: "Connecting…",
     listening: "Stop and ask",
     thinking: "Thinking…",
-    answered: "Listen again",
+    answered: "Play me something else",
   }[phase];
-
-  const busy = phase === "connecting" || phase === "thinking";
 
   return (
     <main className="helper">
       <h1>What should I try next?</h1>
-      <p className="sub">
-        Play something on the ChordCat, then stop. It will not write music for
-        you &mdash; it can hear everything you play, and it has no hands.
+      <p className="lede">
+        Play something, then stop. It will not write music for you &mdash; it can
+        hear everything you play, and it has no hands.
       </p>
 
       <div className="panel">
         <button
           className={phase === "listening" ? "ask danger" : "ask primary"}
-          onClick={() => void (phase === "listening" ? ask() : listen())}
+          onClick={() => (phase === "listening" ? stopAndAsk() : void listen())}
           disabled={busy}
         >
           {label}
         </button>
 
-        {phase === "listening" && (
-          <p className="sub" style={{ textAlign: "center", margin: "12px 0 0" }}>
-            Listening on <span className="mono">{portName}</span> &mdash;{" "}
-            {noteCount} notes so far
-          </p>
-        )}
+        <div className="row spread" style={{ marginTop: "0.8rem" }}>
+          <span className={portId ? "signal on" : "signal off"}>
+            <span className="signal-dot" />
+            {phase === "listening"
+              ? `listening — ${noteCount} notes`
+              : portId
+                ? "connected"
+                : "not connected"}
+          </span>
+          {ports.length > 1 && (
+            <label className="sub" style={{ margin: 0 }}>
+              <span className="visually-hidden">MIDI input</span>
+              <select
+                value={portId}
+                onChange={(e) => {
+                  setPortId(e.target.value);
+                  void captureRef.current?.select(e.target.value);
+                }}
+              >
+                {ports.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                    {p.messages > 0 ? " ·" : ""}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+        </div>
+
         {error && <p className="error" style={{ marginBottom: 0 }}>{error}</p>}
 
         {phase !== "listening" && (
-          <p className="sub" style={{ margin: "12px 0 0", textAlign: "center" }}>
-            No ChordCat to hand?{" "}
-            <button
-              onClick={() => void useRecorded()}
-              disabled={busy}
-              style={{ padding: "2px 8px", fontSize: 13 }}
-            >
+          <p className="sub" style={{ marginBottom: 0, marginTop: "0.8rem" }}>
+            No device to hand?{" "}
+            <button className="quiet" onClick={() => void useRecorded()} disabled={busy}>
               use a recorded take
             </button>
           </p>
@@ -197,12 +230,20 @@ export default function HelperPage() {
       </div>
 
       <div className="panel">
-        <h2>Want something in particular?</h2>
-        <div className="row">
+        <h2>Tell it what you want</h2>
+        <textarea
+          className="say"
+          rows={2}
+          value={said}
+          onChange={(e) => setSaid(e.target.value)}
+          placeholder="I want this heavier — or leave it blank."
+        />
+        <div className="row" style={{ marginTop: "0.6rem" }}>
           {TAGS.map((tag) => (
             <button
               key={tag}
-              className={tags.includes(tag) ? "tag on" : "tag"}
+              className="tag"
+              aria-pressed={tags.includes(tag)}
               onClick={() =>
                 setTags((prev) =>
                   prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
@@ -215,18 +256,28 @@ export default function HelperPage() {
         </div>
       </div>
 
-      {turn && (
-        <div className="panel turn">
-          {turn.key && (
-            <div className="row" style={{ marginBottom: 10 }}>
-              <span className="pill">{turn.key}</span>
-              <span className="pill">{turn.chords.length} chords</span>
-              {turn.templated && <span className="pill">no model</span>}
-            </div>
+      <div ref={liveRef} role="status" aria-live="polite" className="visually-hidden">
+        {phase === "thinking" ? "Thinking" : turns.length ? "New suggestion ready" : ""}
+      </div>
+
+      {turns.map((turn, i) => (
+        <div className="panel turn" key={`${turn.session_id}-${turn.turn_number}`}>
+          <div className="row" style={{ marginBottom: "0.6rem" }}>
+            <span className="pill">turn {turn.turn_number}</span>
+            {turn.key && <span className="pill">{turn.key}</span>}
+            <span className="pill">{turn.chords.length} chords</span>
+            {turn.templated && <span className="pill bad">no model</span>}
+          </div>
+
+          {turn.changes.length > 0 && (
+            <p className="changed">
+              Since your last take:{" "}
+              {turn.changes.map((c) => c.kind.replace("change.", "")).join(", ")}.
+            </p>
           )}
 
-          {turn.text.split("\n\n").map((para, i) => (
-            <p key={i}>{para}</p>
+          {turn.text.split("\n\n").map((para, n) => (
+            <p key={n}>{para}</p>
           ))}
 
           {turn.draft && (
@@ -235,11 +286,37 @@ export default function HelperPage() {
             </p>
           )}
 
-          <details open={showFacts} onToggle={(e) => setShowFacts(e.currentTarget.open)}>
+          <div className="row" style={{ marginTop: "0.8rem" }}>
+            {!shown[i] && (
+              <button
+                onClick={() => {
+                  setShown((p) => ({ ...p, [i]: true }));
+                  void helperOverride(turn.session_id, turn.node_id);
+                }}
+              >
+                Just show me
+              </button>
+            )}
+            {i === turns.length - 1 && lastTake && (
+              <button className="quiet" onClick={saveTake}>
+                Save this take as a fixture
+              </button>
+            )}
+          </div>
+
+          {shown[i] && (
+            <p className="shown">
+              You played <span className="mono">{turn.chords.slice(0, 8).join(" ")}</span>
+              {turn.key ? ` in ${turn.key}` : ""}. Try {turn.plain_name} on one of them
+              &mdash; not all of them. The effect comes from contrast.
+            </p>
+          )}
+
+          <details>
             <summary style={{ cursor: "pointer", color: "var(--muted)" }}>
               Why is it telling me this?
             </summary>
-            <p className="sub" style={{ margin: "10px 0" }}>
+            <p className="sub" style={{ margin: "0.6rem 0" }}>
               <span className="mono">{turn.node_id}</span> is {turn.distance} step
               {turn.distance === 1 ? "" : "s"} from{" "}
               <span className="mono">{turn.why.join(", ") || "what you played"}</span>.
@@ -247,24 +324,22 @@ export default function HelperPage() {
               {turn.tied_with.length > 0 &&
                 ` Scored level with: ${turn.tied_with.join(", ")}.`}
             </p>
-            <table className="facts">
-              <tbody>
-                {turn.facts.map((f) => (
-                  <tr key={f.id}>
-                    <td>{f.kind}</td>
-                    <td className="mono">{JSON.stringify(f.value)}</td>
-                    <td>n={f.n_observations}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="table-scroll">
+              <table className="facts">
+                <tbody>
+                  {turn.facts.map((f) => (
+                    <tr key={f.id}>
+                      <td>{f.kind}</td>
+                      <td className="mono">{JSON.stringify(f.value)}</td>
+                      <td>n={f.n_observations}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </details>
-
-          <div className="row" style={{ marginTop: 14 }}>
-            <button onClick={saveTake}>Save this take as a test fixture</button>
-          </div>
         </div>
-      )}
+      ))}
     </main>
   );
 }

@@ -220,10 +220,24 @@ class AnalyzeResponse(BaseModel):
     )
 
 
+class HelperSongContext(BaseModel):
+    """One song match, as conversational colour.
+
+    A deliberately thin slice of the matching component's `SongOut`: the helper
+    consumes that analysis, it does not own or extend it.
+    """
+
+    artist: str = ""
+    song: str = ""
+    matched_chords: list[str] = Field(default_factory=list)
+
+
 class HelperTurnRequest(BaseModel):
     """A take, plus whatever the player said about it."""
 
     events: list[NoteEventIn] = Field(default_factory=list)
+    #: Ties turns together so the helper can remember. The client keeps it.
+    session_id: str = ""
     elapsed_ms: float = 0.0
     #: Which MIDI channel carries the harmony. The ChordCat interleaves all
     #: eight sequencer tracks, so without this the analysis sees eight tracks
@@ -231,7 +245,11 @@ class HelperTurnRequest(BaseModel):
     harmony_channel: int | None = Field(default=None, ge=0, le=16)
     user_text: str | None = None
     intent_tags: list[str] = Field(default_factory=list)
-    #: Carried by the client so the helper does not repeat itself across turns.
+    #: Songs the matching endpoint already found for this progression. Passed
+    #: in rather than fetched, so a helper turn never spends Hooktheory quota.
+    songs: list[HelperSongContext] = Field(default_factory=list)
+    #: Legacy client-side memory. The server is authoritative when a
+    #: session_id is supplied; these remain for stateless one-off calls.
     suggested_nodes: list[str] = Field(default_factory=list)
     tried_nodes: list[str] = Field(default_factory=list)
 
@@ -244,7 +262,13 @@ class HelperFactOut(BaseModel):
     confidence: float
 
 
+class HelperChangeOut(BaseModel):
+    kind: str
+    value: object
+
+
 class HelperTurnResponse(BaseModel):
+    session_id: str = ""
     #: Empty when nothing was played, or when nothing sits on the frontier.
     node_id: str | None
     plain_name: str | None
@@ -264,3 +288,7 @@ class HelperTurnResponse(BaseModel):
     facts: list[HelperFactOut]
     chords: list[str]
     key: str | None
+    #: What moved since the previous take in this session. Measured, not guessed.
+    changes: list[HelperChangeOut] = Field(default_factory=list)
+    #: How many turns have been spoken in this session, this one included.
+    turn_number: int = 1
