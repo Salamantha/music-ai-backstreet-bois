@@ -376,9 +376,26 @@ export default function MidiConnect({ onChords, onReset, busy }: Props) {
             onPlay={playBack}
             canPlay={connected && outputs.length > 0}
             playing={playing}
-            onAnalyse={() =>
-              onChords(steps.map((s) => ({ pitches: s.pitches, duration_ms: 600 })))
-            }
+            onAnalyse={() => {
+              // Analysing ends the take. Without this, anything played while
+              // the results load would quietly append to the progression that
+              // was just analysed.
+              const inFlight = [...chordBuffer.current].sort((a, b) => a - b);
+              flushChord();
+              setRecording(false);
+              setHasStoppedCapture(true);
+
+              // A chord still inside its onset window has not reached `steps`
+              // yet, so include it explicitly rather than losing it.
+              const captured = steps.map((s) => ({
+                pitches: s.pitches,
+                duration_ms: 600,
+              }));
+              if (inFlight.length >= MIN_NOTES_PER_STEP) {
+                captured.push({ pitches: inFlight, duration_ms: 600 });
+              }
+              onChords(captured);
+            }}
           />
         </div>
       )}
