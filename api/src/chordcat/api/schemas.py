@@ -180,6 +180,8 @@ class AnalyzeResponse(BaseModel):
     applied_tonality: str = "any"
     #: The same chords read in the relative key, since which one is home cannot
     #: be decided from the notes alone.
+    #: True when this key is written with flats, so note names agree.
+    prefer_flats: bool = False
     alternate_key_name: str = ""
     alternate_romans: list[str] = Field(default_factory=list)
     alternate_cp: str = ""

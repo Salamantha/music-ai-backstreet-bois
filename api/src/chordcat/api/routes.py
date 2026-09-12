@@ -11,7 +11,14 @@ from ..deps import get_services
 from ..domain.chords import identify_chord
 from ..domain.cp import to_cp
 from ..domain.events import ChordEvent, Hole, IdentifiedChord, Key, RawEvent
-from ..domain.pitch import MODES, key_name, pc_name, roman_for
+from ..domain.pitch import (
+    MODES,
+    key_name,
+    pc_name,
+    prefers_flats,
+    roman_for,
+    spell_in_key,
+)
 from ..services.pipeline import analyse
 from .schemas import (
     AnalyzeRequest,
@@ -51,8 +58,18 @@ async def health() -> dict:
     }
 
 
-def _symbol(root_pc: int, quality: str) -> str:
-    return pc_name(root_pc) + _QUALITY_SYMBOL.get(quality, "")
+def _symbol(root_pc: int, quality: str, key: Key | None = None) -> str:
+    """Chord symbol, spelled as it would be written in the key.
+
+    In F major the fourth degree is a B flat, not an A sharp. Showing the wrong
+    accidental makes a correct analysis look wrong to anyone who reads music.
+    """
+    root = (
+        spell_in_key(root_pc, key.tonic_pc, key.mode)
+        if key is not None
+        else pc_name(root_pc)
+    )
+    return root + _QUALITY_SYMBOL.get(quality, "")
 
 
 def _chord_event(pitches: list[int], duration_ms: float = 600.0) -> ChordEvent:
@@ -98,6 +115,12 @@ async def identify(req: IdentifyRequest) -> IdentifyResponse:
     if req.key_tonic_pc is not None and req.key_mode in MODES:
         key = Key(req.key_tonic_pc, req.key_mode)  # type: ignore[arg-type]
 
+    flats = prefers_flats(key.tonic_pc, key.mode) if key else False
+    spell = (
+        (lambda pc: spell_in_key(pc, key.tonic_pc, key.mode))
+        if key is not None
+        else (lambda pc: pc_name(pc, prefer_flats=flats))
+    )
     event = _chord_event(pitches)
     candidates = identify_chord(event, key=key)
     if not candidates:
@@ -111,21 +134,21 @@ async def identify(req: IdentifyRequest) -> IdentifyResponse:
         roman = roman_for((best.root_pc - key.tonic_pc) % 12, best.quality, key.mode)
 
     return IdentifyResponse(
-        symbol=_symbol(best.root_pc, best.quality)
+        symbol=_symbol(best.root_pc, best.quality, key)
         + ("(" + ",".join(best.extensions) + ")" if best.extensions else ""),
-        root=pc_name(best.root_pc),
+        root=spell(best.root_pc),
         quality=best.quality,
         inversion=best.inversion,
         extensions=list(best.extensions),
-        bass=pc_name(event.bass_pc),
+        bass=spell(event.bass_pc),
         roman=roman,
         cp=cp_token,
-        pitch_classes=[pc_name(p) for p in sorted(event.pcs)],
+        pitch_classes=[spell(p) for p in sorted(event.pcs)],
         candidates=[
             CandidateOut(
-                root=pc_name(c.root_pc),
+                root=spell(c.root_pc),
                 quality=c.quality,
-                symbol=_symbol(c.root_pc, c.quality),
+                symbol=_symbol(c.root_pc, c.quality, key),
                 inversion=c.inversion,
                 extensions=list(c.extensions),
                 score=c.score,
@@ -181,6 +204,13 @@ async def analyze(req: AnalyzeRequest) -> AnalyzeResponse:
         corpus_size=services.cache.corpus_size(),
     )
 
+    analysed_key = result.key_estimate.key if result.key_estimate else None
+    spell_flats = (
+        prefers_flats(analysed_key.tonic_pc, analysed_key.mode)
+        if analysed_key
+        else False
+    )
+
     romans: list[str] = []
     cp_by_index: dict[int, str] = {}
     for item in result.cp_sequence:
@@ -196,10 +226,14 @@ async def analyze(req: AnalyzeRequest) -> AnalyzeResponse:
             index=i,
             start_ms=c.event.start_ms,
             end_ms=c.event.end_ms,
-            root=pc_name(c.best.root_pc),
+            root=(
+                spell_in_key(c.best.root_pc, analysed_key.tonic_pc, analysed_key.mode)
+                if analysed_key
+                else pc_name(c.best.root_pc)
+            ),
             quality=c.best.quality,
             inversion=c.best.inversion,
-            symbol=pc_name(c.best.root_pc) + _QUALITY_SYMBOL.get(c.best.quality, ""),
+            symbol=_symbol(c.best.root_pc, c.best.quality, analysed_key),
             roman=romans[i] if i < len(romans) else None,
             cp=cp_by_index.get(i),
             pitches=list(c.event.pitches),
@@ -377,6 +411,7 @@ async def analyze(req: AnalyzeRequest) -> AnalyzeResponse:
         alternate_romans=[
             t.roman for t in result.alternate_sequence if not isinstance(t, Hole)
         ],
+        prefer_flats=spell_flats,
         alternate_cp=",".join(
             t.root_position_token
             for t in result.alternate_sequence

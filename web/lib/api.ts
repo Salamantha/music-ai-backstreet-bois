@@ -48,6 +48,7 @@ export interface AnalyzeResponse {
   songs: Song[]; artists: Artist[]; profile: Profile | null; matches: Match[];
   requests_spent: number; queried: string[];
   segmentation_mode: string; stuck_notes: number; notes: string[];
+  prefer_flats: boolean;
   available_genres: Record<string, number>;
   applied_genres: string[];
   applied_tonality: string;
@@ -180,4 +181,16 @@ export function matchedPositions(chords: string[], pattern: string[]): Set<numbe
     }
   }
   return hits;
+}
+
+/**
+ * A YouTube search for a song, rather than a specific video.
+ *
+ * The video id embedded in a TheoryTab is whatever its contributor linked --
+ * often a cover, a lyric video, or something since taken down. A search always
+ * resolves to the actual song.
+ */
+export function youtubeSearch(artist: string, song: string): string {
+  const q = encodeURIComponent(`${artist} ${song}`.replace(/\s+/g, " ").trim());
+  return `https://www.youtube.com/results?search_query=${q}`;
 }

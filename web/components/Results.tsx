@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import {
-  matchedPositions, stripModifiers,
+  matchedPositions, stripModifiers, youtubeSearch,
   type AnalyzeResponse, type Profile, type Song,
 } from "@/lib/api";
 
@@ -143,19 +143,23 @@ export function SongMatches({ result }: { result: AnalyzeResponse }) {
             <tr key={`${s.artist}-${s.song}`}>
               <td>{s.artist}</td>
               <td>
-                {/* Prefer the recording itself; fall back to the analysis page
-                    for results from the Trends API, which carries no video. */}
                 <a
-                  href={s.video_url || s.url}
+                  href={youtubeSearch(s.artist, s.song)}
                   target="_blank"
                   rel="noreferrer"
-                  title={s.video_url ? "Listen on YouTube" : "Open the TheoryTab analysis"}
+                  title="Find it on YouTube"
                 >
                   {s.song}
                 </a>
-                {!s.video_url && (
-                  <span style={{ color: "var(--muted)", fontSize: 11 }}> ↗ theory</span>
-                )}
+                <a
+                  href={s.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  title="Open the Hooktheory analysis"
+                  style={{ color: "var(--muted)", fontSize: 11, marginLeft: 6 }}
+                >
+                  theory ↗
+                </a>
                 {s.section && (
                   <div style={{ color: "var(--muted)", fontSize: 11, marginTop: 2 }}>
                     {s.section}

@@ -135,3 +135,55 @@ def test_relative_key_round_trips():
             assert scale_pcs(key.tonic_pc, key.mode) == scale_pcs(
                 other.tonic_pc, other.mode
             ), f"{mode} on {tonic} -> {other}"
+
+
+class TestSpelling:
+    """Accidentals follow the key signature, not a fixed preference.
+
+    Showing A# where a score would write Bb makes a correct analysis look wrong
+    to anyone who reads music.
+    """
+
+    def test_flat_keys_are_spelled_with_flats(self):
+        from chordcat.domain.pitch import key_name
+
+        assert key_name(10, "major") == "Bb major"
+        assert key_name(3, "major") == "Eb major"
+        assert key_name(1, "major") == "Db major"
+
+    def test_sharp_keys_are_spelled_with_sharps(self):
+        from chordcat.domain.pitch import key_name
+
+        assert key_name(7, "major") == "G major"
+        assert key_name(6, "major") == "F# major"
+
+    def test_the_parent_scale_carries_the_signature(self):
+        """D minor belongs to F major and writes Bb; D dorian belongs to C and
+        writes neither."""
+        from chordcat.domain.pitch import prefers_flats
+
+        assert prefers_flats(2, "minor") is True
+        assert prefers_flats(2, "dorian") is False
+
+    def test_every_major_scale_uses_each_letter_once(self):
+        """The defining property of scale spelling, across all twelve keys.
+
+        F# major needs E# for this to hold; a twelve-name lookup table gives F
+        and uses the letter twice.
+        """
+        from chordcat.domain.pitch import MODE_SCALES, spell_in_key
+
+        for tonic in range(12):
+            letters = [
+                spell_in_key((tonic + step) % 12, tonic, "major")[0]
+                for step in MODE_SCALES["major"]
+            ]
+            assert len(set(letters)) == 7, f"tonic {tonic}: {letters}"
+
+    def test_known_spellings(self):
+        from chordcat.domain.pitch import spell_in_key
+
+        assert spell_in_key(10, 5, "major") == "Bb"    # 4th of F major
+        assert spell_in_key(10, 0, "major") == "A#"    # outside C major
+        assert spell_in_key(5, 6, "major") == "E#"     # 7th of F# major
+        assert spell_in_key(10, 2, "minor") == "Bb"    # 6th of D minor
