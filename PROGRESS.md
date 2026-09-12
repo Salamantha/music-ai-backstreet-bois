@@ -1,5 +1,31 @@
 # PROGRESS
 
+## 2026-09-12 — one-button hardware test
+
+**How to run it** (two terminals, then open http://localhost:3000/helper)
+```
+cd api && .venv/bin/uvicorn chordcat.main:app --reload
+cd web && npm run dev
+```
+Chrome/Edge/Firefox only — Safari has no Web MIDI. One button: *Listen to me play* ->
+play -> *Stop and ask*. "use a recorded take" runs the bundled capture with no hardware.
+"Save this take as a test fixture" downloads a capture in the fixture format — that is how
+the two missing takes (repetitive, adventurous) get made.
+
+**Added**
+- `POST /api/helper/turn` — take in, turn out. No Hooktheory I/O, so no shared quota.
+- `GET /api/helper/demo` — the bundled capture, so the helper demos without hardware.
+- `web/app/helper/page.tsx` — its own route. Vishnu's page is untouched; the only shared
+  files edited are `lib/api.ts` (appended) and `globals.css` (appended).
+- Intent tags wired end to end; `suggested_nodes` carried client-side so it does not repeat.
+- Provenance panel: the why-path, the score tie, and every fact with its n.
+
+**Note:** the venv's editable install went stale mid-session and `import chordcat` started
+failing even though the .pth was correct. `rm -rf api/.venv && python3 -m venv .venv &&
+.venv/bin/pip install -e '.[dev]'` fixed it. Worth knowing if it recurs.
+
+---
+
 ## 2026-09-12 — v0 built and green
 
 **Done** — all 13 plan tasks. `api/src/chordcat/helper/`, 54 new tests (199 total, ruff clean).
