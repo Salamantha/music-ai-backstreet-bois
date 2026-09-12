@@ -16,6 +16,7 @@ from .adapters.genre_llm import (
 )
 from .adapters.hooktheory import HooktheoryClient, HttpHooktheoryClient
 from .adapters.ratelimit import TokenBucket
+from .adapters.theorytab import HttpTheoryTabClient, TheoryTabClient
 from .config import Settings, get_settings
 from .services.matching import PersonaPool
 
@@ -33,6 +34,9 @@ class Services:
     client: HooktheoryClient | None
     genres: GenreResolver
     pool: PersonaPool
+    #: Second song source: the TheoryTab search page. Optional and independent
+    #: of the Trends API, so either can be unavailable without the other.
+    theorytab: TheoryTabClient | None
     #: Shared by every request: the Hooktheory quota is account-wide, so one
     #: bucket per process. With more than one worker this must become Redis.
     bucket: TokenBucket
@@ -75,4 +79,8 @@ def get_services() -> Services:
     if not pool.personas:
         log.warning("no personas loaded from %s; run scripts/generate_pool.py", PERSONA_FILE)
 
-    return Services(settings, cache, client, genres, pool, bucket)
+    theorytab: TheoryTabClient | None = None
+    if settings.theorytab_enabled and not settings.chordcat_offline:
+        theorytab = HttpTheoryTabClient(cache=cache)
+
+    return Services(settings, cache, client, genres, pool, theorytab, bucket)

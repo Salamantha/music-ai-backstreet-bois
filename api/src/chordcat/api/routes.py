@@ -163,6 +163,7 @@ async def analyze(req: AnalyzeRequest) -> AnalyzeResponse:
         raw,
         client=services.client,
         genres=services.genres,
+        theorytab=services.theorytab,
         key_override=override,
         session_end_ms=req.session_end_ms,
         budget=req.budget or services.settings.song_request_budget,
@@ -330,7 +331,7 @@ async def analyze(req: AnalyzeRequest) -> AnalyzeResponse:
                 artist=s.artist, song=s.song, section=s.section, url=s.url,
                 score=s.score, matched_ngrams=list(s.matched_ngrams),
             )
-            for s in result.search.songs[:25]
+            for s in result.search.songs[:40]
         ],
         artists=[
             ArtistOut(artist=a.artist, score=a.score, songs=list(a.songs))

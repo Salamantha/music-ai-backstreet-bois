@@ -40,6 +40,37 @@ cd web && npm run dev                            # http://localhost:3000
 Open the frontend in **Chrome, Edge, or Firefox 108+**. Safari does not implement the
 Web MIDI API on any platform and has no roadmap to.
 
+## Song sources
+
+Two, because one is not enough.
+
+| Source | What it is | Why |
+|---|---|---|
+| **Trends API** | `api.hooktheory.com/v1` — the sanctioned API, `cp` tokens | Chord-transition probabilities, and song matches |
+| **TheoryTab search** | the public advanced-search page, roman numerals | The Trends song index is a stale snapshot |
+
+The second source exists because of a concrete gap. Arctic Monkeys' "505" is in
+TheoryTab as D Dorian `i ii i ii`; the correct Trends token for that progression
+is `2,3` (verified — other D-dorian i–ii songs are there); and an exhaustive
+scan of `2,3`, all 17 pages and 338 songs, does not contain it. The Trends index
+advertises "75,000+" songs while TheoryTab search reports 79,896, returns
+`http://` URLs, and its docs leak a `local.www.` dev host. It is old.
+
+**TheoryTab search is not an API.** It parses the server-rendered search page —
+there is no JSON endpoint behind it. So:
+
+- every field is optional and a parse failure degrades to "no results", never an
+  exception into someone's analysis
+- requests are serialised, spaced over a second apart, and aggressively cached
+- `robots.txt` allows the path (`User-agent: *` / `Allow: /`) and signals
+  `use=reference`, which is what this is
+- it can be disabled on its own with `THEORYTAB_ENABLED=0`
+
+It also queries in **roman numerals rather than `cp` tokens**, which suits a
+chord-voicing device: with `ignoreModifiers` on, `i ii` matches a song whose
+chords are really i11 and ii9 — exactly what the ChordCat sends. And Hooktheory's
+own genre labels come free with each result, which beats guessing at them.
+
 ## Scripts (run in this order on a fresh install)
 
 ```bash

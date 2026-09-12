@@ -14,10 +14,12 @@ from typing import Sequence
 
 from ..adapters.genre_llm import GenreResolver
 from ..adapters.hooktheory import HooktheoryClient
+from ..adapters.theorytab import TheoryTabClient, romans_to_chord_string
 from ..domain.chords import identify_all, merge_identified
 from ..domain.cp import CpConfig, progression_to_cp
 from ..domain.events import (
     CpSequence,
+    SongHit as _SongHit,
     Hole,
     IdentifiedChord,
     Key,
@@ -29,7 +31,8 @@ from ..domain.key import detect_key
 from ..domain.pitch import parent_major_tonic
 from ..domain.ngrams import NgramConfig
 from ..domain.profile import TasteProfile, build_profile, harmonic_features
-from ..domain.ranking import normalize_name
+from ..domain.ranking import NgramResult, normalize_name, progression_coverage
+from ..domain.taxonomy import map_hooktheory_genres
 from ..domain.segment import SegmentConfig, events_from_raw
 from ..domain.ranking import rollup_artists, score_songs
 from .search import SearchOutcome, build_transition_table, search_progression
@@ -48,6 +51,9 @@ class AnalysisResult:
     stuck_notes: int = 0
     unmapped: tuple[dict, ...] = ()
     diagnostics: dict = field(default_factory=dict)
+    #: Genres Hooktheory itself assigns, keyed by normalised artist name. Better
+    #: evidence than an LLM guess, and free with the TheoryTab result.
+    source_genres: dict[str, tuple[str, ...]] = field(default_factory=dict)
 
     @property
     def cp_string(self) -> str:
@@ -61,6 +67,7 @@ async def analyse(
     *,
     client: HooktheoryClient | None,
     genres: GenreResolver | None,
+    theorytab: TheoryTabClient | None = None,
     key_override: Key | None = None,
     session_end_ms: float | None = None,
     budget: int = 12,
@@ -115,6 +122,11 @@ async def analyse(
         segment_cfg.jaccard_same,
     )
     sequence = progression_to_cp(chords, estimate.key, cp_cfg)
+    # Keep the reading of the notes as first detected. The Trends search may
+    # respell the progression into the parent major to find matches, but
+    # TheoryTab indexes songs under their *own* modal analysis -- 505 is filed
+    # as D dorian `i ii`, which the respelled `ii iii` would never find.
+    detected_romans = [t.roman for t in sequence if not isinstance(t, Hole)]
     unmapped = tuple(
         {"index": h.chord_index, "label": h.label, "reason": h.reason}
         for h in sequence
@@ -145,8 +157,56 @@ async def analyse(
             if isinstance(h, Hole) and h.label
         )
 
+    # Second source. The Trends index is a stale snapshot -- Arctic Monkeys'
+    # "505" is in TheoryTab as D Dorian `i ii` but absent from every page of the
+    # equivalent Trends query -- so search TheoryTab by roman numeral as well
+    # and merge. `ignore_modifiers` is what makes this work for a chord-voicing
+    # device: it matches `i ii` against a song whose chords are really i11/ii9.
+    source_genres: dict[str, tuple[str, ...]] = {}
+    if theorytab is not None:
+        final_romans = [t.roman for t in sequence if not isinstance(t, Hole)]
+        spellings: list[list[str]] = []
+        for candidate in (detected_romans, final_romans):
+            if candidate and candidate not in spellings:
+                spellings.append(candidate)
+
+        # Collect every spelling's hits before scoring. Merging and rescoring
+        # once per spelling would discard the coverage measured on the previous
+        # pass, which is what makes the obvious answer rank where it should.
+        collected: list[tuple[object, list[str]]] = []
+        seen_hits: set[tuple[str, str, str]] = set()
+        queried_strings: list[str] = []
+        for romans in spellings:
+            chord_string = romans_to_chord_string(romans)
+            if not chord_string:
+                continue
+            try:
+                hits = await theorytab.search_all(chord_string, ignore_modifiers=True)
+            except Exception as exc:  # noqa: BLE001 - a second source must not break the first
+                log.warning("TheoryTab search failed (%s); continuing", exc)
+                continue
+            queried_strings.append(chord_string)
+            for hit in hits:
+                key = (hit.artist, hit.song, hit.section)
+                if key in seen_hits:
+                    continue
+                seen_hits.add(key)
+                collected.append((hit, romans))
+
+        if collected:
+            outcome = _merge_theorytab(
+                outcome, collected, transitions,
+                artist_document_frequency, corpus_size, queried_strings,
+            )
+            for hit, _ in collected:
+                mapped = map_hooktheory_genres(list(hit.genres))
+                if mapped:
+                    source_genres[normalize_name(hit.artist)] = mapped
+
     harmonic = harmonic_features(chords, estimate.key, outcome.ngrams, transitions)
-    profile = await build_taste_profile(outcome.songs, harmonic, genres)
+    profile = await build_taste_profile(
+        outcome.songs, harmonic, genres, source_genres=source_genres
+    )
 
     return AnalysisResult(
         chords=chords,
@@ -158,6 +218,59 @@ async def analyse(
         stuck_notes=segmented.stuck_notes,
         unmapped=unmapped,
         diagnostics={**diagnostics, "chords_identified": len(chords)},
+        source_genres=source_genres,
+    )
+
+
+def _merge_theorytab(
+    outcome: SearchOutcome,
+    collected: Sequence[tuple[object, Sequence[str]]],
+    transitions,
+    artist_document_frequency,
+    corpus_size: int,
+    queried_strings: Sequence[str],
+) -> SearchOutcome:
+    """Fold TheoryTab results into the Trends results and rescore together."""
+    from ..domain.ngrams import Ngram
+
+    by_pattern: dict[tuple[str, ...], list] = {}
+    coverage: dict[tuple[str, str], float] = {}
+
+    for hit, romans in collected:
+        pattern = tuple(romans)
+        by_pattern.setdefault(pattern, []).append(
+            _SongHit(
+                artist=hit.artist,
+                song=hit.song,
+                section=hit.section or "",
+                url=hit.url,
+            )
+        )
+        key = (normalize_name(hit.artist), normalize_name(hit.song))
+        # Keep the best coverage across spellings and sections of a song.
+        coverage[key] = max(
+            coverage.get(key, 0.0), progression_coverage(hit.chords, romans)
+        )
+
+    results = list(outcome.results)
+    for pattern, songs in by_pattern.items():
+        results.append(
+            NgramResult(
+                Ngram(tokens=pattern, multiplicity=1, fidelity=1.0, opens_take=True),
+                tuple(songs),
+                total_hits=len(songs),
+            )
+        )
+
+    scored = score_songs(tuple(results), transitions, coverage=coverage)
+    return SearchOutcome(
+        songs=scored,
+        artists=rollup_artists(scored, artist_document_frequency, corpus_size),
+        results=tuple(results),
+        ngrams=outcome.ngrams,
+        requests_spent=outcome.requests_spent,
+        queried=[*outcome.queried, *(f"theorytab:{q}" for q in queried_strings)],
+        stopped_early=outcome.stopped_early,
     )
 
 
@@ -165,6 +278,7 @@ async def build_taste_profile(
     songs: Sequence[SongHit],
     harmonic,
     genres: GenreResolver | None,
+    source_genres: dict[str, tuple[str, ...]] | None = None,
 ) -> TasteProfile:
     """Roll matched songs up into genre / artist / era / mood weights."""
     artist_weights = Counter[str]()
@@ -175,9 +289,17 @@ async def build_taste_profile(
     era_weights = Counter[str]()
     mood_weights = Counter[str]()
 
-    if genres is not None and artist_weights:
-        labels = await genres.resolve(list(artist_weights))
+    source_genres = source_genres or {}
+    if artist_weights:
+        labels = await genres.resolve(list(artist_weights)) if genres else {}
         for artist, weight in artist_weights.items():
+            # Hooktheory's own label wins: it is authoritative for that song,
+            # where our label file is a curated guess about the artist.
+            known = source_genres.get(normalize_name(artist))
+            if known:
+                for g in known:
+                    genre_weights[g] += weight
+                continue
             profile = labels.get(normalize_name(artist))
             if profile is None or profile.unknown:
                 # An unrecognised artist contributes nothing to genre -- lower

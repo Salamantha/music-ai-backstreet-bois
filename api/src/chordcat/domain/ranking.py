@@ -44,14 +44,58 @@ class NgramResult:
     total_hits: int = 0
 
 
+#: A song that is entirely the played progression is worth several times one
+#: that merely contains it. Bounded so coverage informs the ranking without
+#: overwhelming progression rarity and length.
+MAX_COVERAGE_MULTIPLIER = 4.0
+
+
+def _coverage_multiplier(coverage: float | None) -> float:
+    if coverage is None:
+        return 1.0
+    return 1.0 + (MAX_COVERAGE_MULTIPLIER - 1.0) * max(0.0, min(1.0, coverage))
+
+
 def _section_multiplier(n_sections: int) -> float:
     """Bounded bonus for a song matching in several sections."""
     return min(MAX_SECTION_MULTIPLIER, 1.0 + 0.25 * (n_sections - 1))
 
 
+def progression_coverage(
+    song_chords: Sequence[str], pattern: Sequence[str]
+) -> float:
+    """How much of a song's progression the played pattern accounts for.
+
+    A song whose whole progression *is* the pattern, looped, is a far better
+    match than a song that merely contains it once among twenty other chords.
+    Both score identically on "contains the progression", which is why an
+    exact-match search alone ranks the obvious answer far down the list.
+
+    Returns the fraction of the song's chords covered by occurrences of the
+    pattern, in 0..1.
+    """
+    if not song_chords or not pattern:
+        return 0.0
+    n = len(pattern)
+    if n > len(song_chords):
+        return 0.0
+    target = [c.casefold() for c in pattern]
+    chords = [c.casefold() for c in song_chords]
+    covered = 0
+    i = 0
+    while i <= len(chords) - n:
+        if chords[i : i + n] == target:
+            covered += n
+            i += n
+        else:
+            i += 1
+    return min(1.0, covered / len(chords))
+
+
 def score_songs(
     results: Sequence[NgramResult],
     transition_prob: Mapping[tuple[str, ...], float] | None = None,
+    coverage: Mapping[tuple[str, str], float] | None = None,
 ) -> tuple[SongHit, ...]:
     """Rank songs by how strongly the take's windows point at them.
 
@@ -98,7 +142,9 @@ def score_songs(
             song=display[k].song,
             section=", ".join(sorted(sections[k])),
             url=display[k].url,
-            score=v * _section_multiplier(len(sections[k])),
+            score=v
+            * _section_multiplier(len(sections[k]))
+            * _coverage_multiplier(coverage.get(k) if coverage else None),
             matched_ngrams=tuple(sorted(matched[k])),
         )
         for k, v in scores.items()

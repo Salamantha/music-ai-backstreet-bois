@@ -37,6 +37,9 @@ CREATE TABLE IF NOT EXISTS artist_frequency (
     artist TEXT PRIMARY KEY, n INTEGER NOT NULL DEFAULT 0
 );
 CREATE TABLE IF NOT EXISTS corpus_meta (k TEXT PRIMARY KEY, v TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS theorytab_cache (
+    cache_key TEXT PRIMARY KEY, payload TEXT NOT NULL, fetched_at REAL NOT NULL
+);
 CREATE TABLE IF NOT EXISTS genre_cache (
     cache_key TEXT PRIMARY KEY, payload TEXT NOT NULL, fetched_at REAL NOT NULL
 );
@@ -129,6 +132,21 @@ class SqliteCache:
     def corpus_size(self) -> int:
         row = self._conn.execute("SELECT SUM(n) FROM artist_frequency").fetchone()
         return int(row[0] or 0)
+
+    # -- TheoryTab search --------------------------------------------------
+    def get_theorytab(self, cache_key: str) -> list[dict[str, Any]] | None:
+        row = self._conn.execute(
+            "SELECT payload, fetched_at FROM theorytab_cache WHERE cache_key = ?",
+            (cache_key,),
+        ).fetchone()
+        return _unwrap(row, SONGS_TTL_S)
+
+    def put_theorytab(self, cache_key: str, rows: Sequence[dict[str, Any]]) -> None:
+        self._conn.execute(
+            "INSERT OR REPLACE INTO theorytab_cache VALUES (?, ?, ?)",
+            (cache_key, json.dumps(list(rows)), time.time()),
+        )
+        self._conn.commit()
 
     # -- genre labels ------------------------------------------------------
     def get_genre(self, cache_key: str) -> dict[str, Any] | None:

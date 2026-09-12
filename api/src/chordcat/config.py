@@ -42,6 +42,11 @@ class Settings(BaseSettings):
     #: Ceiling when the primary query returns too little to be useful.
     song_fallback_budget: int = 8
 
+    #: Search the TheoryTab page as a second song source. It is not an API --
+    #: it parses the public search page -- so it is a separate switch from the
+    #: sanctioned Trends API and can be turned off independently.
+    theorytab_enabled: bool = True
+
     @property
     def has_hooktheory(self) -> bool:
         return bool(self.hooktheory_username and self.hooktheory_password)

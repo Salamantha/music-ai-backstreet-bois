@@ -62,3 +62,59 @@ def _clean(values: object, allowed: frozenset[str]) -> tuple[str, ...]:
             if key in allowed and key not in seen:
                 seen.append(key)
     return tuple(seen)
+
+
+#: Hooktheory labels songs with its own genre vocabulary. Map it onto ours so
+#: the two sources contribute to the same vector rather than fragmenting it.
+#: Anything unmapped is dropped by `clean_genres`, which is the intended
+#: behaviour -- an unrecognised label must never reach the matching vector.
+HOOKTHEORY_GENRE_MAP: Final[dict[str, tuple[str, ...]]] = {
+    "rock": ("rock",),
+    "alternative": ("alternative",),
+    "indie": ("indie rock",),
+    "pop": ("pop",),
+    "punk": ("punk",),
+    "metal": ("metal",),
+    "blues": ("blues",),
+    "jazz": ("jazz",),
+    "folk": ("folk",),
+    "country": ("country",),
+    "world": ("world",),
+    "latin": ("latin",),
+    "reggae": ("reggae",),
+    "electronic": ("electronic",),
+    "dance": ("electronic",),
+    "house": ("house",),
+    "techno": ("techno",),
+    "ambient": ("ambient",),
+    "hip-hop/rap": ("hip hop", "rap"),
+    "hip hop": ("hip hop",),
+    "rap": ("rap",),
+    "r & b": ("r&b",),
+    "r&b": ("r&b",),
+    "soul": ("soul",),
+    "funk": ("funk",),
+    "gospel": ("gospel",),
+    "classical": ("classical",),
+    "soundtrack": ("film score",),
+    "video game": ("video game",),
+    "anime": ("anime",),
+    "disney": ("musical theatre",),
+    "singer-songwriter": ("singer-songwriter",),
+    "vocal": (),
+    "new age": ("ambient",),
+}
+
+
+def map_hooktheory_genres(labels: object) -> tuple[str, ...]:
+    """Translate Hooktheory genre labels into this project's closed taxonomy."""
+    if not isinstance(labels, (list, tuple)):
+        return ()
+    out: list[str] = []
+    for label in labels:
+        if not isinstance(label, str):
+            continue
+        for mapped in HOOKTHEORY_GENRE_MAP.get(label.strip().casefold(), ()):
+            if mapped in GENRES and mapped not in out:
+                out.append(mapped)
+    return tuple(out)
