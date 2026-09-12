@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import GenreFilter from "@/components/GenreFilter";
 import MidiConnect from "@/components/MidiConnect";
+import VoiceSing from "@/components/VoiceSing";
 import ChordTimeline from "@/components/ChordTimeline";
 import KeyPanel from "@/components/KeyPanel";
 import Stepper, { type StepDef } from "@/components/Stepper";
@@ -20,7 +21,10 @@ import {
 } from "@/lib/api";
 import { loadMember, memberId } from "@/lib/room";
 
+type InputMode = "midi" | "voice";
+
 export default function Page() {
+  const [inputMode, setInputMode] = useState<InputMode>("midi");
   const [step, setStep] = useState(0);
   const [result, setResult] = useState<AnalyzeResponse | null>(null);
   const [busy, setBusy] = useState(false);
@@ -209,10 +213,31 @@ export default function Page() {
         </div>
       )}
 
-      {/* Mounted once, at a fixed position, so stepping does not tear down the
-          MIDI connection or discard captured chords. */}
+      {step === 0 && (
+        <div className="row" style={{ marginBottom: "0.75rem", gap: 4 }}>
+          {(["midi", "voice"] as InputMode[]).map((mode) => (
+            <button
+              key={mode}
+              onClick={() => setInputMode(mode)}
+              aria-pressed={inputMode === mode}
+              style={{
+                fontSize: 13, padding: "6px 13px",
+                fontWeight: inputMode === mode ? 700 : 500,
+                borderColor: inputMode === mode ? "var(--accent)" : undefined,
+                color: inputMode === mode ? "var(--accent)" : undefined,
+              }}
+            >
+              {mode === "midi" ? "MIDI controller" : "Sing / hum"}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Mounted once each, at a fixed position, so stepping does not tear
+          down a connection or discard captured chords. Only the panel for the
+          chosen input mode is shown; the other renders show="none". */}
       <MidiConnect
-        show={step === 0 ? "connect" : step === 1 ? "capture" : "none"}
+        show={inputMode !== "midi" ? "none" : step === 0 ? "connect" : step === 1 ? "capture" : "none"}
         // Unlocks the next step without navigating to it. Granting MIDI access
         // is not the same as being ready to play: the right port may not be the
         // one auto-selected, and the traffic indicator is on this step.
@@ -247,6 +272,39 @@ export default function Page() {
           />
         )}
       </MidiConnect>
+      <VoiceSing
+        show={inputMode !== "voice" ? "none" : step === 0 ? "connect" : step === 1 ? "capture" : "none"}
+        onConnected={() => setConnected(true)}
+        onChords={onChords}
+        onReset={reset}
+        busy={busy}
+        resetToken={resetToken}
+        next={
+          step === 0 ? (
+            <button
+              className="primary"
+              onClick={() => setStep(1)}
+              disabled={!steps[1].reachable}
+            >
+              Next: play your chords
+            </button>
+          ) : null
+        }
+      >
+        {step === 1 && (
+          <GenreFilter
+              options={genreOptions}
+              counts={genrePalette}
+              selected={genres}
+              onChange={applyGenres}
+              tonality={tonality}
+              onTonality={applyTonality}
+              hasResults={result !== null}
+            busy={busy}
+            bare
+          />
+        )}
+      </VoiceSing>
 
       {step === 0 && (
         <div className="panel">
