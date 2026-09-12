@@ -1,6 +1,6 @@
-# ChordCat Connect
+# music-ai-backstreet-bois
 
-Turn chords played on an [AlphaTheta ChordCat](https://alphatheta.com/en/product/production/chordcat/gray/)
+**ChordCat Connect** — turn chords played on an [AlphaTheta ChordCat](https://alphatheta.com/en/product/production/chordcat/gray/)
 into a musical identity, and use that identity to connect like-minded musicians in real life.
 
     Web MIDI (browser)  ->  FastAPI  ->  chord segmentation + identification
