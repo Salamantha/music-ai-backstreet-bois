@@ -54,3 +54,34 @@ def test_silence_chooses_nothing():
 def test_every_intent_tag_names_real_nodes():
     for tag, ids in INTENT_TAGS.items():
         assert set(ids) <= set(NODES), tag
+
+
+def measured_absence() -> FactSet:
+    """Chords played, and inversions explicitly measured at zero."""
+    return FactSet((
+        Fact("harmony.chord#0", "harmony.chord", "C", n_observations=1, is_pattern=False),
+        Fact("voicing.inversions#0", "voicing.inversions",
+             {"root_position": 9, "inverted": 0}, n_observations=9),
+    ))
+
+
+def test_a_measured_absence_outranks_one_we_never_took_a_reading_for():
+    got = choose(measured_absence(), Session(id="t"), NODES)
+    assert got.node.id == "inversions"
+    assert got.measured is True
+
+
+def test_a_node_with_no_reading_behind_it_is_marked_unmeasured():
+    """Suggesting it would assert an absence the truth layer never established."""
+    from chordcat.helper.concepts.detectors import DETECTORS
+
+    facts = measured_absence()
+    assert DETECTORS["has_inversions"].measured(facts) is True
+    assert DETECTORS["has_authentic_cadence"].measured(facts) is False
+
+
+def test_equal_scoring_alternatives_are_reported_not_hidden():
+    got = choose(plain_chords(), Session(id="t"), NODES)
+    assert got.node.id not in got.tied_with
+    # Ties are broken alphabetically, so the loser of a tie must still surface.
+    assert all(t in NODES for t in got.tied_with)

@@ -1,5 +1,35 @@
 # PROGRESS
 
+## 2026-09-12 — v0 built and green
+
+**Done** — all 13 plan tasks. `api/src/chordcat/helper/`, 54 new tests (199 total, ruff clean).
+`python -m chordcat.helper.cli analyse <capture.json>` prints a validated turn from the
+real ChordCat take. `tutor-todo` lists the 21 nodes awaiting prose.
+
+**Three defects the real capture exposed** (all fixed, see commits)
+1. Map root keyed on triad qualities — the take is 19 sevenths and zero triads, so the
+   root never lit and everything behind it was stranded.
+2. The evidence threshold was discarding individual chord facts (n=1 each). Facts now
+   split into patterns (thresholded) and direct observations (self-supporting).
+3. Draft prose for performance nodes was written in the "you are doing this" voice, which
+   contradicts "one thing you have not tried". Rule now in the YAML header.
+
+**Refinement done:** detectors declare which fact kinds they read, so the ranker can tell a
+*measured* absence (`voicing.inversions` = 0 of 19) from an *unmeasured* one (no
+`harmony.cadence` fact at all). Suggesting the latter asserts an absence the truth layer
+never established. `authentic_cadence` correctly stopped winning.
+
+**Open — deliberately not tuned.** Five frontier nodes now tie at 12.0 and the tie-break is
+alphabetical, so the take picks `dynamic_range` where the tutor says `inversions`. Fitting
+the ranker to n=1 would be overfitting. Instead `Choice.tied_with` is surfaced and
+`eval_helper.py` splits disagreements into *ranking problem* (right answer was in the tie)
+vs *map problem* (never on the frontier). Resolve with the tutor's 10 rows.
+
+**Blocked on people, not code:** tutor prose for 21 nodes; `on_device` strings from the
+ChordCat manual; 2 more captures (one repetitive, one adventurous) — needs hardware.
+
+---
+
 ## 2026-09-12 — branch `omar` forked, v0 plan written
 
 **Done**
