@@ -25,3 +25,7 @@ out/
 
 # OS
 .DS_Store
+
+# Next.js generated agent files
+web/AGENTS.md
+web/CLAUDE.md

@@ -259,10 +259,22 @@ async def _search_with_key_retry(
             # evidence about the key, usually better evidence than the
             # pitch-class analysis that lost. Reporting the losing candidate's
             # score here would show "0% confident" for a key we just confirmed.
+            # Put the originally detected key at the head of the alternatives:
+            # it was the best reading of the notes themselves, and if the user
+            # disagrees with the correction it is the first thing they will
+            # reach for. Without this it vanishes from the override list.
+            alternatives = (
+                (estimate.key, estimate.confidence),
+                *(
+                    (k, c)
+                    for k, c in estimate.alternatives
+                    if (k.tonic_pc, k.mode) != (alt_key.tonic_pc, alt_key.mode)
+                ),
+            )
             resolved = KeyEstimate(
                 key=alt_key,
                 confidence=max(alt_confidence, estimate.confidence),
-                alternatives=estimate.alternatives,
+                alternatives=alternatives,
                 method_scores=(*estimate.method_scores, ("song_match", 1.0)),
                 source="matched",
                 modulation_suspected=estimate.modulation_suspected,

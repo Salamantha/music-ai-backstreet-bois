@@ -1,0 +1,3125 @@
+{
+ "schema_version": 1,
+ "personas": [
+  {
+   "id": "p01",
+   "name": "Mara Ellison",
+   "instrument": "guitar",
+   "city": "Portland, OR",
+   "bio": "Writes in her kitchen at 2am. Believes the four chords still have something left.",
+   "signature_progression": "1,5,6,4",
+   "mode": "major",
+   "profile": {
+    "genre_weights": {
+     "emo": 0.2773500981126146,
+     "punk": 0.2773500981126146,
+     "rock": 0.5547001962252291,
+     "indie rock": 0.5547001962252291,
+     "folk": 0.2773500981126146,
+     "singer-songwriter": 0.2773500981126146,
+     "alternative": 0.2773500981126146
+    },
+    "artist_weights": {
+     "Alan Walker": 0.21320071635561044,
+     "Big Blue Bubble": 0.21320071635561044,
+     "Falling In Reverse": 0.21320071635561044,
+     "Garrett Davis": 0.21320071635561044,
+     "Indila": 0.21320071635561044,
+     "Josiah Queen": 0.21320071635561044,
+     "The Laurie Berkner Band": 0.21320071635561044,
+     "Livingston": 0.21320071635561044,
+     "My Chemical Romance": 0.21320071635561044,
+     "Nik Kershaw": 0.21320071635561044,
+     "ORU Worship": 0.21320071635561044,
+     "Phoebe Bridgers": 0.21320071635561044,
+     "Shaun The Sheep": 0.21320071635561044,
+     "Simple Plan": 0.4264014327112209,
+     "Tori Amos": 0.21320071635561044,
+     "Unknown Brain": 0.21320071635561044,
+     "Victoria Justice": 0.21320071635561044,
+     "Weezer": 0.21320071635561044,
+     "Winx Club": 0.21320071635561044
+    },
+    "era_weights": {
+     "1990s": 0.5773502691896258,
+     "2000s": 0.5773502691896258,
+     "2010s": 0.5773502691896258
+    },
+    "mood_weights": {
+     "anthemic": 0.35355339059327373,
+     "defiant": 0.35355339059327373,
+     "cinematic": 0.35355339059327373,
+     "melancholic": 0.35355339059327373,
+     "sparse": 0.35355339059327373,
+     "eerie": 0.35355339059327373,
+     "playful": 0.35355339059327373,
+     "nostalgic": 0.35355339059327373
+    },
+    "harmonic": {
+     "modal_usage": {
+      "major": 1.0
+     },
+     "seventh_density": 0.05,
+     "borrowed_rate": 0.05,
+     "mean_progression_rarity": 0.8,
+     "cadence_profile": {
+      "plagal": 0.2
+     },
+     "key_spread": 0.3333333333333333,
+     "chord_variety": 1.0,
+     "mean_chord_duration_s": 2.0
+    }
+   },
+   "top_artists": [
+    "Simple Plan",
+    "Alan Walker",
+    "Big Blue Bubble",
+    "Falling In Reverse",
+    "Garrett Davis",
+    "Indila"
+   ],
+   "song_matches": 20
+  },
+  {
+   "id": "p02",
+   "name": "Dev Raghunathan",
+   "instrument": "keys",
+   "city": "Brooklyn, NY",
+   "bio": "Grew up on Final Fantasy soundtracks and never really left.",
+   "signature_progression": "4,5,3,6",
+   "mode": "major",
+   "profile": {
+    "genre_weights": {
+     "edm": 0.3023609133075281,
+     "house": 0.3023609133075281,
+     "electronic": 0.3023609133075281,
+     "pop": 0.5711261695808865,
+     "country": 0.3023609133075281,
+     "indie pop": 0.3023609133075281,
+     "teen pop": 0.13438262813667917,
+     "synthpop": 0.13438262813667917,
+     "video game": 0.13438262813667917,
+     "classical": 0.13438262813667917,
+     "film score": 0.13438262813667917,
+     "classic rock": 0.13438262813667917,
+     "rock": 0.26876525627335834,
+     "indie rock": 0.13438262813667917,
+     "alternative": 0.13438262813667917
+    },
+    "artist_weights": {
+     "Avicii": 0.41647033204447276,
+     "PRGuitarMan -Yamaha Vocaloid": 0.41647033204447276,
+     "Taylor Swift": 0.41647033204447276,
+     "Ai Otsuka": 0.18509792535309902,
+     "Britney Spears": 0.18509792535309902,
+     "Capcom": 0.18509792535309902,
+     "David Guetta": 0.18509792535309902,
+     "Disney Jodi Benson": 0.18509792535309902,
+     "Gwen Stefani": 0.18509792535309902,
+     "Nobuo Uematsu": 0.18509792535309902,
+     "Nsync": 0.18509792535309902,
+     "Perfume": 0.18509792535309902,
+     "Queen": 0.18509792535309902,
+     "Rick Astley": 0.18509792535309902,
+     "The Strokes": 0.18509792535309902,
+     "Two Steps From Hell": 0.18509792535309902,
+     "Usher": 0.18509792535309902
+    },
+    "era_weights": {
+     "1970s": 0.19518001458970666,
+     "1990s": 0.19518001458970666,
+     "2000s": 0.3903600291794133,
+     "2010s": 0.8783100656536799
+    },
+    "mood_weights": {
+     "euphoric": 0.33242258481890297,
+     "anthemic": 0.48016595584952654,
+     "wistful": 0.33242258481890297,
+     "nostalgic": 0.33242258481890297,
+     "tender": 0.33242258481890297,
+     "playful": 0.29548674206124714,
+     "driving": 0.29548674206124714,
+     "cinematic": 0.14774337103062357,
+     "triumphant": 0.29548674206124714,
+     "melancholic": 0.14774337103062357,
+     "defiant": 0.14774337103062357
+    },
+    "harmonic": {
+     "modal_usage": {
+      "major": 1.0
+     },
+     "seventh_density": 0.05,
+     "borrowed_rate": 0.05,
+     "mean_progression_rarity": 0.8,
+     "cadence_profile": {
+      "plagal": 0.2
+     },
+     "key_spread": 0.3333333333333333,
+     "chord_variety": 1.0,
+     "mean_chord_duration_s": 2.0
+    }
+   },
+   "top_artists": [
+    "Avicii",
+    "PRGuitarMan -Yamaha Vocaloid",
+    "Taylor Swift",
+    "Ai Otsuka",
+    "Britney Spears",
+    "Capcom"
+   ],
+   "song_matches": 20
+  },
+  {
+   "id": "p03",
+   "name": "Yuki Tanabe",
+   "instrument": "synth",
+   "city": "Osaka, JP",
+   "bio": "Makes city pop for people stuck on trains.",
+   "signature_progression": "4,5,3,6",
+   "mode": "major",
+   "profile": {
+    "genre_weights": {
+     "edm": 0.3023609133075281,
+     "house": 0.3023609133075281,
+     "electronic": 0.3023609133075281,
+     "pop": 0.5711261695808865,
+     "country": 0.3023609133075281,
+     "indie pop": 0.3023609133075281,
+     "teen pop": 0.13438262813667917,
+     "synthpop": 0.13438262813667917,
+     "video game": 0.13438262813667917,
+     "classical": 0.13438262813667917,
+     "film score": 0.13438262813667917,
+     "classic rock": 0.13438262813667917,
+     "rock": 0.26876525627335834,
+     "indie rock": 0.13438262813667917,
+     "alternative": 0.13438262813667917
+    },
+    "artist_weights": {
+     "Avicii": 0.41647033204447276,
+     "PRGuitarMan -Yamaha Vocaloid": 0.41647033204447276,
+     "Taylor Swift": 0.41647033204447276,
+     "Ai Otsuka": 0.18509792535309902,
+     "Britney Spears": 0.18509792535309902,
+     "Capcom": 0.18509792535309902,
+     "David Guetta": 0.18509792535309902,
+     "Disney Jodi Benson": 0.18509792535309902,
+     "Gwen Stefani": 0.18509792535309902,
+     "Nobuo Uematsu": 0.18509792535309902,
+     "Nsync": 0.18509792535309902,
+     "Perfume": 0.18509792535309902,
+     "Queen": 0.18509792535309902,
+     "Rick Astley": 0.18509792535309902,
+     "The Strokes": 0.18509792535309902,
+     "Two Steps From Hell": 0.18509792535309902,
+     "Usher": 0.18509792535309902
+    },
+    "era_weights": {
+     "1970s": 0.19518001458970666,
+     "1990s": 0.19518001458970666,
+     "2000s": 0.3903600291794133,
+     "2010s": 0.8783100656536799
+    },
+    "mood_weights": {
+     "euphoric": 0.33242258481890297,
+     "anthemic": 0.48016595584952654,
+     "wistful": 0.33242258481890297,
+     "nostalgic": 0.33242258481890297,
+     "tender": 0.33242258481890297,
+     "playful": 0.29548674206124714,
+     "driving": 0.29548674206124714,
+     "cinematic": 0.14774337103062357,
+     "triumphant": 0.29548674206124714,
+     "melancholic": 0.14774337103062357,
+     "defiant": 0.14774337103062357
+    },
+    "harmonic": {
+     "modal_usage": {
+      "major": 1.0
+     },
+     "seventh_density": 0.05,
+     "borrowed_rate": 0.05,
+     "mean_progression_rarity": 0.8,
+     "cadence_profile": {
+      "plagal": 0.2
+     },
+     "key_spread": 0.3333333333333333,
+     "chord_variety": 1.0,
+     "mean_chord_duration_s": 2.0
+    }
+   },
+   "top_artists": [
+    "Avicii",
+    "PRGuitarMan -Yamaha Vocaloid",
+    "Taylor Swift",
+    "Ai Otsuka",
+    "Britney Spears",
+    "Capcom"
+   ],
+   "song_matches": 20
+  },
+  {
+   "id": "p04",
+   "name": "Colm Feeney",
+   "instrument": "piano",
+   "city": "Dublin, IE",
+   "bio": "Minor keys, long reverb, one take.",
+   "signature_progression": "B1,B6,B3,B7",
+   "mode": "minor",
+   "profile": {
+    "genre_weights": {},
+    "artist_weights": {},
+    "era_weights": {},
+    "mood_weights": {},
+    "harmonic": {
+     "modal_usage": {
+      "minor": 1.0
+     },
+     "seventh_density": 0.35,
+     "borrowed_rate": 0.4,
+     "mean_progression_rarity": 1.6,
+     "cadence_profile": {
+      "plagal": 0.2
+     },
+     "key_spread": 0.3333333333333333,
+     "chord_variety": 1.0,
+     "mean_chord_duration_s": 2.0
+    }
+   },
+   "top_artists": [],
+   "song_matches": 0
+  },
+  {
+   "id": "p05",
+   "name": "Priya Nandakumar",
+   "instrument": "guitar",
+   "city": "Austin, TX",
+   "bio": "Loud amps, soft lyrics.",
+   "signature_progression": "6,4,1,5",
+   "mode": "major",
+   "profile": {
+    "genre_weights": {
+     "pop": 0.6172133998483676,
+     "soul": 0.1543033499620919,
+     "r&b": 0.6172133998483676,
+     "funk": 0.4629100498862757
+    },
+    "artist_weights": {
+     "Carrie Underwood": 0.40289533293226065,
+     "Cascada": 0.40289533293226065,
+     "Cheryl Cole": 0.40289533293226065,
+     "Adele": 0.1790645924143381,
+     "Avril Lavigne": 0.1790645924143381,
+     "Bruno Mars": 0.1790645924143381,
+     "Carly Rae Jepsen": 0.1790645924143381,
+     "Demi Lovato": 0.1790645924143381,
+     "Flo Rida": 0.1790645924143381,
+     "Jason Mraz": 0.1790645924143381,
+     "Kelly Clarkson": 0.1790645924143381,
+     "Lady Gaga": 0.1790645924143381,
+     "Maroon 5": 0.3581291848286762,
+     "Matchbox 20": 0.1790645924143381,
+     "NOFX": 0.1790645924143381,
+     "Of Monsters And Men": 0.1790645924143381
+    },
+    "era_weights": {
+     "2000s": 0.7071067811865475,
+     "2010s": 0.7071067811865475
+    },
+    "mood_weights": {
+     "melancholic": 0.21320071635561044,
+     "tender": 0.21320071635561044,
+     "triumphant": 0.21320071635561044,
+     "euphoric": 0.21320071635561044,
+     "playful": 0.6396021490668313,
+     "warm": 0.6396021490668313
+    },
+    "harmonic": {
+     "modal_usage": {
+      "major": 1.0
+     },
+     "seventh_density": 0.05,
+     "borrowed_rate": 0.05,
+     "mean_progression_rarity": 0.8,
+     "cadence_profile": {
+      "plagal": 0.2
+     },
+     "key_spread": 0.3333333333333333,
+     "chord_variety": 1.0,
+     "mean_chord_duration_s": 2.0
+    }
+   },
+   "top_artists": [
+    "Carrie Underwood",
+    "Cascada",
+    "Cheryl Cole",
+    "Maroon 5",
+    "Adele",
+    "Avril Lavigne"
+   ],
+   "song_matches": 20
+  },
+  {
+   "id": "p06",
+   "name": "Tobias Lindqvist",
+   "instrument": "keys",
+   "city": "Stockholm, SE",
+   "bio": "Swedish pop factory training, indie budget.",
+   "signature_progression": "1,5,6,4",
+   "mode": "major",
+   "profile": {
+    "genre_weights": {
+     "emo": 0.2773500981126146,
+     "punk": 0.2773500981126146,
+     "rock": 0.5547001962252291,
+     "indie rock": 0.5547001962252291,
+     "folk": 0.2773500981126146,
+     "singer-songwriter": 0.2773500981126146,
+     "alternative": 0.2773500981126146
+    },
+    "artist_weights": {
+     "Alan Walker": 0.21320071635561044,
+     "Big Blue Bubble": 0.21320071635561044,
+     "Falling In Reverse": 0.21320071635561044,
+     "Garrett Davis": 0.21320071635561044,
+     "Indila": 0.21320071635561044,
+     "Josiah Queen": 0.21320071635561044,
+     "The Laurie Berkner Band": 0.21320071635561044,
+     "Livingston": 0.21320071635561044,
+     "My Chemical Romance": 0.21320071635561044,
+     "Nik Kershaw": 0.21320071635561044,
+     "ORU Worship": 0.21320071635561044,
+     "Phoebe Bridgers": 0.21320071635561044,
+     "Shaun The Sheep": 0.21320071635561044,
+     "Simple Plan": 0.4264014327112209,
+     "Tori Amos": 0.21320071635561044,
+     "Unknown Brain": 0.21320071635561044,
+     "Victoria Justice": 0.21320071635561044,
+     "Weezer": 0.21320071635561044,
+     "Winx Club": 0.21320071635561044
+    },
+    "era_weights": {
+     "1990s": 0.5773502691896258,
+     "2000s": 0.5773502691896258,
+     "2010s": 0.5773502691896258
+    },
+    "mood_weights": {
+     "anthemic": 0.35355339059327373,
+     "defiant": 0.35355339059327373,
+     "cinematic": 0.35355339059327373,
+     "melancholic": 0.35355339059327373,
+     "sparse": 0.35355339059327373,
+     "eerie": 0.35355339059327373,
+     "playful": 0.35355339059327373,
+     "nostalgic": 0.35355339059327373
+    },
+    "harmonic": {
+     "modal_usage": {
+      "major": 1.0
+     },
+     "seventh_density": 0.05,
+     "borrowed_rate": 0.05,
+     "mean_progression_rarity": 0.8,
+     "cadence_profile": {
+      "plagal": 0.2
+     },
+     "key_spread": 0.3333333333333333,
+     "chord_variety": 1.0,
+     "mean_chord_duration_s": 2.0
+    }
+   },
+   "top_artists": [
+    "Simple Plan",
+    "Alan Walker",
+    "Big Blue Bubble",
+    "Falling In Reverse",
+    "Garrett Davis",
+    "Indila"
+   ],
+   "song_matches": 20
+  },
+  {
+   "id": "p07",
+   "name": "Renata Dias",
+   "instrument": "guitar",
+   "city": "Lisbon, PT",
+   "bio": "Bossa nova by way of a jazz degree she didn't finish.",
+   "signature_progression": "2,5,1",
+   "mode": "major",
+   "profile": {
+    "genre_weights": {
+     "indie rock": 0.36992175559590695,
+     "alternative": 0.36992175559590695,
+     "rock": 0.4837438342408013,
+     "pop": 0.5691103932244722,
+     "teen pop": 0.11382207864489444,
+     "synthpop": 0.22764415728978887,
+     "funk": 0.11382207864489444,
+     "r&b": 0.11382207864489444,
+     "disco": 0.11382207864489444,
+     "classic rock": 0.22764415728978887,
+     "post-rock": 0.11382207864489444
+    },
+    "artist_weights": {
+     "Arctic Monkeys": 0.42426406871192845,
+     "PRGuitarMan -Yamaha Vocaloid": 0.42426406871192845,
+     "Britney Spears": 0.18856180831641267,
+     "Bruno Mars": 0.18856180831641267,
+     "The Chiffons": 0.18856180831641267,
+     "The Four Seasons": 0.18856180831641267,
+     "The Fratellis": 0.18856180831641267,
+     "John Denver": 0.18856180831641267,
+     "Justin Bieber": 0.18856180831641267,
+     "Lionel Richie": 0.18856180831641267,
+     "Madonna": 0.18856180831641267,
+     "No Doubt": 0.18856180831641267,
+     "Oasis and Microsoft Songsmith": 0.18856180831641267,
+     "Queen": 0.37712361663282534,
+     "Radiohead": 0.18856180831641267,
+     "Roberta Flack": 0.18856180831641267,
+     "SoulEye": 0.18856180831641267
+    },
+    "era_weights": {
+     "1970s": 0.4772399890175149,
+     "1980s": 0.23861999450875745,
+     "1990s": 0.23861999450875745,
+     "2000s": 0.23861999450875745,
+     "2010s": 0.7755149821534617
+    },
+    "mood_weights": {
+     "driving": 0.4104808356679372,
+     "defiant": 0.4104808356679372,
+     "brooding": 0.4104808356679372,
+     "playful": 0.5052071823605381,
+     "euphoric": 0.25260359118026904,
+     "warm": 0.12630179559013452,
+     "anthemic": 0.25260359118026904,
+     "triumphant": 0.25260359118026904,
+     "eerie": 0.12630179559013452,
+     "melancholic": 0.12630179559013452
+    },
+    "harmonic": {
+     "modal_usage": {
+      "major": 1.0
+     },
+     "seventh_density": 0.05,
+     "borrowed_rate": 0.05,
+     "mean_progression_rarity": 0.8,
+     "cadence_profile": {
+      "authentic": 0.3
+     },
+     "key_spread": 0.25,
+     "chord_variety": 1.0,
+     "mean_chord_duration_s": 2.0
+    }
+   },
+   "top_artists": [
+    "Arctic Monkeys",
+    "PRGuitarMan -Yamaha Vocaloid",
+    "Queen",
+    "Britney Spears",
+    "Bruno Mars",
+    "The Chiffons"
+   ],
+   "song_matches": 20
+  },
+  {
+   "id": "p08",
+   "name": "Aisha Bello",
+   "instrument": "bass",
+   "city": "Lagos, NG",
+   "bio": "Afrobeat rhythm section, gospel harmony.",
+   "signature_progression": "1,4,1,5",
+   "mode": "major",
+   "profile": {
+    "genre_weights": {
+     "rock": 0.6666666666666666,
+     "pop": 0.3333333333333333,
+     "psychedelic": 0.16666666666666666,
+     "punk": 0.16666666666666666,
+     "alternative": 0.3333333333333333,
+     "country": 0.16666666666666666,
+     "americana": 0.16666666666666666,
+     "folk": 0.16666666666666666,
+     "classic rock": 0.3333333333333333,
+     "indie rock": 0.16666666666666666,
+     "post-rock": 0.16666666666666666,
+     "blues": 0.16666666666666666
+    },
+    "artist_weights": {
+     "Creedence Clearwater Revival": 0.44020438924006666,
+     "Miller 64": 0.44020438924006666,
+     "Afroman": 0.1956463952178074,
+     "The Beatles": 0.1956463952178074,
+     "Dire Straits": 0.1956463952178074,
+     "Don McLean": 0.1956463952178074,
+     "Fun": 0.1956463952178074,
+     "Grandaddy": 0.1956463952178074,
+     "Green Day": 0.1956463952178074,
+     "James Rich and Boots Randolph": 0.1956463952178074,
+     "Jeff Marx and Robert Lopez": 0.1956463952178074,
+     "Johnny Cash": 0.1956463952178074,
+     "Kenny Rogers": 0.1956463952178074,
+     "Mumford and Sons": 0.1956463952178074,
+     "Neutral Milk Hotel": 0.1956463952178074,
+     "Queen": 0.1956463952178074,
+     "Radiohead": 0.1956463952178074,
+     "The Rolling Stones": 0.1956463952178074
+    },
+    "era_weights": {
+     "pre-1970": 0.8017837257372732,
+     "1970s": 0.2672612419124244,
+     "1990s": 0.5345224838248488
+    },
+    "mood_weights": {
+     "playful": 0.3849001794597505,
+     "nostalgic": 0.19245008972987526,
+     "warm": 0.19245008972987526,
+     "defiant": 0.5773502691896258,
+     "driving": 0.3849001794597505,
+     "brooding": 0.3849001794597505,
+     "anthemic": 0.19245008972987526,
+     "triumphant": 0.19245008972987526,
+     "eerie": 0.19245008972987526,
+     "melancholic": 0.19245008972987526
+    },
+    "harmonic": {
+     "modal_usage": {
+      "major": 1.0
+     },
+     "seventh_density": 0.05,
+     "borrowed_rate": 0.05,
+     "mean_progression_rarity": 0.8,
+     "cadence_profile": {
+      "plagal": 0.2
+     },
+     "key_spread": 0.25,
+     "chord_variety": 0.75,
+     "mean_chord_duration_s": 2.0
+    }
+   },
+   "top_artists": [
+    "Creedence Clearwater Revival",
+    "Miller 64",
+    "Afroman",
+    "The Beatles",
+    "Dire Straits",
+    "Don McLean"
+   ],
+   "song_matches": 20
+  },
+  {
+   "id": "p09",
+   "name": "Jonah Pike",
+   "instrument": "guitar",
+   "city": "Sheffield, UK",
+   "bio": "Britpop revivalist, unrepentant.",
+   "signature_progression": "6,4,1,5",
+   "mode": "major",
+   "profile": {
+    "genre_weights": {
+     "pop": 0.6172133998483676,
+     "soul": 0.1543033499620919,
+     "r&b": 0.6172133998483676,
+     "funk": 0.4629100498862757
+    },
+    "artist_weights": {
+     "Carrie Underwood": 0.40289533293226065,
+     "Cascada": 0.40289533293226065,
+     "Cheryl Cole": 0.40289533293226065,
+     "Adele": 0.1790645924143381,
+     "Avril Lavigne": 0.1790645924143381,
+     "Bruno Mars": 0.1790645924143381,
+     "Carly Rae Jepsen": 0.1790645924143381,
+     "Demi Lovato": 0.1790645924143381,
+     "Flo Rida": 0.1790645924143381,
+     "Jason Mraz": 0.1790645924143381,
+     "Kelly Clarkson": 0.1790645924143381,
+     "Lady Gaga": 0.1790645924143381,
+     "Maroon 5": 0.3581291848286762,
+     "Matchbox 20": 0.1790645924143381,
+     "NOFX": 0.1790645924143381,
+     "Of Monsters And Men": 0.1790645924143381
+    },
+    "era_weights": {
+     "2000s": 0.7071067811865475,
+     "2010s": 0.7071067811865475
+    },
+    "mood_weights": {
+     "melancholic": 0.21320071635561044,
+     "tender": 0.21320071635561044,
+     "triumphant": 0.21320071635561044,
+     "euphoric": 0.21320071635561044,
+     "playful": 0.6396021490668313,
+     "warm": 0.6396021490668313
+    },
+    "harmonic": {
+     "modal_usage": {
+      "major": 1.0
+     },
+     "seventh_density": 0.05,
+     "borrowed_rate": 0.05,
+     "mean_progression_rarity": 0.8,
+     "cadence_profile": {
+      "plagal": 0.2
+     },
+     "key_spread": 0.3333333333333333,
+     "chord_variety": 1.0,
+     "mean_chord_duration_s": 2.0
+    }
+   },
+   "top_artists": [
+    "Carrie Underwood",
+    "Cascada",
+    "Cheryl Cole",
+    "Maroon 5",
+    "Adele",
+    "Avril Lavigne"
+   ],
+   "song_matches": 20
+  },
+  {
+   "id": "p10",
+   "name": "Silje Haugen",
+   "instrument": "synth",
+   "city": "Oslo, NO",
+   "bio": "Cold synths, warmer than they sound.",
+   "signature_progression": "B1,B7,B6,B7",
+   "mode": "minor",
+   "profile": {
+    "genre_weights": {},
+    "artist_weights": {},
+    "era_weights": {},
+    "mood_weights": {},
+    "harmonic": {
+     "modal_usage": {
+      "minor": 1.0
+     },
+     "seventh_density": 0.35,
+     "borrowed_rate": 0.4,
+     "mean_progression_rarity": 1.6,
+     "cadence_profile": {
+      "plagal": 0.2
+     },
+     "key_spread": 0.25,
+     "chord_variety": 0.75,
+     "mean_chord_duration_s": 2.0
+    }
+   },
+   "top_artists": [],
+   "song_matches": 0
+  },
+  {
+   "id": "p11",
+   "name": "Marcus Adeyemi",
+   "instrument": "keys",
+   "city": "Atlanta, GA",
+   "bio": "Neo-soul changes over trap drums.",
+   "signature_progression": "1,6,2,5",
+   "mode": "major",
+   "profile": {
+    "genre_weights": {},
+    "artist_weights": {},
+    "era_weights": {},
+    "mood_weights": {},
+    "harmonic": {
+     "modal_usage": {
+      "major": 1.0
+     },
+     "seventh_density": 0.05,
+     "borrowed_rate": 0.05,
+     "mean_progression_rarity": 1.6,
+     "cadence_profile": {
+      "plagal": 0.2
+     },
+     "key_spread": 0.3333333333333333,
+     "chord_variety": 1.0,
+     "mean_chord_duration_s": 2.0
+    }
+   },
+   "top_artists": [],
+   "song_matches": 0
+  },
+  {
+   "id": "p12",
+   "name": "Elena Vasquez",
+   "instrument": "guitar",
+   "city": "Mexico City, MX",
+   "bio": "Flamenco fingers, shoegaze pedals.",
+   "signature_progression": "B1,B6,B7,B5",
+   "mode": "minor",
+   "profile": {
+    "genre_weights": {},
+    "artist_weights": {},
+    "era_weights": {},
+    "mood_weights": {},
+    "harmonic": {
+     "modal_usage": {
+      "minor": 1.0
+     },
+     "seventh_density": 0.35,
+     "borrowed_rate": 0.4,
+     "mean_progression_rarity": 1.6,
+     "cadence_profile": {
+      "plagal": 0.2
+     },
+     "key_spread": 0.3333333333333333,
+     "chord_variety": 1.0,
+     "mean_chord_duration_s": 2.0
+    }
+   },
+   "top_artists": [],
+   "song_matches": 0
+  },
+  {
+   "id": "p13",
+   "name": "Rory McAllister",
+   "instrument": "piano",
+   "city": "Glasgow, UK",
+   "bio": "Folk songs that turn into anthems by the third chorus.",
+   "signature_progression": "1,4,5,4",
+   "mode": "major",
+   "profile": {
+    "genre_weights": {
+     "pop": 0.5773502691896258,
+     "r&b": 0.5773502691896258,
+     "edm": 0.5773502691896258
+    },
+    "artist_weights": {
+     "Arty": 0.22360679774997896,
+     "Ben Folds Five": 0.22360679774997896,
+     "Elvis Costello": 0.22360679774997896,
+     "Iron Maiden": 0.22360679774997896,
+     "Joanna Newsom": 0.22360679774997896,
+     "Kid Rock": 0.22360679774997896,
+     "Langhorne Slim": 0.22360679774997896,
+     "Magnetic Fields": 0.22360679774997896,
+     "Neon Trees": 0.22360679774997896,
+     "Neutral Milk Hotel": 0.22360679774997896,
+     "Nintendo - Asuka Ohta - Ryo Nagamatsu": 0.22360679774997896,
+     "Pink": 0.22360679774997896,
+     "Rihanna": 0.22360679774997896,
+     "Ritchie Valen": 0.22360679774997896,
+     "Roxette": 0.22360679774997896,
+     "They Might Be Giants": 0.22360679774997896,
+     "The Troggs": 0.22360679774997896,
+     "UB40": 0.22360679774997896,
+     "Vengaboys": 0.22360679774997896,
+     "Warren Zevon": 0.22360679774997896
+    },
+    "era_weights": {
+     "2010s": 1.0
+    },
+    "mood_weights": {
+     "defiant": 0.7071067811865475,
+     "driving": 0.7071067811865475
+    },
+    "harmonic": {
+     "modal_usage": {
+      "major": 1.0
+     },
+     "seventh_density": 0.05,
+     "borrowed_rate": 0.05,
+     "mean_progression_rarity": 0.8,
+     "cadence_profile": {
+      "plagal": 0.2
+     },
+     "key_spread": 0.25,
+     "chord_variety": 0.75,
+     "mean_chord_duration_s": 2.0
+    }
+   },
+   "top_artists": [
+    "Arty",
+    "Ben Folds Five",
+    "Elvis Costello",
+    "Iron Maiden",
+    "Joanna Newsom",
+    "Kid Rock"
+   ],
+   "song_matches": 20
+  },
+  {
+   "id": "p14",
+   "name": "Nina Kowalski",
+   "instrument": "keys",
+   "city": "Warsaw, PL",
+   "bio": "Studied Chopin, plays in a basement.",
+   "signature_progression": "6,2,5,1",
+   "mode": "major",
+   "profile": {
+    "genre_weights": {},
+    "artist_weights": {},
+    "era_weights": {},
+    "mood_weights": {},
+    "harmonic": {
+     "modal_usage": {
+      "major": 1.0
+     },
+     "seventh_density": 0.05,
+     "borrowed_rate": 0.05,
+     "mean_progression_rarity": 1.6,
+     "cadence_profile": {
+      "authentic": 0.3
+     },
+     "key_spread": 0.3333333333333333,
+     "chord_variety": 1.0,
+     "mean_chord_duration_s": 2.0
+    }
+   },
+   "top_artists": [],
+   "song_matches": 0
+  },
+  {
+   "id": "p15",
+   "name": "Theo Marchand",
+   "instrument": "guitar",
+   "city": "Montreal, QC",
+   "bio": "Bilingual lyrics, monolingual guitar tone.",
+   "signature_progression": "4,1,5,6",
+   "mode": "major",
+   "profile": {
+    "genre_weights": {
+     "pop": 0.6255432421712243,
+     "soul": 0.20851441405707477,
+     "r&b": 0.6255432421712243,
+     "funk": 0.41702882811414954
+    },
+    "artist_weights": {
+     "Carrie Underwood": 0.41647033204447276,
+     "Cascada": 0.41647033204447276,
+     "Kelly Clarkson": 0.41647033204447276,
+     "Adele": 0.18509792535309902,
+     "Avril Lavigne": 0.18509792535309902,
+     "Bruno Mars": 0.18509792535309902,
+     "Carly Rae Jepsen": 0.18509792535309902,
+     "Cheryl Cole": 0.18509792535309902,
+     "Don McLean": 0.18509792535309902,
+     "Erasure": 0.18509792535309902,
+     "Flo Rida": 0.18509792535309902,
+     "Jason Mraz": 0.18509792535309902,
+     "Lady Gaga": 0.18509792535309902,
+     "Maroon 5": 0.18509792535309902,
+     "Matchbox 20": 0.18509792535309902,
+     "Mumford and Sons": 0.18509792535309902,
+     "NOFX": 0.18509792535309902
+    },
+    "era_weights": {
+     "2000s": 0.4472135954999579,
+     "2010s": 0.8944271909999159
+    },
+    "mood_weights": {
+     "melancholic": 0.2886751345948129,
+     "tender": 0.2886751345948129,
+     "triumphant": 0.2886751345948129,
+     "euphoric": 0.2886751345948129,
+     "playful": 0.5773502691896258,
+     "warm": 0.5773502691896258
+    },
+    "harmonic": {
+     "modal_usage": {
+      "major": 1.0
+     },
+     "seventh_density": 0.05,
+     "borrowed_rate": 0.05,
+     "mean_progression_rarity": 0.8,
+     "cadence_profile": {
+      "plagal": 0.2
+     },
+     "key_spread": 0.3333333333333333,
+     "chord_variety": 1.0,
+     "mean_chord_duration_s": 2.0
+    }
+   },
+   "top_artists": [
+    "Carrie Underwood",
+    "Cascada",
+    "Kelly Clarkson",
+    "Adele",
+    "Avril Lavigne",
+    "Bruno Mars"
+   ],
+   "song_matches": 20
+  },
+  {
+   "id": "p16",
+   "name": "Hana Park",
+   "instrument": "synth",
+   "city": "Seoul, KR",
+   "bio": "K-pop demo writer trying to escape the demo.",
+   "signature_progression": "1,5,6,4",
+   "mode": "major",
+   "profile": {
+    "genre_weights": {
+     "emo": 0.2773500981126146,
+     "punk": 0.2773500981126146,
+     "rock": 0.5547001962252291,
+     "indie rock": 0.5547001962252291,
+     "folk": 0.2773500981126146,
+     "singer-songwriter": 0.2773500981126146,
+     "alternative": 0.2773500981126146
+    },
+    "artist_weights": {
+     "Alan Walker": 0.21320071635561044,
+     "Big Blue Bubble": 0.21320071635561044,
+     "Falling In Reverse": 0.21320071635561044,
+     "Garrett Davis": 0.21320071635561044,
+     "Indila": 0.21320071635561044,
+     "Josiah Queen": 0.21320071635561044,
+     "The Laurie Berkner Band": 0.21320071635561044,
+     "Livingston": 0.21320071635561044,
+     "My Chemical Romance": 0.21320071635561044,
+     "Nik Kershaw": 0.21320071635561044,
+     "ORU Worship": 0.21320071635561044,
+     "Phoebe Bridgers": 0.21320071635561044,
+     "Shaun The Sheep": 0.21320071635561044,
+     "Simple Plan": 0.4264014327112209,
+     "Tori Amos": 0.21320071635561044,
+     "Unknown Brain": 0.21320071635561044,
+     "Victoria Justice": 0.21320071635561044,
+     "Weezer": 0.21320071635561044,
+     "Winx Club": 0.21320071635561044
+    },
+    "era_weights": {
+     "1990s": 0.5773502691896258,
+     "2000s": 0.5773502691896258,
+     "2010s": 0.5773502691896258
+    },
+    "mood_weights": {
+     "anthemic": 0.35355339059327373,
+     "defiant": 0.35355339059327373,
+     "cinematic": 0.35355339059327373,
+     "melancholic": 0.35355339059327373,
+     "sparse": 0.35355339059327373,
+     "eerie": 0.35355339059327373,
+     "playful": 0.35355339059327373,
+     "nostalgic": 0.35355339059327373
+    },
+    "harmonic": {
+     "modal_usage": {
+      "major": 1.0
+     },
+     "seventh_density": 0.05,
+     "borrowed_rate": 0.05,
+     "mean_progression_rarity": 0.8,
+     "cadence_profile": {
+      "plagal": 0.2
+     },
+     "key_spread": 0.3333333333333333,
+     "chord_variety": 1.0,
+     "mean_chord_duration_s": 2.0
+    }
+   },
+   "top_artists": [
+    "Simple Plan",
+    "Alan Walker",
+    "Big Blue Bubble",
+    "Falling In Reverse",
+    "Garrett Davis",
+    "Indila"
+   ],
+   "song_matches": 20
+  },
+  {
+   "id": "p17",
+   "name": "Isaac Brenner",
+   "instrument": "piano",
+   "city": "Tel Aviv, IL",
+   "bio": "Klezmer scales in a jazz trio.",
+   "signature_progression": "B1,B4,B5,B1",
+   "mode": "minor",
+   "profile": {
+    "genre_weights": {},
+    "artist_weights": {},
+    "era_weights": {},
+    "mood_weights": {},
+    "harmonic": {
+     "modal_usage": {
+      "minor": 1.0
+     },
+     "seventh_density": 0.05,
+     "borrowed_rate": 0.4,
+     "mean_progression_rarity": 1.6,
+     "cadence_profile": {
+      "authentic": 0.3
+     },
+     "key_spread": 0.25,
+     "chord_variety": 0.75,
+     "mean_chord_duration_s": 2.0
+    }
+   },
+   "top_artists": [],
+   "song_matches": 0
+  },
+  {
+   "id": "p18",
+   "name": "Cleo Anand",
+   "instrument": "guitar",
+   "city": "London, UK",
+   "bio": "That one borrowed chord is the whole song.",
+   "signature_progression": "1,3,6,4",
+   "mode": "major",
+   "profile": {
+    "genre_weights": {
+     "dream pop": 0.30151134457776363,
+     "indie pop": 0.30151134457776363,
+     "pop": 0.6030226891555273,
+     "classic rock": 0.30151134457776363,
+     "rock": 0.30151134457776363,
+     "alternative": 0.30151134457776363,
+     "indie rock": 0.30151134457776363,
+     "post-rock": 0.30151134457776363
+    },
+    "artist_weights": {
+     "The Divine Comedy": 0.44020438924006666,
+     "Timbaland ft Katy Perry": 0.44020438924006666,
+     "The Album Leaf": 0.1956463952178074,
+     "BoB feat TI and Chris Brown": 0.1956463952178074,
+     "Dusty Springfield": 0.1956463952178074,
+     "Jacksfilms": 0.1956463952178074,
+     "Jessie J": 0.1956463952178074,
+     "Katy Perry": 0.1956463952178074,
+     "Lana Del Rey": 0.1956463952178074,
+     "Miley Cyrus": 0.1956463952178074,
+     "MistFolk": 0.1956463952178074,
+     "Pink": 0.1956463952178074,
+     "Plastic Tree": 0.1956463952178074,
+     "Queen": 0.1956463952178074,
+     "The Raconteurs": 0.1956463952178074,
+     "Radiohead": 0.1956463952178074,
+     "Re-con and Demand": 0.1956463952178074,
+     "Sanna Nielsen": 0.1956463952178074
+    },
+    "era_weights": {
+     "1970s": 0.5773502691896258,
+     "1990s": 0.5773502691896258,
+     "2010s": 0.5773502691896258
+    },
+    "mood_weights": {
+     "melancholic": 0.6030226891555273,
+     "nostalgic": 0.30151134457776363,
+     "cinematic": 0.30151134457776363,
+     "anthemic": 0.30151134457776363,
+     "triumphant": 0.30151134457776363,
+     "playful": 0.30151134457776363,
+     "brooding": 0.30151134457776363,
+     "eerie": 0.30151134457776363
+    },
+    "harmonic": {
+     "modal_usage": {
+      "major": 1.0
+     },
+     "seventh_density": 0.05,
+     "borrowed_rate": 0.05,
+     "mean_progression_rarity": 0.8,
+     "cadence_profile": {
+      "plagal": 0.2
+     },
+     "key_spread": 0.3333333333333333,
+     "chord_variety": 1.0,
+     "mean_chord_duration_s": 2.0
+    }
+   },
+   "top_artists": [
+    "The Divine Comedy",
+    "Timbaland ft Katy Perry",
+    "The Album Leaf",
+    "BoB feat TI and Chris Brown",
+    "Dusty Springfield",
+    "Jacksfilms"
+   ],
+   "song_matches": 20
+  },
+  {
+   "id": "p19",
+   "name": "Viktor Novak",
+   "instrument": "keys",
+   "city": "Prague, CZ",
+   "bio": "Film score ambitions, bedroom equipment.",
+   "signature_progression": "B6,B7,B1",
+   "mode": "minor",
+   "profile": {
+    "genre_weights": {},
+    "artist_weights": {
+     "HertzDevil": 0.3779644730092272,
+     "Sonic Underground": 0.3779644730092272,
+     "They Might Be Giants": 0.3779644730092272,
+     "ZUN": 0.7559289460184544
+    },
+    "era_weights": {},
+    "mood_weights": {},
+    "harmonic": {
+     "modal_usage": {
+      "minor": 1.0
+     },
+     "seventh_density": 0.35,
+     "borrowed_rate": 0.4,
+     "mean_progression_rarity": 1.6,
+     "cadence_profile": {
+      "authentic": 0.3
+     },
+     "key_spread": 0.25,
+     "chord_variety": 1.0,
+     "mean_chord_duration_s": 2.0
+    }
+   },
+   "top_artists": [
+    "ZUN",
+    "HertzDevil",
+    "Sonic Underground",
+    "They Might Be Giants"
+   ],
+   "song_matches": 5
+  },
+  {
+   "id": "p20",
+   "name": "Sadie Kwon",
+   "instrument": "guitar",
+   "city": "Vancouver, BC",
+   "bio": "Dream pop, drowned vocals.",
+   "signature_progression": "4,5,6,1",
+   "mode": "major",
+   "profile": {
+    "genre_weights": {
+     "edm": 0.30151134457776363,
+     "house": 0.30151134457776363,
+     "electronic": 0.30151134457776363,
+     "indie rock": 0.30151134457776363,
+     "alternative": 0.30151134457776363,
+     "synthpop": 0.6030226891555273,
+     "pop": 0.30151134457776363,
+     "disco": 0.30151134457776363
+    },
+    "artist_weights": {
+     "Dj Sammy": 0.46852128566581813,
+     "Adam Lambert": 0.20823168251814142,
+     "Avicii": 0.20823168251814142,
+     "Avicii vs Nicky Romero": 0.20823168251814142,
+     "Brooke Fraser": 0.20823168251814142,
+     "Capsule": 0.20823168251814142,
+     "Counting Crows": 0.20823168251814142,
+     "Elliott Smith": 0.20823168251814142,
+     "The Fray": 0.20823168251814142,
+     "Katy Perry": 0.20823168251814142,
+     "The Killers": 0.20823168251814142,
+     "Labrinth feat Emeli Sande": 0.20823168251814142,
+     "Luis Bacalov": 0.20823168251814142,
+     "Madonna": 0.20823168251814142,
+     "Muse": 0.20823168251814142,
+     "Nicki Minaj": 0.20823168251814142,
+     "One Direction": 0.20823168251814142,
+     "Pink": 0.20823168251814142,
+     "Sean Paul": 0.20823168251814142
+    },
+    "era_weights": {
+     "1980s": 0.5773502691896258,
+     "2000s": 0.5773502691896258,
+     "2010s": 0.5773502691896258
+    },
+    "mood_weights": {
+     "euphoric": 0.6324555320336759,
+     "anthemic": 0.6324555320336759,
+     "driving": 0.31622776601683794,
+     "defiant": 0.31622776601683794
+    },
+    "harmonic": {
+     "modal_usage": {
+      "major": 1.0
+     },
+     "seventh_density": 0.05,
+     "borrowed_rate": 0.05,
+     "mean_progression_rarity": 0.8,
+     "cadence_profile": {
+      "authentic": 0.3
+     },
+     "key_spread": 0.3333333333333333,
+     "chord_variety": 1.0,
+     "mean_chord_duration_s": 2.0
+    }
+   },
+   "top_artists": [
+    "Dj Sammy",
+    "Adam Lambert",
+    "Avicii",
+    "Avicii vs Nicky Romero",
+    "Brooke Fraser",
+    "Capsule"
+   ],
+   "song_matches": 20
+  },
+  {
+   "id": "p21",
+   "name": "Emeka Okafor",
+   "instrument": "bass",
+   "city": "Houston, TX",
+   "bio": "Church bass player gone secular.",
+   "signature_progression": "1,B7,4,1",
+   "mode": "mixolydian",
+   "profile": {
+    "genre_weights": {
+     "classic rock": 0.2649351642342586,
+     "rock": 0.7359310117618296,
+     "pop": 0.47099584752757095,
+     "disco": 0.11774896188189274,
+     "psychedelic": 0.3532468856456782,
+     "alternative": 0.11774896188189274,
+     "grunge": 0.11774896188189274
+    },
+    "artist_weights": {
+     "The Who": 0.4173650061841514,
+     "ABBA": 0.1854955583040673,
+     "Animusic": 0.1854955583040673,
+     "The Ashes": 0.1854955583040673,
+     "The Beatles": 0.5564866749122019,
+     "Boston": 0.1854955583040673,
+     "Crush 40": 0.1854955583040673,
+     "Genesis": 0.1854955583040673,
+     "Herman's Hermits": 0.1854955583040673,
+     "Johnny Nash": 0.1854955583040673,
+     "Lynyrd Skynyrd": 0.1854955583040673,
+     "Rush": 0.1854955583040673,
+     "Savant": 0.1854955583040673,
+     "Schoolhouse Rock": 0.1854955583040673,
+     "The Smashing Pumpkins": 0.1854955583040673,
+     "Tommy James and The Shondells": 0.1854955583040673,
+     "Virgin America": 0.1854955583040673
+    },
+    "era_weights": {
+     "pre-1970": 0.965581028730576,
+     "1970s": 0.18392019594868117,
+     "1990s": 0.18392019594868117
+    },
+    "mood_weights": {
+     "defiant": 0.32776066832815337,
+     "anthemic": 0.32776066832815337,
+     "euphoric": 0.14567140814584595,
+     "nostalgic": 0.5826856325833838,
+     "playful": 0.43701422443753785,
+     "warm": 0.43701422443753785,
+     "brooding": 0.14567140814584595,
+     "lush": 0.14567140814584595
+    },
+    "harmonic": {
+     "modal_usage": {
+      "mixolydian": 1.0
+     },
+     "seventh_density": 0.35,
+     "borrowed_rate": 0.4,
+     "mean_progression_rarity": 0.8,
+     "cadence_profile": {
+      "authentic": 0.3
+     },
+     "key_spread": 0.25,
+     "chord_variety": 0.75,
+     "mean_chord_duration_s": 2.0
+    }
+   },
+   "top_artists": [
+    "The Who",
+    "The Beatles",
+    "ABBA",
+    "Animusic",
+    "The Ashes",
+    "Boston"
+   ],
+   "song_matches": 20
+  },
+  {
+   "id": "p22",
+   "name": "Luca Ferrari",
+   "instrument": "piano",
+   "city": "Milan, IT",
+   "bio": "Standards, then something stranger.",
+   "signature_progression": "2,5,1,6",
+   "mode": "major",
+   "profile": {
+    "genre_weights": {},
+    "artist_weights": {},
+    "era_weights": {},
+    "mood_weights": {},
+    "harmonic": {
+     "modal_usage": {
+      "major": 1.0
+     },
+     "seventh_density": 0.05,
+     "borrowed_rate": 0.05,
+     "mean_progression_rarity": 1.6,
+     "cadence_profile": {
+      "plagal": 0.2
+     },
+     "key_spread": 0.3333333333333333,
+     "chord_variety": 1.0,
+     "mean_chord_duration_s": 2.0
+    }
+   },
+   "top_artists": [],
+   "song_matches": 0
+  },
+  {
+   "id": "p23",
+   "name": "Astrid Bergman",
+   "instrument": "synth",
+   "city": "Copenhagen, DK",
+   "bio": "Ambient washes, techno pulse.",
+   "signature_progression": "B1,B3,B7,B4",
+   "mode": "minor",
+   "profile": {
+    "genre_weights": {},
+    "artist_weights": {},
+    "era_weights": {},
+    "mood_weights": {},
+    "harmonic": {
+     "modal_usage": {
+      "minor": 1.0
+     },
+     "seventh_density": 0.35,
+     "borrowed_rate": 0.4,
+     "mean_progression_rarity": 1.6,
+     "cadence_profile": {
+      "plagal": 0.2
+     },
+     "key_spread": 0.3333333333333333,
+     "chord_variety": 1.0,
+     "mean_chord_duration_s": 2.0
+    }
+   },
+   "top_artists": [],
+   "song_matches": 0
+  },
+  {
+   "id": "p24",
+   "name": "Jamal Rivers",
+   "instrument": "keys",
+   "city": "Detroit, MI",
+   "bio": "Motown inheritance, house music future.",
+   "signature_progression": "1,6,4,5",
+   "mode": "major",
+   "profile": {
+    "genre_weights": {
+     "pop": 0.35355339059327373,
+     "punk": 0.7071067811865475,
+     "indie pop": 0.35355339059327373,
+     "rock": 0.35355339059327373,
+     "emo": 0.35355339059327373
+    },
+    "artist_weights": {
+     "Ariana Grande": 0.22360679774997896,
+     "Enya": 0.22360679774997896,
+     "Everly Brothers": 0.22360679774997896,
+     "Falling In Reverse": 0.22360679774997896,
+     "Fulminacci": 0.22360679774997896,
+     "Hayley Williams": 0.22360679774997896,
+     "JT Music": 0.22360679774997896,
+     "Justin Bieber": 0.22360679774997896,
+     "Leandro e Leonardo": 0.22360679774997896,
+     "MAHO-Dou": 0.22360679774997896,
+     "The Marvelettes": 0.22360679774997896,
+     "Olivia Rodrigo": 0.22360679774997896,
+     "Paramore": 0.22360679774997896,
+     "RetroVision": 0.22360679774997896,
+     "Reunion": 0.22360679774997896,
+     "Robbie Williams": 0.22360679774997896,
+     "Roxy Music": 0.22360679774997896,
+     "Steve Lacy": 0.22360679774997896,
+     "Tori Amos": 0.22360679774997896,
+     "Toy-Box": 0.22360679774997896
+    },
+    "era_weights": {
+     "2000s": 0.7071067811865475,
+     "2020s": 0.7071067811865475
+    },
+    "mood_weights": {
+     "defiant": 0.7071067811865475,
+     "melancholic": 0.35355339059327373,
+     "restless": 0.35355339059327373,
+     "driving": 0.35355339059327373,
+     "anthemic": 0.35355339059327373
+    },
+    "harmonic": {
+     "modal_usage": {
+      "major": 1.0
+     },
+     "seventh_density": 0.05,
+     "borrowed_rate": 0.05,
+     "mean_progression_rarity": 0.8,
+     "cadence_profile": {
+      "plagal": 0.2
+     },
+     "key_spread": 0.3333333333333333,
+     "chord_variety": 1.0,
+     "mean_chord_duration_s": 2.0
+    }
+   },
+   "top_artists": [
+    "Ariana Grande",
+    "Enya",
+    "Everly Brothers",
+    "Falling In Reverse",
+    "Fulminacci",
+    "Hayley Williams"
+   ],
+   "song_matches": 20
+  },
+  {
+   "id": "p25",
+   "name": "Freya S\u00f8rensen",
+   "instrument": "guitar",
+   "city": "Bergen, NO",
+   "bio": "Black metal training, folk songwriting.",
+   "signature_progression": "B1,B7,B3,B6",
+   "mode": "minor",
+   "profile": {
+    "genre_weights": {},
+    "artist_weights": {},
+    "era_weights": {},
+    "mood_weights": {},
+    "harmonic": {
+     "modal_usage": {
+      "minor": 1.0
+     },
+     "seventh_density": 0.35,
+     "borrowed_rate": 0.4,
+     "mean_progression_rarity": 1.6,
+     "cadence_profile": {
+      "plagal": 0.2
+     },
+     "key_spread": 0.3333333333333333,
+     "chord_variety": 1.0,
+     "mean_chord_duration_s": 2.0
+    }
+   },
+   "top_artists": [],
+   "song_matches": 0
+  },
+  {
+   "id": "p26",
+   "name": "Nadia Haddad",
+   "instrument": "keys",
+   "city": "Beirut, LB",
+   "bio": "Maqam scales meeting western harmony badly, on purpose.",
+   "signature_progression": "Y1,Y2,Y1,Y7",
+   "mode": "phrygian",
+   "profile": {
+    "genre_weights": {},
+    "artist_weights": {},
+    "era_weights": {},
+    "mood_weights": {},
+    "harmonic": {
+     "modal_usage": {
+      "phrygian": 1.0
+     },
+     "seventh_density": 0.35,
+     "borrowed_rate": 0.4,
+     "mean_progression_rarity": 1.6,
+     "cadence_profile": {
+      "plagal": 0.2
+     },
+     "key_spread": 0.25,
+     "chord_variety": 0.75,
+     "mean_chord_duration_s": 2.0
+    }
+   },
+   "top_artists": [],
+   "song_matches": 0
+  },
+  {
+   "id": "p27",
+   "name": "Oscar Delgado",
+   "instrument": "guitar",
+   "city": "Buenos Aires, AR",
+   "bio": "Tango grandfather, post-rock band.",
+   "signature_progression": "B1,B5,B6,B7",
+   "mode": "minor",
+   "profile": {
+    "genre_weights": {},
+    "artist_weights": {},
+    "era_weights": {},
+    "mood_weights": {},
+    "harmonic": {
+     "modal_usage": {
+      "minor": 1.0
+     },
+     "seventh_density": 0.35,
+     "borrowed_rate": 0.4,
+     "mean_progression_rarity": 1.6,
+     "cadence_profile": {
+      "plagal": 0.2
+     },
+     "key_spread": 0.3333333333333333,
+     "chord_variety": 1.0,
+     "mean_chord_duration_s": 2.0
+    }
+   },
+   "top_artists": [],
+   "song_matches": 0
+  },
+  {
+   "id": "p28",
+   "name": "Wren Halliday",
+   "instrument": "piano",
+   "city": "Melbourne, AU",
+   "bio": "Writes for other people, sings anyway.",
+   "signature_progression": "1,4,6,5",
+   "mode": "major",
+   "profile": {
+    "genre_weights": {
+     "pop": 0.7071067811865475,
+     "teen pop": 0.35355339059327373,
+     "synthpop": 0.35355339059327373,
+     "rock": 0.35355339059327373,
+     "psychedelic": 0.35355339059327373
+    },
+    "artist_weights": {
+     "American High Digital": 0.22360679774997896,
+     "B.o.B": 0.22360679774997896,
+     "Big Blue Bubble": 0.22360679774997896,
+     "Blessid Union of Souls": 0.22360679774997896,
+     "Britney Spears": 0.22360679774997896,
+     "Charli XCX": 0.22360679774997896,
+     "Daniel Olsen, Jonathan Eng, Linnea Olsson": 0.22360679774997896,
+     "David Bowie": 0.22360679774997896,
+     "Fifth Harmony": 0.22360679774997896,
+     "Grimes": 0.22360679774997896,
+     "Group Publishing": 0.22360679774997896,
+     "Hilary Duff": 0.22360679774997896,
+     "Komsomolsk": 0.22360679774997896,
+     "Lil Dicky": 0.22360679774997896,
+     "LMNOP": 0.22360679774997896,
+     "Martina McBride": 0.22360679774997896,
+     "Noah Kahan": 0.22360679774997896,
+     "Rock Burwell": 0.22360679774997896,
+     "RY X": 0.22360679774997896,
+     "Seira Kagami": 0.22360679774997896
+    },
+    "era_weights": {
+     "1970s": 0.7071067811865475,
+     "2000s": 0.7071067811865475
+    },
+    "mood_weights": {
+     "playful": 0.5,
+     "driving": 0.5,
+     "defiant": 0.5,
+     "dreamy": 0.5
+    },
+    "harmonic": {
+     "modal_usage": {
+      "major": 1.0
+     },
+     "seventh_density": 0.05,
+     "borrowed_rate": 0.05,
+     "mean_progression_rarity": 0.8,
+     "cadence_profile": {
+      "plagal": 0.2
+     },
+     "key_spread": 0.3333333333333333,
+     "chord_variety": 1.0,
+     "mean_chord_duration_s": 2.0
+    }
+   },
+   "top_artists": [
+    "American High Digital",
+    "B.o.B",
+    "Big Blue Bubble",
+    "Blessid Union of Souls",
+    "Britney Spears",
+    "Charli XCX"
+   ],
+   "song_matches": 20
+  },
+  {
+   "id": "p29",
+   "name": "Kai Nakamura",
+   "instrument": "synth",
+   "city": "Tokyo, JP",
+   "bio": "Vocaloid producer with a day job.",
+   "signature_progression": "4,5,3,6",
+   "mode": "major",
+   "profile": {
+    "genre_weights": {
+     "edm": 0.3023609133075281,
+     "house": 0.3023609133075281,
+     "electronic": 0.3023609133075281,
+     "pop": 0.5711261695808865,
+     "country": 0.3023609133075281,
+     "indie pop": 0.3023609133075281,
+     "teen pop": 0.13438262813667917,
+     "synthpop": 0.13438262813667917,
+     "video game": 0.13438262813667917,
+     "classical": 0.13438262813667917,
+     "film score": 0.13438262813667917,
+     "classic rock": 0.13438262813667917,
+     "rock": 0.26876525627335834,
+     "indie rock": 0.13438262813667917,
+     "alternative": 0.13438262813667917
+    },
+    "artist_weights": {
+     "Avicii": 0.41647033204447276,
+     "PRGuitarMan -Yamaha Vocaloid": 0.41647033204447276,
+     "Taylor Swift": 0.41647033204447276,
+     "Ai Otsuka": 0.18509792535309902,
+     "Britney Spears": 0.18509792535309902,
+     "Capcom": 0.18509792535309902,
+     "David Guetta": 0.18509792535309902,
+     "Disney Jodi Benson": 0.18509792535309902,
+     "Gwen Stefani": 0.18509792535309902,
+     "Nobuo Uematsu": 0.18509792535309902,
+     "Nsync": 0.18509792535309902,
+     "Perfume": 0.18509792535309902,
+     "Queen": 0.18509792535309902,
+     "Rick Astley": 0.18509792535309902,
+     "The Strokes": 0.18509792535309902,
+     "Two Steps From Hell": 0.18509792535309902,
+     "Usher": 0.18509792535309902
+    },
+    "era_weights": {
+     "1970s": 0.19518001458970666,
+     "1990s": 0.19518001458970666,
+     "2000s": 0.3903600291794133,
+     "2010s": 0.8783100656536799
+    },
+    "mood_weights": {
+     "euphoric": 0.33242258481890297,
+     "anthemic": 0.48016595584952654,
+     "wistful": 0.33242258481890297,
+     "nostalgic": 0.33242258481890297,
+     "tender": 0.33242258481890297,
+     "playful": 0.29548674206124714,
+     "driving": 0.29548674206124714,
+     "cinematic": 0.14774337103062357,
+     "triumphant": 0.29548674206124714,
+     "melancholic": 0.14774337103062357,
+     "defiant": 0.14774337103062357
+    },
+    "harmonic": {
+     "modal_usage": {
+      "major": 1.0
+     },
+     "seventh_density": 0.05,
+     "borrowed_rate": 0.05,
+     "mean_progression_rarity": 0.8,
+     "cadence_profile": {
+      "plagal": 0.2
+     },
+     "key_spread": 0.3333333333333333,
+     "chord_variety": 1.0,
+     "mean_chord_duration_s": 2.0
+    }
+   },
+   "top_artists": [
+    "Avicii",
+    "PRGuitarMan -Yamaha Vocaloid",
+    "Taylor Swift",
+    "Ai Otsuka",
+    "Britney Spears",
+    "Capcom"
+   ],
+   "song_matches": 20
+  },
+  {
+   "id": "p30",
+   "name": "Sofia Marchetti",
+   "instrument": "guitar",
+   "city": "Rome, IT",
+   "bio": "Italo-disco chords, indie rock volume.",
+   "signature_progression": "6,4,1,5",
+   "mode": "major",
+   "profile": {
+    "genre_weights": {
+     "pop": 0.6172133998483676,
+     "soul": 0.1543033499620919,
+     "r&b": 0.6172133998483676,
+     "funk": 0.4629100498862757
+    },
+    "artist_weights": {
+     "Carrie Underwood": 0.40289533293226065,
+     "Cascada": 0.40289533293226065,
+     "Cheryl Cole": 0.40289533293226065,
+     "Adele": 0.1790645924143381,
+     "Avril Lavigne": 0.1790645924143381,
+     "Bruno Mars": 0.1790645924143381,
+     "Carly Rae Jepsen": 0.1790645924143381,
+     "Demi Lovato": 0.1790645924143381,
+     "Flo Rida": 0.1790645924143381,
+     "Jason Mraz": 0.1790645924143381,
+     "Kelly Clarkson": 0.1790645924143381,
+     "Lady Gaga": 0.1790645924143381,
+     "Maroon 5": 0.3581291848286762,
+     "Matchbox 20": 0.1790645924143381,
+     "NOFX": 0.1790645924143381,
+     "Of Monsters And Men": 0.1790645924143381
+    },
+    "era_weights": {
+     "2000s": 0.7071067811865475,
+     "2010s": 0.7071067811865475
+    },
+    "mood_weights": {
+     "melancholic": 0.21320071635561044,
+     "tender": 0.21320071635561044,
+     "triumphant": 0.21320071635561044,
+     "euphoric": 0.21320071635561044,
+     "playful": 0.6396021490668313,
+     "warm": 0.6396021490668313
+    },
+    "harmonic": {
+     "modal_usage": {
+      "major": 1.0
+     },
+     "seventh_density": 0.05,
+     "borrowed_rate": 0.05,
+     "mean_progression_rarity": 0.8,
+     "cadence_profile": {
+      "plagal": 0.2
+     },
+     "key_spread": 0.3333333333333333,
+     "chord_variety": 1.0,
+     "mean_chord_duration_s": 2.0
+    }
+   },
+   "top_artists": [
+    "Carrie Underwood",
+    "Cascada",
+    "Cheryl Cole",
+    "Maroon 5",
+    "Adele",
+    "Avril Lavigne"
+   ],
+   "song_matches": 20
+  },
+  {
+   "id": "p31",
+   "name": "Bram de Vries",
+   "instrument": "keys",
+   "city": "Amsterdam, NL",
+   "bio": "Festival main stage, 2am set.",
+   "signature_progression": "1,5,4,5",
+   "mode": "major",
+   "profile": {
+    "genre_weights": {},
+    "artist_weights": {
+     "Allister Brimble": 0.22360679774997896,
+     "Anna Blue": 0.22360679774997896,
+     "Aqua": 0.22360679774997896,
+     "Atheart": 0.22360679774997896,
+     "Baby Queen": 0.22360679774997896,
+     "Big Blue Bubble": 0.22360679774997896,
+     "Destra": 0.22360679774997896,
+     "Dingo Pictures": 0.22360679774997896,
+     "Dued1": 0.22360679774997896,
+     "Dylan Scott": 0.22360679774997896,
+     "Enya": 0.22360679774997896,
+     "\u00c9tienne Daho": 0.22360679774997896,
+     "The Fold": 0.22360679774997896,
+     "F\u00f3rmula V": 0.22360679774997896,
+     "LMNOP": 0.22360679774997896,
+     "Micky": 0.22360679774997896,
+     "One Direction": 0.22360679774997896,
+     "Padi": 0.22360679774997896,
+     "Roxy Music": 0.22360679774997896,
+     "The Troggs": 0.22360679774997896
+    },
+    "era_weights": {},
+    "mood_weights": {},
+    "harmonic": {
+     "modal_usage": {
+      "major": 1.0
+     },
+     "seventh_density": 0.05,
+     "borrowed_rate": 0.05,
+     "mean_progression_rarity": 0.8,
+     "cadence_profile": {
+      "plagal": 0.2
+     },
+     "key_spread": 0.25,
+     "chord_variety": 0.75,
+     "mean_chord_duration_s": 2.0
+    }
+   },
+   "top_artists": [
+    "Allister Brimble",
+    "Anna Blue",
+    "Aqua",
+    "Atheart",
+    "Baby Queen",
+    "Big Blue Bubble"
+   ],
+   "song_matches": 20
+  },
+  {
+   "id": "p32",
+   "name": "Zoe Okonkwo",
+   "instrument": "guitar",
+   "city": "Manchester, UK",
+   "bio": "Grime-adjacent guitarist. Yes, really.",
+   "signature_progression": "B1,B6,B7,B5",
+   "mode": "minor",
+   "profile": {
+    "genre_weights": {},
+    "artist_weights": {},
+    "era_weights": {},
+    "mood_weights": {},
+    "harmonic": {
+     "modal_usage": {
+      "minor": 1.0
+     },
+     "seventh_density": 0.35,
+     "borrowed_rate": 0.4,
+     "mean_progression_rarity": 1.6,
+     "cadence_profile": {
+      "plagal": 0.2
+     },
+     "key_spread": 0.3333333333333333,
+     "chord_variety": 1.0,
+     "mean_chord_duration_s": 2.0
+    }
+   },
+   "top_artists": [],
+   "song_matches": 0
+  },
+  {
+   "id": "p33",
+   "name": "Anders Holm",
+   "instrument": "piano",
+   "city": "Helsinki, FI",
+   "bio": "Sad in a major key, which is harder.",
+   "signature_progression": "1,2,4,5",
+   "mode": "major",
+   "profile": {
+    "genre_weights": {
+     "edm": 0.5773502691896258,
+     "house": 0.5773502691896258,
+     "pop": 0.5773502691896258
+    },
+    "artist_weights": {
+     "The Divine Comedy": 0.40289533293226065,
+     "Labrinth feat Emeli Sande": 0.40289533293226065,
+     "Nena": 0.40289533293226065,
+     "Animusic": 0.1790645924143381,
+     "Astrid S": 0.1790645924143381,
+     "Bertycox": 0.1790645924143381,
+     "Calvin Harris": 0.1790645924143381,
+     "Counting Crows": 0.1790645924143381,
+     "David Guetta feat Sam Martin": 0.1790645924143381,
+     "Game Freak": 0.1790645924143381,
+     "Jakob Liedholm": 0.1790645924143381,
+     "Reel Big Fish": 0.3581291848286762,
+     "The Smiths": 0.1790645924143381,
+     "The Temptations": 0.1790645924143381,
+     "Tyr": 0.1790645924143381,
+     "ZUN": 0.1790645924143381
+    },
+    "era_weights": {
+     "2010s": 1.0
+    },
+    "mood_weights": {
+     "euphoric": 0.7071067811865475,
+     "driving": 0.7071067811865475
+    },
+    "harmonic": {
+     "modal_usage": {
+      "major": 1.0
+     },
+     "seventh_density": 0.05,
+     "borrowed_rate": 0.05,
+     "mean_progression_rarity": 0.8,
+     "cadence_profile": {
+      "plagal": 0.2
+     },
+     "key_spread": 0.3333333333333333,
+     "chord_variety": 1.0,
+     "mean_chord_duration_s": 2.0
+    }
+   },
+   "top_artists": [
+    "The Divine Comedy",
+    "Labrinth feat Emeli Sande",
+    "Nena",
+    "Reel Big Fish",
+    "Animusic",
+    "Astrid S"
+   ],
+   "song_matches": 20
+  },
+  {
+   "id": "p34",
+   "name": "Talia Mizrahi",
+   "instrument": "synth",
+   "city": "Berlin, DE",
+   "bio": "Four-to-the-floor with a music theory problem.",
+   "signature_progression": "B1,B4,B1,B5",
+   "mode": "minor",
+   "profile": {
+    "genre_weights": {},
+    "artist_weights": {
+     "venezuela": 1.0
+    },
+    "era_weights": {},
+    "mood_weights": {},
+    "harmonic": {
+     "modal_usage": {
+      "minor": 1.0
+     },
+     "seventh_density": 0.05,
+     "borrowed_rate": 0.4,
+     "mean_progression_rarity": 1.6,
+     "cadence_profile": {
+      "plagal": 0.2
+     },
+     "key_spread": 0.25,
+     "chord_variety": 0.75,
+     "mean_chord_duration_s": 2.0
+    }
+   },
+   "top_artists": [
+    "venezuela"
+   ],
+   "song_matches": 1
+  },
+  {
+   "id": "p35",
+   "name": "Finn Gallagher",
+   "instrument": "guitar",
+   "city": "Cork, IE",
+   "bio": "Trad sessions, then a Fender.",
+   "signature_progression": "1,4,5,1",
+   "mode": "major",
+   "profile": {
+    "genre_weights": {
+     "rock": 0.6405126152203485,
+     "pop": 0.4803844614152614,
+     "psychedelic": 0.32025630761017426,
+     "folk": 0.16012815380508713,
+     "singer-songwriter": 0.32025630761017426,
+     "americana": 0.16012815380508713,
+     "classic rock": 0.16012815380508713,
+     "punk": 0.16012815380508713,
+     "alternative": 0.16012815380508713,
+     "blues": 0.16012815380508713
+    },
+    "artist_weights": {
+     "One Direction": 0.44943855249503006,
+     "Augustana": 0.19975046777556893,
+     "Ayaka Hirahara": 0.19975046777556893,
+     "The Beatles": 0.39950093555113786,
+     "Blues Traveler": 0.19975046777556893,
+     "Bob Dylan": 0.19975046777556893,
+     "Bon Jovi": 0.19975046777556893,
+     "Dire Straits": 0.19975046777556893,
+     "Green Day": 0.19975046777556893,
+     "John Mayer": 0.19975046777556893,
+     "Konami": 0.19975046777556893,
+     "Labrinth feat Emeli Sande": 0.19975046777556893,
+     "My Little Pony": 0.19975046777556893,
+     "Oasis and Microsoft Songsmith": 0.19975046777556893,
+     "Peter Paul and Mary": 0.19975046777556893,
+     "Pink": 0.19975046777556893,
+     "The Pogues": 0.19975046777556893,
+     "Rob Hubbard": 0.19975046777556893
+    },
+    "era_weights": {
+     "pre-1970": 0.8660254037844387,
+     "1980s": 0.2886751345948129,
+     "1990s": 0.2886751345948129,
+     "2000s": 0.2886751345948129
+    },
+    "mood_weights": {
+     "playful": 0.3481553119113957,
+     "nostalgic": 0.3481553119113957,
+     "warm": 0.5222329678670935,
+     "defiant": 0.5222329678670935,
+     "wistful": 0.3481553119113957,
+     "anthemic": 0.17407765595569785,
+     "driving": 0.17407765595569785,
+     "tender": 0.17407765595569785
+    },
+    "harmonic": {
+     "modal_usage": {
+      "major": 1.0
+     },
+     "seventh_density": 0.05,
+     "borrowed_rate": 0.05,
+     "mean_progression_rarity": 0.8,
+     "cadence_profile": {
+      "authentic": 0.3
+     },
+     "key_spread": 0.25,
+     "chord_variety": 0.75,
+     "mean_chord_duration_s": 2.0
+    }
+   },
+   "top_artists": [
+    "One Direction",
+    "The Beatles",
+    "Augustana",
+    "Ayaka Hirahara",
+    "Blues Traveler",
+    "Bob Dylan"
+   ],
+   "song_matches": 20
+  },
+  {
+   "id": "p36",
+   "name": "Mei Ling Chua",
+   "instrument": "keys",
+   "city": "Singapore, SG",
+   "bio": "Jazz standards for a generation that streams them.",
+   "signature_progression": "1,6,2,5",
+   "mode": "major",
+   "profile": {
+    "genre_weights": {},
+    "artist_weights": {},
+    "era_weights": {},
+    "mood_weights": {},
+    "harmonic": {
+     "modal_usage": {
+      "major": 1.0
+     },
+     "seventh_density": 0.05,
+     "borrowed_rate": 0.05,
+     "mean_progression_rarity": 1.6,
+     "cadence_profile": {
+      "plagal": 0.2
+     },
+     "key_spread": 0.3333333333333333,
+     "chord_variety": 1.0,
+     "mean_chord_duration_s": 2.0
+    }
+   },
+   "top_artists": [],
+   "song_matches": 0
+  },
+  {
+   "id": "p37",
+   "name": "Rafael Santos",
+   "instrument": "bass",
+   "city": "S\u00e3o Paulo, BR",
+   "bio": "Bossa, samba, and a lot of seventh chords.",
+   "signature_progression": "2,5,1,4",
+   "mode": "major",
+   "profile": {
+    "genre_weights": {
+     "motown": 0.4680648595607224,
+     "soul": 0.4680648595607224,
+     "pop": 0.7176994513264411,
+     "teen pop": 0.12481729588285934,
+     "synthpop": 0.12481729588285934,
+     "rock": 0.12481729588285934
+    },
+    "artist_weights": {
+     "Fun": 0.5398618130615209,
+     "Jackson 5": 0.5398618130615209,
+     "PRGuitarMan -Yamaha Vocaloid": 0.3239170878369126,
+     "Selena Gomez": 0.3239170878369126,
+     "Britney Spears": 0.14396315014973893,
+     "Cool Joke": 0.14396315014973893,
+     "dj TAKA": 0.14396315014973893,
+     "Dusty Springfield": 0.14396315014973893,
+     "Kambua Manundu": 0.14396315014973893,
+     "Lionel Richie": 0.14396315014973893,
+     "Oasis and Microsoft Songsmith": 0.14396315014973893,
+     "Pet Shop Boys": 0.14396315014973893,
+     "Phil Collins": 0.14396315014973893,
+     "Train": 0.14396315014973893
+    },
+    "era_weights": {
+     "1970s": 0.935674292327708,
+     "1980s": 0.2495131446207222,
+     "2000s": 0.2495131446207222
+    },
+    "mood_weights": {
+     "euphoric": 0.5957261030921532,
+     "playful": 0.7545863972500607,
+     "driving": 0.15886029415790753,
+     "brooding": 0.15886029415790753,
+     "anthemic": 0.15886029415790753
+    },
+    "harmonic": {
+     "modal_usage": {
+      "major": 1.0
+     },
+     "seventh_density": 0.05,
+     "borrowed_rate": 0.05,
+     "mean_progression_rarity": 0.8,
+     "cadence_profile": {
+      "plagal": 0.2
+     },
+     "key_spread": 0.3333333333333333,
+     "chord_variety": 1.0,
+     "mean_chord_duration_s": 2.0
+    }
+   },
+   "top_artists": [
+    "Fun",
+    "Jackson 5",
+    "PRGuitarMan -Yamaha Vocaloid",
+    "Selena Gomez",
+    "Britney Spears",
+    "Cool Joke"
+   ],
+   "song_matches": 20
+  },
+  {
+   "id": "p38",
+   "name": "Ingrid Halvorsen",
+   "instrument": "guitar",
+   "city": "Reykjavik, IS",
+   "bio": "Plays slowly on purpose.",
+   "signature_progression": "4,1,5,6",
+   "mode": "major",
+   "profile": {
+    "genre_weights": {
+     "pop": 0.6255432421712243,
+     "soul": 0.20851441405707477,
+     "r&b": 0.6255432421712243,
+     "funk": 0.41702882811414954
+    },
+    "artist_weights": {
+     "Carrie Underwood": 0.41647033204447276,
+     "Cascada": 0.41647033204447276,
+     "Kelly Clarkson": 0.41647033204447276,
+     "Adele": 0.18509792535309902,
+     "Avril Lavigne": 0.18509792535309902,
+     "Bruno Mars": 0.18509792535309902,
+     "Carly Rae Jepsen": 0.18509792535309902,
+     "Cheryl Cole": 0.18509792535309902,
+     "Don McLean": 0.18509792535309902,
+     "Erasure": 0.18509792535309902,
+     "Flo Rida": 0.18509792535309902,
+     "Jason Mraz": 0.18509792535309902,
+     "Lady Gaga": 0.18509792535309902,
+     "Maroon 5": 0.18509792535309902,
+     "Matchbox 20": 0.18509792535309902,
+     "Mumford and Sons": 0.18509792535309902,
+     "NOFX": 0.18509792535309902
+    },
+    "era_weights": {
+     "2000s": 0.4472135954999579,
+     "2010s": 0.8944271909999159
+    },
+    "mood_weights": {
+     "melancholic": 0.2886751345948129,
+     "tender": 0.2886751345948129,
+     "triumphant": 0.2886751345948129,
+     "euphoric": 0.2886751345948129,
+     "playful": 0.5773502691896258,
+     "warm": 0.5773502691896258
+    },
+    "harmonic": {
+     "modal_usage": {
+      "major": 1.0
+     },
+     "seventh_density": 0.05,
+     "borrowed_rate": 0.05,
+     "mean_progression_rarity": 0.8,
+     "cadence_profile": {
+      "plagal": 0.2
+     },
+     "key_spread": 0.3333333333333333,
+     "chord_variety": 1.0,
+     "mean_chord_duration_s": 2.0
+    }
+   },
+   "top_artists": [
+    "Carrie Underwood",
+    "Cascada",
+    "Kelly Clarkson",
+    "Adele",
+    "Avril Lavigne",
+    "Bruno Mars"
+   ],
+   "song_matches": 20
+  },
+  {
+   "id": "p39",
+   "name": "Omar Farouk",
+   "instrument": "keys",
+   "city": "Cairo, EG",
+   "bio": "Modal loops that refuse to resolve.",
+   "signature_progression": "Y1,Y7,Y6,Y7",
+   "mode": "phrygian",
+   "profile": {
+    "genre_weights": {},
+    "artist_weights": {},
+    "era_weights": {},
+    "mood_weights": {},
+    "harmonic": {
+     "modal_usage": {
+      "phrygian": 1.0
+     },
+     "seventh_density": 0.35,
+     "borrowed_rate": 0.4,
+     "mean_progression_rarity": 1.6,
+     "cadence_profile": {
+      "plagal": 0.2
+     },
+     "key_spread": 0.25,
+     "chord_variety": 0.75,
+     "mean_chord_duration_s": 2.0
+    }
+   },
+   "top_artists": [],
+   "song_matches": 0
+  },
+  {
+   "id": "p40",
+   "name": "Bea Lindgren",
+   "instrument": "guitar",
+   "city": "Gothenburg, SE",
+   "bio": "Pop punk chords, folk tempo.",
+   "signature_progression": "1,5,6,3",
+   "mode": "major",
+   "profile": {
+    "genre_weights": {
+     "classic rock": 0.4082482904638631,
+     "rock": 0.4082482904638631,
+     "pop": 0.4082482904638631,
+     "video game": 0.4082482904638631,
+     "electronic": 0.4082482904638631,
+     "lo-fi": 0.4082482904638631
+    },
+    "artist_weights": {
+     "2 Brothers on the 4th Floor": 0.22360679774997896,
+     "Beat by Beat Press": 0.22360679774997896,
+     "Big Blue Bubble": 0.22360679774997896,
+     "Blind Melon": 0.22360679774997896,
+     "CaryHuang": 0.22360679774997896,
+     "Charli XCX": 0.22360679774997896,
+     "Charlie Kirk": 0.22360679774997896,
+     "Di Gi Charat": 0.22360679774997896,
+     "Endigo": 0.22360679774997896,
+     "J Boog": 0.22360679774997896,
+     "jacknjellify": 0.22360679774997896,
+     "Livingston": 0.22360679774997896,
+     "MGMT": 0.22360679774997896,
+     "Norihiko Yamanuki": 0.22360679774997896,
+     "Pop-Tops": 0.22360679774997896,
+     "Queen": 0.22360679774997896,
+     "Sparks": 0.22360679774997896,
+     "Steve Cruickshank": 0.22360679774997896,
+     "Toby Fox": 0.22360679774997896,
+     "Wolfine": 0.22360679774997896
+    },
+    "era_weights": {
+     "1970s": 0.7071067811865475,
+     "2010s": 0.7071067811865475
+    },
+    "mood_weights": {
+     "anthemic": 0.35355339059327373,
+     "triumphant": 0.35355339059327373,
+     "playful": 0.7071067811865475,
+     "eerie": 0.35355339059327373,
+     "tender": 0.35355339059327373
+    },
+    "harmonic": {
+     "modal_usage": {
+      "major": 1.0
+     },
+     "seventh_density": 0.05,
+     "borrowed_rate": 0.05,
+     "mean_progression_rarity": 0.8,
+     "cadence_profile": {
+      "plagal": 0.2
+     },
+     "key_spread": 0.3333333333333333,
+     "chord_variety": 1.0,
+     "mean_chord_duration_s": 2.0
+    }
+   },
+   "top_artists": [
+    "2 Brothers on the 4th Floor",
+    "Beat by Beat Press",
+    "Big Blue Bubble",
+    "Blind Melon",
+    "CaryHuang",
+    "Charli XCX"
+   ],
+   "song_matches": 20
+  }
+ ],
+ "calibration": {
+  "pairwise_similarities": [
+   0.06748,
+   0.06776,
+   0.06776,
+   0.06776,
+   0.06831,
+   0.06853,
+   0.06853,
+   0.06853,
+   0.07121,
+   0.07121,
+   0.07121,
+   0.07121,
+   0.07121,
+   0.07121,
+   0.07121,
+   0.07121,
+   0.07121,
+   0.07183,
+   0.07183,
+   0.07183,
+   0.07227,
+   0.07227,
+   0.07227,
+   0.07276,
+   0.07276,
+   0.07276,
+   0.07302,
+   0.07327,
+   0.07327,
+   0.07327,
+   0.0735,
+   0.07353,
+   0.07354,
+   0.07358,
+   0.07358,
+   0.07358,
+   0.07358,
+   0.07358,
+   0.07358,
+   0.07358,
+   0.07358,
+   0.07358,
+   0.07358,
+   0.07358,
+   0.07358,
+   0.07358,
+   0.07358,
+   0.07358,
+   0.07358,
+   0.07358,
+   0.0744,
+   0.0744,
+   0.07472,
+   0.07472,
+   0.07472,
+   0.07472,
+   0.07472,
+   0.07472,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07582,
+   0.07665,
+   0.07665,
+   0.07665,
+   0.07665,
+   0.07665,
+   0.07665,
+   0.07665,
+   0.07665,
+   0.07665,
+   0.07665,
+   0.07665,
+   0.07665,
+   0.07665,
+   0.07665,
+   0.07665,
+   0.07665,
+   0.07665,
+   0.07762,
+   0.07781,
+   0.07805,
+   0.07805,
+   0.07805,
+   0.07805,
+   0.07805,
+   0.07805,
+   0.07805,
+   0.07805,
+   0.07805,
+   0.07805,
+   0.07805,
+   0.07805,
+   0.07805,
+   0.07805,
+   0.07805,
+   0.07805,
+   0.07805,
+   0.07805,
+   0.07807,
+   0.07821,
+   0.07821,
+   0.07821,
+   0.07832,
+   0.07878,
+   0.08107,
+   0.08107,
+   0.08107,
+   0.08107,
+   0.08107,
+   0.08107,
+   0.08107,
+   0.08107,
+   0.08107,
+   0.08107,
+   0.08107,
+   0.08107,
+   0.08107,
+   0.08107,
+   0.08107,
+   0.08107,
+   0.08107,
+   0.08107,
+   0.08107,
+   0.08107,
+   0.08107,
+   0.08107,
+   0.08169,
+   0.08174,
+   0.08174,
+   0.08174,
+   0.08174,
+   0.08174,
+   0.08174,
+   0.08358,
+   0.08358,
+   0.08358,
+   0.08358,
+   0.08358,
+   0.08358,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08471,
+   0.08474,
+   0.08501,
+   0.08694,
+   0.08694,
+   0.08694,
+   0.08738,
+   0.08767,
+   0.08802,
+   0.08802,
+   0.08802,
+   0.08811,
+   0.08835,
+   0.08835,
+   0.08979,
+   0.08979,
+   0.08979,
+   0.08979,
+   0.08979,
+   0.08979,
+   0.08979,
+   0.08979,
+   0.08979,
+   0.09102,
+   0.09102,
+   0.09102,
+   0.09143,
+   0.09143,
+   0.09206,
+   0.09295,
+   0.09295,
+   0.09295,
+   0.09353,
+   0.09353,
+   0.09353,
+   0.09353,
+   0.09353,
+   0.09353,
+   0.09512,
+   0.09512,
+   0.09516,
+   0.09516,
+   0.09627,
+   0.09627,
+   0.09627,
+   0.09627,
+   0.09627,
+   0.09627,
+   0.09627,
+   0.09627,
+   0.09627,
+   0.09627,
+   0.09627,
+   0.09627,
+   0.09627,
+   0.09627,
+   0.09627,
+   0.09627,
+   0.09627,
+   0.09627,
+   0.09651,
+   0.09822,
+   0.09822,
+   0.09822,
+   0.09822,
+   0.09822,
+   0.09822,
+   0.09822,
+   0.09822,
+   0.09822,
+   0.09822,
+   0.09822,
+   0.09822,
+   0.13782,
+   0.13782,
+   0.13782,
+   0.1384,
+   0.1384,
+   0.1384,
+   0.13887,
+   0.13887,
+   0.13887,
+   0.13904,
+   0.13904,
+   0.13904,
+   0.13928,
+   0.13928,
+   0.13928,
+   0.13928,
+   0.13928,
+   0.13928,
+   0.13928,
+   0.13928,
+   0.13928,
+   0.13928,
+   0.13928,
+   0.13928,
+   0.13928,
+   0.13928,
+   0.13928,
+   0.13928,
+   0.13928,
+   0.14206,
+   0.14206,
+   0.14206,
+   0.14206,
+   0.14206,
+   0.14206,
+   0.14206,
+   0.14206,
+   0.14206,
+   0.14217,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14269,
+   0.14282,
+   0.14327,
+   0.14327,
+   0.14327,
+   0.14327,
+   0.14327,
+   0.14327,
+   0.14352,
+   0.1439,
+   0.14433,
+   0.14564,
+   0.14631,
+   0.1467,
+   0.1467,
+   0.1467,
+   0.1467,
+   0.1467,
+   0.1467,
+   0.14672,
+   0.14672,
+   0.14672,
+   0.14677,
+   0.14681,
+   0.14681,
+   0.14681,
+   0.14681,
+   0.14681,
+   0.14681,
+   0.14751,
+   0.14854,
+   0.14854,
+   0.14854,
+   0.14854,
+   0.14854,
+   0.14854,
+   0.14854,
+   0.14854,
+   0.14854,
+   0.14854,
+   0.14854,
+   0.14875,
+   0.14875,
+   0.14875,
+   0.14875,
+   0.14875,
+   0.14875,
+   0.14925,
+   0.15,
+   0.15,
+   0.15,
+   0.15,
+   0.15,
+   0.15,
+   0.15,
+   0.15,
+   0.15,
+   0.15,
+   0.15,
+   0.15,
+   0.15,
+   0.15,
+   0.15,
+   0.15,
+   0.15,
+   0.15,
+   0.15,
+   0.15,
+   0.15049,
+   0.15355,
+   0.15355,
+   0.15355,
+   0.15367,
+   0.15513,
+   0.15907,
+   0.15907,
+   0.20774,
+   0.20774,
+   0.20774,
+   0.21119,
+   0.21302,
+   0.21468,
+   0.22786,
+   0.22786,
+   0.22786,
+   0.23128,
+   0.23128,
+   0.23128,
+   0.25808,
+   0.25808,
+   0.25808,
+   0.25808,
+   0.25808,
+   0.25808,
+   0.26086,
+   0.26086,
+   0.2618,
+   0.2618,
+   0.2618,
+   0.2618,
+   0.2618,
+   0.2618,
+   0.2618,
+   0.2618,
+   0.2618,
+   0.26236,
+   0.26344,
+   0.26344,
+   0.26344,
+   0.26686,
+   0.28626,
+   0.28626,
+   0.28626,
+   0.28638,
+   0.29076,
+   0.29135,
+   0.29135,
+   0.2924,
+   0.29672,
+   0.29672,
+   0.3,
+   0.3004,
+   0.30574,
+   0.30574,
+   0.30574,
+   0.30937,
+   0.31292,
+   0.3154,
+   0.3177,
+   0.31944,
+   0.31944,
+   0.31944,
+   0.32003,
+   0.32395,
+   0.32494,
+   0.32494,
+   0.32494,
+   0.32532,
+   0.32665,
+   0.32665,
+   0.32678,
+   0.33345,
+   0.34185,
+   0.34185,
+   0.34185,
+   0.34624,
+   0.34739,
+   0.34739,
+   0.35299,
+   0.35299,
+   0.35299,
+   0.3572,
+   0.3572,
+   0.3572,
+   0.35887,
+   0.35916,
+   0.35916,
+   0.35916,
+   0.36767,
+   0.36858,
+   0.36907,
+   0.37169,
+   0.37169,
+   0.37169,
+   0.37209,
+   0.37369,
+   0.37369,
+   0.37369,
+   0.37386,
+   0.37541,
+   0.38538,
+   0.3894,
+   0.3894,
+   0.38982,
+   0.39175,
+   0.39614,
+   0.39614,
+   0.39614,
+   0.39688,
+   0.39688,
+   0.39688,
+   0.3995,
+   0.40243,
+   0.40243,
+   0.40243,
+   0.40297,
+   0.40677,
+   0.40677,
+   0.40677,
+   0.40677,
+   0.40677,
+   0.40677,
+   0.40677,
+   0.40677,
+   0.40677,
+   0.40837,
+   0.40954,
+   0.40954,
+   0.41039,
+   0.41491,
+   0.41491,
+   0.41624,
+   0.4181,
+   0.41945,
+   0.42178,
+   0.42238,
+   0.42238,
+   0.42838,
+   0.42838,
+   0.42838,
+   0.42872,
+   0.42992,
+   0.44074,
+   0.44086,
+   0.44086,
+   0.44086,
+   0.44086,
+   0.44086,
+   0.44086,
+   0.44086,
+   0.44086,
+   0.44086,
+   0.44161,
+   0.44161,
+   0.44161,
+   0.44291,
+   0.44575,
+   0.44801,
+   0.45214,
+   0.45258,
+   0.45583,
+   0.45583,
+   0.45583,
+   0.45583,
+   0.45583,
+   0.45583,
+   0.45737,
+   0.46045,
+   0.46045,
+   0.46045,
+   0.46138,
+   0.46138,
+   0.46138,
+   0.46383,
+   0.46383,
+   0.46383,
+   0.46474,
+   0.46787,
+   0.46787,
+   0.47172,
+   0.47172,
+   0.47172,
+   0.47345,
+   0.47944,
+   0.47944,
+   0.47944,
+   0.48373,
+   0.48636,
+   0.48636,
+   0.48636,
+   0.4896,
+   0.4896,
+   0.4896,
+   0.49465,
+   0.49465,
+   0.49465,
+   0.49905,
+   0.49905,
+   0.50015,
+   0.50015,
+   0.50015,
+   0.51124,
+   0.51615,
+   0.52233,
+   0.52682,
+   0.52762,
+   0.52762,
+   0.52762,
+   0.53186,
+   0.53186,
+   0.53186,
+   0.53319,
+   0.53684,
+   0.53963,
+   0.53997,
+   0.53997,
+   0.53997,
+   0.54975,
+   0.54975,
+   0.54975,
+   0.56303,
+   0.56303,
+   0.56352,
+   0.56352,
+   0.56352,
+   0.57093,
+   0.57093,
+   0.57093,
+   0.57126,
+   0.5797,
+   0.57974,
+   0.58773,
+   0.58773,
+   0.58773,
+   0.59854,
+   0.60685,
+   0.60685,
+   0.60685,
+   0.60742,
+   0.62826,
+   0.64622,
+   0.66321,
+   0.70034,
+   0.92145,
+   0.92145,
+   0.92145,
+   0.92145,
+   0.92145,
+   0.92145,
+   1.0,
+   1.0,
+   1.0,
+   1.0,
+   1.0,
+   1.0,
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "n_pairs": 780,
+  "median": 0.1421,
+  "p90": 0.4717
+ }
+}
