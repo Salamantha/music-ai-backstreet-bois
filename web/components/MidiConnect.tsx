@@ -98,6 +98,7 @@ export default function MidiConnect({
   const [outputs, setOutputs] = useState<MidiPort[]>([]);
   const [outputId, setOutputId] = useState("");
   const [playing, setPlaying] = useState(false);
+  const [tested, setTested] = useState(false);
   const [traffic, setTraffic] = useState(0);
   const playTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -376,28 +377,54 @@ export default function MidiConnect({
               </select>
             </div>
 
-            {outputs.length > 1 && (
-              <div className="row" style={{ marginTop: "0.75rem" }}>
-                <label htmlFor="midi-out">Play back to</label>
-                <select
-                  id="midi-out"
-                  value={outputId}
-                  onChange={(e) => {
-                    setOutputId(e.target.value);
-                    captureRef.current!
-                      .selectOutput(e.target.value)
-                      .catch((err) =>
-                        setError(err instanceof Error ? err.message : String(err)),
-                      );
-                  }}
-                >
-                  {outputs.map((o) => (
-                    <option key={o.id} value={o.id}>
-                      {o.name}{looksLikeChordcat(o) ? "  ✓ ChordCat" : ""}
-                    </option>
-                  ))}
-                </select>
-              </div>
+            {/* Shown even with a single output: playback has to go somewhere,
+                and silently choosing for the user leaves them no way to see
+                where, or to send it elsewhere. */}
+            {outputs.length > 0 && (
+              <>
+                <div className="row" style={{ marginTop: "0.75rem" }}>
+                  <label htmlFor="midi-out">Play back to</label>
+                  <select
+                    id="midi-out"
+                    value={outputId}
+                    onChange={(e) => {
+                      setOutputId(e.target.value);
+                      captureRef.current!
+                        .selectOutput(e.target.value)
+                        .catch((err) =>
+                          setError(err instanceof Error ? err.message : String(err)),
+                        );
+                    }}
+                  >
+                    {outputs.map((o) => (
+                      <option key={o.id} value={o.id}>
+                        {portLabel(o)}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    onClick={() => {
+                      setError("");
+                      setTested(true);
+                      try {
+                        captureRef.current!.testNote();
+                      } catch (e) {
+                        setError(e instanceof Error ? e.message : String(e));
+                      }
+                    }}
+                    style={{ padding: "5px 11px", fontSize: 13 }}
+                  >
+                    Send a test note
+                  </button>
+                </div>
+                {tested && (
+                  <p className="sub" style={{ margin: "0.5rem 0 0" }}>
+                    Sent middle C. If you heard nothing, the notes are leaving
+                    the browser but the other app is not listening — in Logic,
+                    select a software instrument track and arm it for recording.
+                  </p>
+                )}
+              </>
             )}
 
             <p
