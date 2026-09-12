@@ -185,7 +185,29 @@ export default function Page() {
         onReset={reset}
         busy={busy}
         resetToken={resetToken}
-      />
+      >
+        {step === 1 && (
+          <>
+            <h3 style={{ margin: "0 0 6px" }}>First, what do you play?</h3>
+            <p className="sub" style={{ margin: "0 0 14px" }}>
+              Recommended. This decides which songs your progression is
+              compared against, and so which musicians you are matched with.
+              Skip it and you are matched against every genre at once.
+            </p>
+            <GenreFilter
+              options={genreOptions}
+              counts={genrePalette}
+              selected={genres}
+              onChange={applyGenres}
+              tonality={tonality}
+              onTonality={applyTonality}
+              hasResults={result !== null}
+              busy={busy}
+              bare
+            />
+          </>
+        )}
+      </MidiConnect>
 
       {step === 0 && (
         <>
@@ -223,26 +245,6 @@ export default function Page() {
 
       {step === 1 && (
         <>
-          <details className="panel">
-            <summary style={{ cursor: "pointer", fontWeight: 700 }}>
-              Narrow the search (optional)
-            </summary>
-            <p className="sub" style={{ marginTop: "0.75rem" }}>
-              Leave these alone and every match is considered.
-            </p>
-            <GenreFilter
-              options={genreOptions}
-              counts={genrePalette}
-              selected={genres}
-              onChange={applyGenres}
-              tonality={tonality}
-              onTonality={applyTonality}
-              hasResults={result !== null}
-              busy={busy}
-              bare
-            />
-          </details>
-
           {busy && (
             <div className="panel">
               <p style={{ margin: 0 }}>Analysing — this can take a moment…</p>

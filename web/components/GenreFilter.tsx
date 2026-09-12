@@ -18,6 +18,10 @@ interface Props {
   bare?: boolean;
 }
 
+/* Nested inside the capture panel these sit a level deeper, and a heading
+   order that skips or reverses levels is how screen-reader users lose the
+   shape of a page. */
+
 const TONALITIES: { value: Tonality; label: string; hint: string }[] = [
   { value: "any", label: "Any", hint: "Let the analysis decide" },
   { value: "major", label: "Major", hint: "Read ambiguous keys as major" },
@@ -28,6 +32,7 @@ export default function GenreFilter({
   options, counts, selected, onChange, hasResults, busy, tonality, onTonality,
   bare = false,
 }: Props) {
+  const H = bare ? "h4" : "h2";
   const active = new Set(selected);
   if (options.length === 0) return null;
 
@@ -47,7 +52,7 @@ export default function GenreFilter({
   return (
     <div className={bare ? "" : "panel"}>
       <div className="row spread" style={{ marginBottom: 12 }}>
-        <h2 style={{ margin: 0 }}>Tonality</h2>
+        <H style={{ margin: 0 }}>Tonality</H>
         <span className="row" style={{ gap: 4 }}>
           {TONALITIES.map((t) => (
             <button
@@ -75,7 +80,7 @@ export default function GenreFilter({
       </p>
 
       <div className="row spread">
-        <h2 style={{ margin: 0 }}>Genres</h2>
+        <H style={{ margin: 0 }}>Genres</H>
         {selected.length > 0 && (
           <button
             onClick={() => onChange([])}
@@ -91,7 +96,7 @@ export default function GenreFilter({
         {selected.length === 0
           ? hasResults
             ? "Showing every match. Pick genres to narrow the songs — and the musicians you get matched with."
-            : "Optional. Pick what you play and the search will keep to it — songs, artists and the musicians you get matched with."
+            : "Pick as many as you like."
           : `Keeping only ${selected.join(", ")}. Songs with no known genre are excluded while a genre is chosen.`}
       </p>
 

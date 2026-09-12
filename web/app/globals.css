@@ -414,3 +414,14 @@ main { position: relative; z-index: 1; }
 @media (prefers-reduced-motion: reduce) {
   .reading > summary::before { transition: none; }
 }
+
+/* Search setup inside the capture panel: part of playing, but distinct enough
+   from the transport controls to read as its own step. */
+.setup {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(141, 208, 255, 0.06);
+  padding: 1rem 1.1rem 0.9rem;
+  margin: 1.1rem 0;
+}
+.setup h4 { font-size: 1rem; margin: 0; }

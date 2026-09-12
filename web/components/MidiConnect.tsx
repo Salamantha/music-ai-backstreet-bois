@@ -27,6 +27,10 @@ interface Props {
       cards and the MIDI timeline all clear together. A token rather than a
       callback ref: the parent owns the intent, this component owns the state. */
   resetToken: number;
+  /** Search setup, rendered inside the capture panel. It belongs with playing,
+      not after it: what you tell us here decides which songs and which people
+      the progression is matched against. */
+  children?: React.ReactNode;
   busy: boolean;
 }
 
@@ -43,7 +47,7 @@ const ONSET_WINDOW_MS = 70;
 const MIN_NOTES_PER_STEP = 2;
 
 export default function MidiConnect({
-  show, onConnected, onChords, onReset, busy, resetToken,
+  show, onConnected, onChords, onReset, busy, resetToken, children,
 }: Props) {
   const captureRef = useRef<MidiCapture | null>(null);
   // Web MIDI support cannot be determined during server rendering -- `navigator`
@@ -422,6 +426,8 @@ export default function MidiConnect({
         Play one chord after another. Each is captured the moment you play it, so
         there is no need to release before the next.
       </p>
+
+      {children && <div className="setup">{children}</div>}
 
       <div className="row">
         {!recording ? (
