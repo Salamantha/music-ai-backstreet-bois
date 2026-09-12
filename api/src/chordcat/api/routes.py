@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-import json
 import logging
 import uuid
-from pathlib import Path
 
 from fastapi import APIRouter, HTTPException
 
@@ -14,25 +12,16 @@ from ..domain.chords import identify_chord
 from ..domain.cp import to_cp
 from ..domain.events import ChordEvent, Hole, IdentifiedChord, Key, RawEvent
 from ..domain.pitch import MODES, key_name, pc_name, roman_for
-from ..helper.analysis import run_all
-from ..helper.concepts.graph import choose
-from ..helper.concepts.schema import APPROVED, load_nodes
-from ..helper.converse import ClaudeVoice, LayeredVoice, TemplateVoice
-from ..helper.prepare import prepare
-from ..helper.session import Session
 from ..services.pipeline import analyse
 from .schemas import (
     AnalyzeRequest,
-    AnalyzeResponse,
-    ArtistOut,
     CandidateOut,
-    ChordOut,
-    HarmonicOut,
-    HelperFactOut,
-    HelperTurnRequest,
-    HelperTurnResponse,
     IdentifyRequest,
     IdentifyResponse,
+    AnalyzeResponse,
+    ArtistOut,
+    ChordOut,
+    HarmonicOut,
     KeyOut,
     MatchOut,
     ProfileOut,
@@ -379,93 +368,4 @@ async def analyze(req: AnalyzeRequest) -> AnalyzeResponse:
         available_genres=result.available_genres,
         applied_genres=list(req.genres),
         notes=notes,
-    )
-
-
-#: Recorded ChordCat capture, so the helper can be seen working with no
-#: hardware in the room. It lives under tests/ and is therefore absent from a
-#: packaged install -- the endpoint says so rather than failing obscurely.
-DEMO_CAPTURE = (
-    Path(__file__).resolve().parents[3] / "tests" / "fixtures" / "midi"
-    / "chordcat-8track-sequencer.json"
-)
-
-
-@router.get("/helper/demo", response_model=HelperTurnRequest)
-async def helper_demo() -> HelperTurnRequest:
-    """The bundled capture, in the shape `/helper/turn` expects."""
-    if not DEMO_CAPTURE.exists():
-        raise HTTPException(404, "no demo capture in this install")
-    take = json.loads(DEMO_CAPTURE.read_text())
-    return HelperTurnRequest(
-        events=take["events"],
-        elapsed_ms=take["elapsed_ms"],
-        harmony_channel=take.get("harmony_channel"),
-    )
-
-
-@router.post("/helper/turn", response_model=HelperTurnResponse)
-async def helper_turn(req: HelperTurnRequest) -> HelperTurnResponse:
-    """One conversational turn over a take.
-
-    Deliberately does no Hooktheory I/O: this is the teaching path, not the
-    matching path, and it must stay responsive and quota-free.
-    """
-    channel = req.harmony_channel
-    raw = [
-        RawEvent(kind=e.k, t=e.t, pitch=e.p, velocity=e.v, controller=e.n)
-        for e in req.events
-        if not channel or e.c == channel
-    ]
-    session = Session(
-        id=uuid.uuid4().hex[:12],
-        events=raw,
-        elapsed_ms=req.elapsed_ms,
-        user_text=req.user_text,
-        intent_tags=req.intent_tags,
-        suggested_nodes=req.suggested_nodes,
-        tried_nodes=req.tried_nodes,
-    )
-
-    analysis = prepare(session)
-    facts = run_all(analysis).supported()
-    choice = choose(facts, session, load_nodes())
-
-    fact_out = [
-        HelperFactOut(
-            id=f.id, kind=f.kind, value=f.value,
-            n_observations=f.n_observations, confidence=f.confidence,
-        )
-        for f in facts
-    ]
-    chords = [str(f.value) for f in facts.by_kind("harmony.chord")]
-    key_fact = facts.get("harmony.key_estimate")
-
-    if choice is None:
-        return HelperTurnResponse(
-            node_id=None, plain_name=None,
-            text="Play a little more -- there is not enough here to say anything true yet.",
-            why=[], distance=0, measured=True, tied_with=[], draft=False,
-            templated=True, facts=fact_out, chords=chords,
-            key=str(key_fact.value) if key_fact else None,
-        )
-
-    settings = get_services().settings if hasattr(get_services(), "settings") else None
-    use_model = settings.has_anthropic and not settings.chordcat_offline if settings else False
-    voice = LayeredVoice(ClaudeVoice()) if use_model else TemplateVoice()
-    response = voice.respond(facts, choice, session.user_text)
-
-    return HelperTurnResponse(
-        node_id=choice.node.id,
-        plain_name=choice.node.plain_name,
-        text=response.text,
-        why=list(choice.why),
-        distance=choice.distance,
-        measured=choice.measured,
-        tied_with=list(choice.tied_with),
-        draft=choice.node.status != APPROVED,
-        templated=response.used_fallback,
-        facts=fact_out,
-        chords=chords,
-        key=str(key_fact.value) if key_fact else None,
     )
