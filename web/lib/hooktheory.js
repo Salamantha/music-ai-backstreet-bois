@@ -1,15 +1,18 @@
 /**
- * hooktheory.js — browser client for your own proxy, never for Hooktheory direct.
+ * hooktheory.js — browser client for the chordcat API, never for Hooktheory direct.
  *
  * Never call api.hooktheory.com from the browser: your credentials would be in
- * the bundle and CORS will fight you. Everything goes through server/hooktheory_proxy.py.
+ * the bundle and CORS will fight you. Everything goes through the same FastAPI
+ * backend web/lib/api.ts already talks to (NEXT_PUBLIC_API_BASE) — specifically
+ * GET /api/hooktheory/nodes and GET /api/hooktheory/songs, which pass through to
+ * the existing HttpHooktheoryClient (shared rate limiter + SQLite cache).
  *
- * The in-memory cache here is the second line of defence. The proxy caches too,
- * but this one saves you the round trip entirely, which matters when the
+ * The in-memory cache here is the second line of defence. The backend caches
+ * too, but this one saves you the round trip entirely, which matters when the
  * harmoniser asks for probabilities once per bar.
  */
 
-const BASE = process.env.NEXT_PUBLIC_HOOKTHEORY_PROXY || "http://localhost:8000";
+const BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8000";
 
 const nodeCache = new Map();
 const songCache = new Map();
@@ -20,7 +23,7 @@ async function get(path, params) {
     if (v !== null && v !== undefined && v !== "") url.searchParams.set(k, v);
   });
   const res = await fetch(url.toString());
-  if (!res.ok) throw new Error(`Hooktheory proxy ${res.status}`);
+  if (!res.ok) throw new Error(`Hooktheory route ${res.status}`);
   return res.json();
 }
 
@@ -31,9 +34,9 @@ async function get(path, params) {
  */
 export async function nextChordNodes(cp = "") {
   if (nodeCache.has(cp)) return nodeCache.get(cp);
-  const data = await get("/api/nodes", { cp });
-  nodeCache.set(cp, data);
-  return data;
+  const { nodes } = await get("/api/hooktheory/nodes", { cp });
+  nodeCache.set(cp, nodes);
+  return nodes;
 }
 
 /**
@@ -59,9 +62,9 @@ export async function nextDegreeProbs(cp = "") {
 export async function songsFor(cp) {
   if (!cp) return [];
   if (songCache.has(cp)) return songCache.get(cp);
-  const data = await get("/api/songs", { cp });
-  songCache.set(cp, data);
-  return data;
+  const { songs } = await get("/api/hooktheory/songs", { cp });
+  songCache.set(cp, songs);
+  return songs;
 }
 
 /**
