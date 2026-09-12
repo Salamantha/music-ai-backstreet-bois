@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import {
-  matchedPositions, stripModifiers, youtubeSearch,
+  matchedPositions, stripModifiers, toNumber, youtubeSearch,
   type AnalyzeResponse, type Profile, type Song,
 } from "@/lib/api";
 
@@ -70,7 +70,7 @@ function ChordString({
               marginRight: 5,
             }}
           >
-            {chord}
+            {toNumber(chord)}
           </span>
         );
       })}
