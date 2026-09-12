@@ -5,10 +5,12 @@ from __future__ import annotations
 import json
 import logging
 import uuid
+from functools import lru_cache
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException
 
+from ..config import get_settings
 from ..deps import get_services
 from ..domain.chords import identify_chord
 from ..domain.cp import to_cp
@@ -23,9 +25,12 @@ from ..domain.pitch import (
     spell_in_key,
 )
 from ..helper.analysis import run_all
+from ..helper.analysis.change import diff_facts
 from ..helper.concepts.graph import choose
 from ..helper.concepts.schema import APPROVED, load_nodes
 from ..helper.converse import build_voice
+from ..helper.facts import FactSet
+from ..helper.memory import SqliteSessionStore
 from ..helper.prepare import prepare
 from ..helper.session import Session
 from ..services.pipeline import analyse
@@ -36,6 +41,7 @@ from .schemas import (
     CandidateOut,
     ChordOut,
     HarmonicOut,
+    HelperChangeOut,
     HelperFactOut,
     HelperTurnRequest,
     HelperTurnResponse,
@@ -445,6 +451,12 @@ DEMO_CAPTURE = (
 )
 
 
+@lru_cache
+def get_session_store() -> SqliteSessionStore:
+    """One store for the process. Sqlite, so it survives a reload."""
+    return SqliteSessionStore(get_settings().chordcat_db_path)
+
+
 @router.get("/helper/demo", response_model=HelperTurnRequest)
 async def helper_demo() -> HelperTurnRequest:
     """The bundled capture, in the shape `/helper/turn` expects."""
@@ -471,18 +483,29 @@ async def helper_turn(req: HelperTurnRequest) -> HelperTurnResponse:
         for e in req.events
         if not channel or e.c == channel
     ]
+    session_id = req.session_id or uuid.uuid4().hex[:12]
+    store = get_session_store()
+    recall = store.recall(session_id)
+
     session = Session(
-        id=uuid.uuid4().hex[:12],
+        id=session_id,
         events=raw,
         elapsed_ms=req.elapsed_ms,
         user_text=req.user_text,
         intent_tags=req.intent_tags,
-        suggested_nodes=req.suggested_nodes,
-        tried_nodes=req.tried_nodes,
+        # The server is authoritative once a session exists; a refresh in the
+        # browser must not make the helper forget and start repeating itself.
+        suggested_nodes=list(recall.suggested_nodes) or req.suggested_nodes,
+        tried_nodes=list(recall.tried_nodes) or req.tried_nodes,
+        override_count=recall.override_count,
     )
 
     analysis = prepare(session)
     facts = run_all(analysis).supported()
+    # Fold in what moved since the previous take. These are measurements, so
+    # the validator governs them exactly like any other fact.
+    changes = diff_facts(recall.previous, facts)
+    facts = FactSet(facts.facts + tuple(changes))
     choice = choose(facts, session, load_nodes())
 
     fact_out = [
@@ -495,18 +518,30 @@ async def helper_turn(req: HelperTurnRequest) -> HelperTurnResponse:
     chords = [str(f.value) for f in facts.by_kind("harmony.chord")]
     key_fact = facts.get("harmony.key_estimate")
 
+    change_out = [HelperChangeOut(kind=f.kind, value=f.value) for f in changes]
+
     if choice is None:
         return HelperTurnResponse(
-            node_id=None, plain_name=None,
+            session_id=session_id, node_id=None, plain_name=None,
             text="Play a little more -- there is not enough here to say anything true yet.",
             why=[], distance=0, measured=True, tied_with=[], draft=False,
             templated=True, facts=fact_out, chords=chords,
             key=str(key_fact.value) if key_fact else None,
+            changes=change_out, turn_number=len(recall.turns) + 1,
         )
 
-    response = build_voice().respond(facts, choice, session.user_text)
+    songs = [
+        f"{hit.artist} -- {hit.song}"
+        + (f" ({', '.join(hit.matched_chords)})" if hit.matched_chords else "")
+        for hit in req.songs[:5]
+    ]
+    response = build_voice().respond(
+        facts, choice, session.user_text, history=recall.turns, songs=songs
+    )
+    store.record(session_id, facts, choice.node.id, response.text)
 
     return HelperTurnResponse(
+        session_id=session_id,
         node_id=choice.node.id,
         plain_name=choice.node.plain_name,
         text=response.text,
@@ -519,4 +554,6 @@ async def helper_turn(req: HelperTurnRequest) -> HelperTurnResponse:
         facts=fact_out,
         chords=chords,
         key=str(key_fact.value) if key_fact else None,
+        changes=change_out,
+        turn_number=len(recall.turns) + 1,
     )
