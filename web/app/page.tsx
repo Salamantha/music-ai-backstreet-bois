@@ -7,6 +7,7 @@ import ChordTimeline from "@/components/ChordTimeline";
 import KeyPanel from "@/components/KeyPanel";
 import Stepper, { type StepDef } from "@/components/Stepper";
 import PianoCat from "@/components/PianoCat";
+import Analysing from "@/components/Analysing";
 import { BAND, CatFace } from "@/components/CatBand";
 import { JoinRoom } from "@/components/JoinRoom";
 import { MatchList, SongMatches, TasteProfile } from "@/components/Results";
@@ -157,7 +158,8 @@ export default function Page() {
   ][step];
 
   return (
-    <main id="main">
+    <main id="main" aria-busy={busy}>
+      <Analysing show={busy} />
       <header className="row spread" style={{ alignItems: "flex-start" }}>
         <div className="row" style={{ gap: "0.9rem", flexWrap: "nowrap" }}>
           <span className="logo" aria-hidden="true">
@@ -187,7 +189,7 @@ export default function Page() {
       </h2>
 
       <div role="status" aria-live="polite" className="visually-hidden">
-        {busy ? "Analysing your progression" : result ? "Results ready" : ""}
+        {!busy && result ? "Results ready" : ""}
       </div>
 
       {error && (
@@ -247,12 +249,6 @@ export default function Page() {
 
       {step === 1 && (
         <>
-          {busy && (
-            <div className="panel">
-              <p style={{ margin: 0 }}>Analysing — this can take a moment…</p>
-            </div>
-          )}
-
           <div className="step-nav">
             <button onClick={() => setStep(0)}>Back</button>
             <span />

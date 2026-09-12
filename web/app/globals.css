@@ -468,3 +468,87 @@ main { position: relative; z-index: 1; }
 
 /* A step's forward action, inside the card that completes it. */
 .card-nav { display: flex; justify-content: flex-end; margin-top: 1.25rem; }
+
+/* ---- Analysing curtain ---------------------------------------------- */
+
+.curtain {
+  position: fixed; inset: 0; z-index: 50;
+  display: grid; place-items: center;
+  padding: 1.5rem;
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+  backdrop-filter: blur(6px);
+  animation: curtain-in 0.22s ease-out both;
+}
+.curtain-card {
+  display: grid; justify-items: center; gap: 0.4rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.6rem 2.2rem 1.9rem;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+  max-width: min(28rem, 100%);
+  text-align: center;
+}
+.curtain-beat { margin: 0.2rem 0 0; font-weight: 700; font-size: 1.05rem; }
+.curtain-bar {
+  width: 100%; height: 6px; border-radius: 999px;
+  background: var(--panel-2); overflow: hidden; margin-top: 0.9rem;
+}
+/* Indeterminate: we cannot know how far through we are, so the bar must not
+   pretend to. It sweeps rather than fills. */
+.curtain-bar span {
+  display: block; width: 40%; height: 100%; border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent-2), var(--accent));
+  animation: curtain-sweep 1.5s ease-in-out infinite;
+}
+
+@keyframes curtain-in { from { opacity: 0 } to { opacity: 1 } }
+@keyframes curtain-sweep {
+  0% { transform: translateX(-110%) }
+  100% { transform: translateX(360%) }
+}
+
+/* ---- Domino at work -------------------------------------------------- */
+
+/* Paws alternate, so he reads as playing rather than pouncing. */
+.pc-paw { transform-box: fill-box; transform-origin: center; }
+.pc-paw-l.pc-on { animation: pc-bang 0.44s ease-in-out infinite; }
+.pc-paw-r.pc-on { animation: pc-bang 0.44s ease-in-out infinite 0.22s; }
+.pc-hit-l.pc-on { animation: pc-flash 0.44s ease-in-out infinite; }
+.pc-hit-r.pc-on { animation: pc-flash 0.44s ease-in-out infinite 0.22s; }
+.pc-head { transform-box: fill-box; transform-origin: 50% 90%; }
+.pc-head.pc-on { animation: pc-bob 0.88s ease-in-out infinite; }
+.pc-note { transform-box: fill-box; transform-origin: center; }
+.pc-note-1.pc-on { animation: pc-rise 2.1s ease-out infinite; }
+.pc-note-2.pc-on { animation: pc-rise 2.1s ease-out infinite 0.7s; }
+.pc-note-3.pc-on { animation: pc-rise 2.1s ease-out infinite 1.4s; }
+.pc-sparkles.pc-on { animation: pc-twinkle 1.6s ease-in-out infinite; }
+
+@keyframes pc-bang {
+  0%, 100% { transform: translateY(-7px) }
+  45%, 60% { transform: translateY(1px) }
+}
+@keyframes pc-flash { 0%, 100% { opacity: 0 } 50% { opacity: 0.85 } }
+@keyframes pc-bob {
+  0%, 100% { transform: translateY(0) rotate(-1.5deg) }
+  50%      { transform: translateY(-2.5px) rotate(1.5deg) }
+}
+@keyframes pc-rise {
+  0%   { opacity: 0; transform: translateY(6px) }
+  25%  { opacity: 0.9 }
+  100% { opacity: 0; transform: translateY(-26px) }
+}
+@keyframes pc-twinkle { 0%, 100% { opacity: 0.35 } 50% { opacity: 1 } }
+
+/* A spinning, banging, sweeping screen is exactly what this setting is for.
+   The curtain still blocks and still says what is happening; it just holds
+   still while it does. */
+@media (prefers-reduced-motion: reduce) {
+  .curtain, .curtain-bar span,
+  .pc-paw-l.pc-on, .pc-paw-r.pc-on, .pc-hit-l.pc-on, .pc-hit-r.pc-on,
+  .pc-head.pc-on, .pc-note-1.pc-on, .pc-note-2.pc-on, .pc-note-3.pc-on,
+  .pc-sparkles.pc-on {
+    animation: none;
+  }
+  .curtain-bar span { width: 100%; }
+}
