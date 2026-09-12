@@ -49,6 +49,29 @@ interface Props {
 const ONSET_WINDOW_MS = 70;
 const MIN_NOTES_PER_STEP = 2;
 
+/**
+ * One line for the device picker.
+ *
+ * Each part earns its place or is left out: the manufacturer only when it is
+ * not already in the name, the ChordCat marker only when the name does not say
+ * so itself -- "Chordcat -- AlphaTheta Corporation   ChordCat" told you the
+ * same thing three times.
+ */
+function portLabel(p: MidiPort): string {
+  const parts = [p.name];
+  const name = p.name.toLowerCase();
+  if (p.manufacturer && !name.includes(p.manufacturer.toLowerCase())) {
+    parts[0] += ` — ${p.manufacturer}`;
+  }
+  const namedByItself = looksLikeChordcat({ ...p, manufacturer: "" });
+  if (looksLikeChordcat(p) && !namedByItself) {
+    parts.push("looks like your ChordCat");
+  }
+  if (p.state !== "connected") parts.push(p.state);
+  if (p.messages > 0) parts.push("receiving");
+  return parts.join(" · ");
+}
+
 export default function MidiConnect({
   show, onConnected, onChords, onReset, busy, resetToken, children, next,
 }: Props) {
@@ -347,10 +370,7 @@ export default function MidiConnect({
                 {ports.length === 0 && <option value="">No instruments found</option>}
                 {ports.map((p) => (
                   <option key={p.id} value={p.id}>
-                    {p.name}{p.manufacturer ? ` — ${p.manufacturer}` : ""}
-                    {looksLikeChordcat(p) ? "  ✓ ChordCat" : ""}
-                    {p.state !== "connected" ? `  (${p.state})` : ""}
-                    {p.messages > 0 ? "  ● receiving" : ""}
+                    {portLabel(p)}
                   </option>
                 ))}
               </select>
