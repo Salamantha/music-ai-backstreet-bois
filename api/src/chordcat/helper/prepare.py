@@ -20,6 +20,9 @@ from ..domain.key import detect_key
 from ..domain.segment import SegmentConfig, SegmentResult, events_from_raw
 from .session import Session
 
+#: Frozen, so one shared instance is safe as a default.
+DEFAULT_SEGMENT_CFG = SegmentConfig()
+
 
 @dataclass(frozen=True, slots=True)
 class AnalysisInput:
@@ -31,7 +34,7 @@ class AnalysisInput:
     key: KeyEstimate
 
 
-def prepare(session: Session, cfg: SegmentConfig = SegmentConfig()) -> AnalysisInput:
+def prepare(session: Session, cfg: SegmentConfig = DEFAULT_SEGMENT_CFG) -> AnalysisInput:
     segmented = events_from_raw(session.events, cfg, session_end_ms=session.elapsed_ms or None)
     if not segmented.events:
         return AnalysisInput(session, segmented, (), KeyEstimate(Key(0, "major"), 0.0))
