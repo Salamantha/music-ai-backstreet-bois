@@ -45,9 +45,9 @@ export default function Page() {
 
   const steps: StepDef[] = [
     {
-      id: "connect",
-      label: "Connect",
-      hint: "Choose your MIDI device",
+      id: "plug-in",
+      label: "Plug in",
+      hint: "Choose your MIDI input",
       complete: connected || lastChords !== null,
       reachable: true,
     },
@@ -59,9 +59,9 @@ export default function Page() {
       reachable: connected || lastChords !== null,
     },
     {
-      id: "results",
-      label: "Results",
-      hint: "Songs and musicians",
+      id: "connect",
+      label: "Connect",
+      hint: "Musicians who match you",
       complete: false,
       reachable: result !== null,
     },
@@ -114,7 +114,11 @@ export default function Page() {
     if (lastChords) void onChords(lastChords, { pc, mode });
   }
 
-  const heading = ["Connect your instrument", "Play your chords", "Your results"][step];
+  const heading = [
+    "Plug in your instrument",
+    "Play your chords",
+    "Connect with musicians",
+  ][step];
 
   return (
     <main id="main">
@@ -208,7 +212,7 @@ export default function Page() {
               onClick={() => setStep(2)}
               disabled={!steps[2].reachable}
             >
-              Next: your results
+              Next: connect with musicians
             </button>
           </div>
         </>

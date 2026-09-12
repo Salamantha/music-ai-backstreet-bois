@@ -288,7 +288,7 @@ export default function MidiConnect({
     return (
       <div className="panel">
         <div className="row spread">
-          <h2 style={{ margin: 0 }}>Connect your instrument</h2>
+          <h2 style={{ margin: 0 }}>Plug in your instrument</h2>
           <span className={`pill ${connected ? "ok" : ""}`}>
             {connected
               ? `${ports.length} device${ports.length === 1 ? "" : "s"}`
