@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Atkinson_Hyperlegible, IBM_Plex_Mono } from "next/font/google";
+import CatWallpaper from "@/components/CatWallpaper";
 import "./globals.css";
 
 /**
@@ -34,6 +35,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${sans.variable} ${mono.variable}`}>
       <body>
         <a href="#main" className="skip-link">Skip to content</a>
+        <CatWallpaper />
         {children}
       </body>
     </html>

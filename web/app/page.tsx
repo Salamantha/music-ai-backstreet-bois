@@ -6,7 +6,8 @@ import MidiConnect from "@/components/MidiConnect";
 import ChordTimeline from "@/components/ChordTimeline";
 import KeyPanel from "@/components/KeyPanel";
 import Stepper, { type StepDef } from "@/components/Stepper";
-import CatBand, { BAND, CatFace } from "@/components/CatBand";
+import PianoCat from "@/components/PianoCat";
+import { BAND, CatFace } from "@/components/CatBand";
 import { MatchList, SongMatches, TasteProfile } from "@/components/Results";
 import {
   analyzeChords, health, selectableGenres,
@@ -124,23 +125,21 @@ export default function Page() {
   return (
     <main id="main">
       <header className="row spread" style={{ alignItems: "flex-start" }}>
-        <div>
+        <div className="row" style={{ gap: "0.9rem", flexWrap: "nowrap" }}>
+          <span className="logo" aria-hidden="true">
+            <CatFace cat={BAND[1]} size={54} decorative />
+          </span>
+          <div>
           <h1>ChordCat Connect</h1>
           <p className="lede">
             Play a progression. Find the musicians who hear harmony the way you
             do. Brought to you by The HackStreet Bois.
           </p>
+          </div>
         </div>
-        <div className="row" style={{ gap: "0.75rem" }}>
-          <span className="band-mini" aria-hidden="true">
-            {BAND.map((cat) => (
-              <CatFace key={cat.id} cat={cat} size={34} decorative />
-            ))}
-          </span>
-          <span className={`pill ${backend ? "ok" : "bad"}`}>
-            {backend ? `${backend.personas} musicians` : "backend unreachable"}
-          </span>
-        </div>
+        <span className={`pill ${backend ? "ok" : "bad"}`}>
+          {backend ? `${backend.personas} musicians` : "backend unreachable"}
+        </span>
       </header>
 
       <Stepper steps={steps} current={step} onGo={setStep} />
@@ -265,13 +264,15 @@ export default function Page() {
           {result.profile && <TasteProfile profile={result.profile} />}
           <MatchList result={result} />
 
-          <div className="panel">
-            <h2>Your hosts</h2>
-            <p className="sub">
-              Six cats, one hackathon, an unreasonable number of chord
-              progressions.
-            </p>
-            <CatBand />
+          <div className="panel mascot-panel">
+            <PianoCat />
+            <div>
+              <h2>Go and play with someone</h2>
+              <p className="sub" style={{ marginBottom: 0 }}>
+                Domino has done his part. The rest is up to you and whoever is
+                closest to the top of that list.
+              </p>
+            </div>
           </div>
 
           <div className="step-nav">

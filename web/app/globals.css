@@ -290,6 +290,46 @@ td a:hover { text-decoration: none; }
 .keys { display: flex; gap: 0.4rem; flex-wrap: wrap; }
 .keys button { padding: 0.45rem 0.85rem; font-size: 0.9rem; font-weight: 400; min-height: 2.4rem; }
 
+/* ---- Wallpaper ------------------------------------------------------ */
+
+/* Behind everything, ignoring the pointer, hidden from assistive tech. Fixed
+   so it does not lengthen the page or move under a scroll. */
+.wallpaper {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.wallpaper > span {
+  position: absolute;
+  opacity: 0.10;
+  filter: saturate(1.2);
+}
+
+/* Content rides above the wallpaper; panels are opaque, so text never sits on
+   a cat. */
+main { position: relative; z-index: 1; }
+
+.logo {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  padding: 0.3rem;
+  box-shadow: var(--shadow);
+}
+
+.mascot-panel {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+.mascot-panel > div { flex: 1 1 15rem; }
+
 /* ---- The band ------------------------------------------------------- */
 
 .band { margin: 0; }
