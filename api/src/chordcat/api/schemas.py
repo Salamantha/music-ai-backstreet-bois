@@ -183,6 +183,9 @@ class AnalyzeResponse(BaseModel):
     #: True when this key is written with flats, so note names agree.
     prefer_flats: bool = False
     alternate_key_name: str = ""
+    #: The alternate reading's mode, so the client can label the two readings
+    #: major and minor without re-deriving which family each mode belongs to.
+    alternate_key_mode: str = ""
     alternate_romans: list[str] = Field(default_factory=list)
     alternate_cp: str = ""
     notes: list[str] = Field(

@@ -378,3 +378,27 @@ main { position: relative; z-index: 1; }
 .how { margin: 0.75rem 0 0; padding-left: 1.4rem; display: grid; gap: 0.7rem; }
 .how li { line-height: 1.55; }
 .how li::marker { color: var(--accent-2); font-weight: 700; }
+
+/* ---- Progression readings ------------------------------------------- */
+
+/* The major and minor hearings of the same notes, as siblings rather than
+   stacked rows -- neither is more correct, so neither is subordinate. */
+.reading { border-top: 1px solid var(--line); padding: 0.9rem 0 0.2rem; }
+.reading:first-of-type { border-top: 0; padding-top: 0.4rem; }
+.reading > summary {
+  cursor: pointer; list-style: none; padding: 0.35rem 0;
+  border-radius: 8px;
+}
+.reading > summary::-webkit-details-marker { display: none; }
+.reading > summary::before {
+  content: "▸"; display: inline-block; width: 1.1em;
+  color: var(--accent-2); transition: transform 0.15s ease;
+}
+.reading[open] > summary::before { transform: rotate(90deg); }
+.reading > summary:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.reading-title { font-weight: 700; }
+.reading-body { padding: 0.5rem 0 0.6rem 1.1em; }
+
+@media (prefers-reduced-motion: reduce) {
+  .reading > summary::before { transition: none; }
+}

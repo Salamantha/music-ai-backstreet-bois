@@ -53,6 +53,7 @@ export interface AnalyzeResponse {
   applied_genres: string[];
   applied_tonality: string;
   alternate_key_name: string;
+  alternate_key_mode: string;
   alternate_romans: string[];
   alternate_cp: string;
 }

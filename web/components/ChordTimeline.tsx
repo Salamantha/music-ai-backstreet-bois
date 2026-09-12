@@ -2,55 +2,138 @@
 
 import type { AnalyzeResponse } from "@/lib/api";
 
-export default function ChordTimeline({ result }: { result: AnalyzeResponse }) {
-  const holes = new Map(result.unmapped.map((u) => [u.index, u]));
+/** The modes whose tonic triad is major. Everything else reads as minor. */
+const MAJOR_MODES = new Set(["major", "lydian", "mixolydian"]);
 
+interface Reading {
+  /** "F mixolydian", "G minor". */
+  keyName: string;
+  mode: string;
+  romans: (string | null)[];
+  cp: string;
+}
+
+interface Hole {
+  index: number;
+  label: string;
+  reason: string;
+}
+
+/**
+ * One way of hearing the progression, as its own block of chord cards.
+ *
+ * The two readings share a pitch-class set, so neither is more correct than
+ * the other from the notes alone -- which is why they get equal billing
+ * rather than one being stacked underneath the other as a second row.
+ */
+function ReadingBlock({
+  reading, symbols, holes,
+}: {
+  reading: Reading;
+  symbols: string[];
+  holes: Map<number, Hole>;
+}) {
   return (
-    <div className="panel">
-      <div className="row spread">
-        <h2 style={{ margin: 0 }}>Progression</h2>
-        <span className="row" style={{ gap: 8 }}>
-          <span className="pill mono">{result.cp || "no cp tokens"}</span>
-          {result.alternate_cp && (
-            <span className="pill mono" style={{ opacity: 0.65 }}>
-              {result.alternate_cp}
-            </span>
-          )}
-        </span>
+    <>
+      <div className="row spread" style={{ marginBottom: 10 }}>
+        <p className="sub" style={{ margin: 0 }}>
+          Hearing <strong>{reading.keyName}</strong> as home.
+        </p>
+        <span className="pill mono">{reading.cp || "no cp tokens"}</span>
       </div>
 
-      <div className="chords" style={{ marginTop: 14 }}>
-        {result.chords.map((c) => {
-          const hole = holes.get(c.index);
+      <div className="chords">
+        {symbols.map((symbol, i) => {
+          const hole = holes.get(i);
           return (
-            <div key={c.index} className={`chord${hole ? " hole" : ""}`}>
-              <div className="sym">{c.symbol}</div>
-              <div className="rom">{c.roman ?? "—"}</div>
-              {/* The relative reading. Which of the two is home cannot be
-                  decided from the notes, and a player often thinks in the one
-                  we did not pick. */}
-              {result.alternate_romans[c.index] && (
-                <div className="rom alt">{result.alternate_romans[c.index]}</div>
-              )}
-              <div className="cp">{c.cp ?? (hole ? "no cp" : "")}</div>
+            <div key={i} className={`chord${hole ? " hole" : ""}`}>
+              <div className="sym">{symbol}</div>
+              <div className="rom">{reading.romans[i] ?? "—"}</div>
             </div>
           );
         })}
       </div>
+    </>
+  );
+}
 
-      {result.alternate_key_name && (
-        <p className="sub" style={{ margin: "12px 0 0" }}>
-          Top row reads it in {result.key?.name}; below it, the same chords in{" "}
-          {result.alternate_key_name}.
-        </p>
-      )}
+export default function ChordTimeline({ result }: { result: AnalyzeResponse }) {
+  const holes = new Map(result.unmapped.map((u) => [u.index, u]));
+  const symbols = result.chords.map((c) => c.symbol);
 
-      {result.unmapped.length > 0 && (
-        <p className="sub" style={{ margin: "12px 0 0" }}>
-          {result.unmapped.length} chord(s) have no Hooktheory representation, so the
-          progression was searched in segments rather than across them.
-        </p>
-      )}
+  const primary: Reading = {
+    keyName: result.key?.name ?? "an unknown key",
+    mode: result.key?.mode ?? "major",
+    romans: result.chords.map((c) => c.roman),
+    cp: result.cp,
+  };
+
+  const alternate: Reading | null = result.alternate_key_name
+    ? {
+        keyName: result.alternate_key_name,
+        mode: result.alternate_key_mode,
+        romans: result.alternate_romans,
+        cp: result.alternate_cp,
+      }
+    : null;
+
+  // With only one reading there is nothing to separate, so show it plainly.
+  if (!alternate) {
+    return (
+      <div className="panel">
+        <h2 style={{ marginTop: 0 }}>Progression</h2>
+        <ReadingBlock reading={primary} symbols={symbols} holes={holes} />
+        <Caveats result={result} />
+      </div>
+    );
+  }
+
+  // Ask each reading what it is rather than assuming the alternate is always
+  // the opposite family -- the backend decides that, and this should follow it.
+  const major = MAJOR_MODES.has(primary.mode) ? primary : alternate;
+  const minor = major === primary ? alternate : primary;
+
+  const tonality = result.applied_tonality;
+  // With no stated preference both readings are equally live, so both open.
+  // With a preference the other one is still worth keeping -- a player often
+  // thinks in the reading we did not pick -- but it folds away.
+  const sections: { title: string; reading: Reading; open: boolean }[] = [
+    { title: "As a major progression", reading: major, open: tonality !== "minor" },
+    { title: "As a minor progression", reading: minor, open: tonality !== "major" },
+  ];
+
+  return (
+    <div className="panel">
+      <h2 style={{ marginTop: 0 }}>Progression</h2>
+      <p className="sub" style={{ marginTop: 0 }}>
+        {tonality === "any"
+          ? "These are the same notes heard two ways. Which one is home cannot be decided from the notes alone, so here are both."
+          : `You asked for ${tonality} keys, so that reading is open. The same notes read the other way are below.`}
+      </p>
+
+      {sections.map((s) => (
+        <details key={s.title} className="reading" open={s.open}>
+          <summary>
+            <span className="reading-title">{s.title}</span>{" "}
+            <span className="meta">{s.reading.keyName}</span>
+          </summary>
+          <div className="reading-body">
+            <ReadingBlock reading={s.reading} symbols={symbols} holes={holes} />
+          </div>
+        </details>
+      ))}
+
+      <Caveats result={result} />
     </div>
+  );
+}
+
+function Caveats({ result }: { result: AnalyzeResponse }) {
+  if (result.unmapped.length === 0) return null;
+  return (
+    <p className="sub" style={{ margin: "12px 0 0" }}>
+      {result.unmapped.length} chord(s) have no Hooktheory representation, so the
+      progression was searched in segments rather than across them.
+    </p>
   );
 }

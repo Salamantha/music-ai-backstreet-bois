@@ -409,6 +409,9 @@ async def analyze(req: AnalyzeRequest) -> AnalyzeResponse:
             if result.alternate_key
             else ""
         ),
+        alternate_key_mode=(
+            result.alternate_key.mode if result.alternate_key else ""
+        ),
         alternate_romans=[
             t.roman for t in result.alternate_sequence if not isinstance(t, Hole)
         ],
