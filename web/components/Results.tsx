@@ -3,8 +3,9 @@
 import { useState } from "react";
 import {
   matchedPositions, stripModifiers, youtubeSearch,
-  type AnalyzeResponse, type Profile, type Song,
+  type AnalyzeResponse, type Match, type Profile, type Song,
 } from "@/lib/api";
+import { BAND, CatFace, type Cat } from "./CatBand";
 
 function Bars({ data, alt = false, max = 6 }: {
   data: Record<string, number>; alt?: boolean; max?: number;
@@ -224,34 +225,99 @@ export function TasteProfile({ profile }: { profile: Profile }) {
   );
 }
 
-export function MatchList({ result }: { result: AnalyzeResponse }) {
-  if (result.matches.length === 0) return null;
+function catFor(name: string): Cat {
+  let h = 0;
+  for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return BAND[h % BAND.length];
+}
+
+const COMPONENT_LABELS: Record<string, string> = {
+  genre: "genres", artist: "artists", harmonic: "harmony", mood: "mood", era: "era",
+};
+
+export function MatchList({
+  matches, roomSize,
+}: {
+  matches: Match[];
+  roomSize?: number;
+}) {
+  const others = roomSize !== undefined ? roomSize - 1 : undefined;
   return (
     <div className="panel">
       <h2>Musicians you&apos;d click with</h2>
-      <p className="sub">
-        Everyone here has played their own progression into ChordCat Connect.
-        We compared what you played to what they played — the chords you reach
-        for, the keys you sit in, the songs you both turn out to share — and
-        these are the closest. Find them and play something.
-      </p>
-      {result.matches.map((m) => (
-        <div className="match" key={m.id}>
-          <div className="row spread">
-            <h3 style={{ margin: 0 }}>
-              {m.name}{" "}
-              <span className="meta">· {m.instrument} · {m.city}</span>
-            </h3>
-            <span className="pill ok">
-              better match than {Math.round(m.percentile * 100)}% of the room
-            </span>
-          </div>
-          <p className="why">{m.rationale}</p>
-          <p className="meta" style={{ margin: "6px 0 0" }}>
-            {m.bio}
+      {matches.length === 0 ? (
+        <p className="sub" style={{ marginBottom: 0 }}>
+          You&apos;re the first one in the room. Leave this tab open — the next
+          person who plays something shows up here.
+        </p>
+      ) : (
+        <>
+          <p className="sub">
+            {others !== undefined
+              ? `${others} other musician${others === 1 ? " has" : "s have"} played their own progression into ChordCat Connect. `
+              : "Everyone here has played their own progression into ChordCat Connect. "}
+            We compared what you played to what they played — the chords you
+            reach for, the keys you sit in, the songs you both turn out to share
+            — and these are the closest. Find them and play something.
           </p>
-        </div>
-      ))}
+          {matches.map((m, i) => {
+            const cat = catFor(m.name);
+            const where = [m.instrument, m.city].filter(Boolean).join(" · ");
+            return (
+              <div className={`match${i === 0 ? " top" : ""}`} key={m.id}>
+                <div className="match-head">
+                  <span className="match-avatar" style={{ background: cat.belly }}>
+                    <CatFace cat={cat} size={44} decorative />
+                  </span>
+                  <div className="match-who">
+                    <h3 style={{ margin: 0 }}>{m.name}</h3>
+                    {where && <span className="meta">{where}</span>}
+                  </div>
+                  <div className="match-tags">
+                    {i === 0 && <span className="match-tag">closest to you</span>}
+                    <span className="pill ok">
+                      better match than {Math.round(m.percentile * 100)}% of the room
+                    </span>
+                  </div>
+                </div>
+
+                <div className="grid2 match-body">
+                  <div>
+                    <p className="why">{m.rationale}</p>
+                    {(m.shared_artists.length > 0 || m.shared_genres.length > 0 || m.signature_progression) && (
+                      <div className="chips">
+                        {m.shared_artists.slice(0, 4).map((a) => (
+                          <span className="chip artist" key={`a-${a}`}>{a}</span>
+                        ))}
+                        {m.shared_genres.slice(0, 3).map((g) => (
+                          <span className="chip genre" key={`g-${g}`}>{g}</span>
+                        ))}
+                        {m.signature_progression && (
+                          <span className="chip mono" title="Their signature progression">
+                            {m.signature_progression}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    {m.bio && (
+                      <p className="meta" style={{ margin: "0.6rem 0 0" }}>{m.bio}</p>
+                    )}
+                  </div>
+                  <div className="match-components">
+                    <Bars
+                      data={Object.fromEntries(
+                        Object.entries(m.components).map(([k, v]) => [COMPONENT_LABELS[k] ?? k, v]),
+                      )}
+                      alt={i !== 0}
+                      max={5}
+                    />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </>
+      )}
     </div>
   );
 }

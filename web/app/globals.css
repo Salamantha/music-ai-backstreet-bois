@@ -297,6 +297,49 @@ td a:hover { text-decoration: none; }
          padding: 1rem; margin-bottom: 0.75rem; background: var(--panel-2); }
 .match .why { color: var(--text); font-size: 0.95rem; margin: 0.4rem 0 0; }
 .match .meta { color: var(--muted); font-size: 0.85rem; }
+.match.top {
+  border-color: var(--accent);
+  background: linear-gradient(135deg, rgba(255,158,210,0.16), rgba(142,208,255,0.12)), var(--panel-2);
+}
+
+.match-head { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+.match-avatar {
+  flex: none; width: 52px; height: 52px; border-radius: 50%;
+  display: grid; place-items: center; border: 2px solid var(--line);
+}
+.match-avatar svg { display: block; }
+.match-who { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; flex: 1; }
+.match-tags { display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; margin-left: auto; }
+.match-tag {
+  display: inline-block; padding: 0.2rem 0.7rem; border-radius: 999px;
+  background: linear-gradient(135deg, var(--accent), #ffc2e4);
+  color: var(--on-bright); font-size: 0.8rem; font-weight: 700;
+}
+
+.match-body { margin-top: 0.75rem; gap: 1rem; }
+@media (min-width: 48rem) { .match-body { grid-template-columns: 3fr 2fr; } }
+.match-components .bars { grid-template-columns: 4.5rem 1fr 2.5rem; font-size: 0.8rem; margin-bottom: 0.3rem; }
+.match-components .bar { height: 0.45rem; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.6rem; }
+.chip {
+  display: inline-block; padding: 0.15rem 0.6rem; border-radius: 999px;
+  font-size: 0.8rem; border: 1px solid var(--line); color: var(--muted);
+  background: var(--panel);
+}
+.chip.artist { color: var(--accent-3); border-color: #2f6b55; }
+.chip.genre { color: var(--accent-2); border-color: #33587a; }
+
+.join-form { display: grid; grid-template-columns: 1fr 1fr auto auto; gap: 0.75rem; align-items: end; }
+@media (max-width: 48rem) { .join-form { grid-template-columns: 1fr; } }
+.join-field { display: flex; flex-direction: column; gap: 0.35rem; }
+.join-input {
+  font: inherit; background: var(--panel-2); color: var(--text);
+  border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px;
+  width: 100%; box-sizing: border-box;
+}
+.join-form select { border-radius: 8px; min-height: 0; padding: 9px 11px; }
+.join-actions { display: flex; align-items: end; }
 
 .note-list { margin: 0; padding-left: 1.2rem; color: var(--warn); font-size: 0.9rem; }
 .note-list li { margin-bottom: 0.35rem; }

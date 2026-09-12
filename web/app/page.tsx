@@ -8,11 +8,13 @@ import KeyPanel from "@/components/KeyPanel";
 import Stepper, { type StepDef } from "@/components/Stepper";
 import PianoCat from "@/components/PianoCat";
 import { BAND, CatFace } from "@/components/CatBand";
+import { JoinRoom } from "@/components/JoinRoom";
 import { MatchList, SongMatches, TasteProfile } from "@/components/Results";
 import {
-  analyzeChords, health, selectableGenres,
-  type AnalyzeResponse, type ChordStep, type Tonality,
+  analyzeChords, health, joinRoom, selectableGenres,
+  type AnalyzeResponse, type ChordStep, type JoinRoomResponse, type Tonality,
 } from "@/lib/api";
+import { loadMember, memberId } from "@/lib/room";
 
 export default function Page() {
   const [step, setStep] = useState(0);
@@ -28,6 +30,8 @@ export default function Page() {
   const [tonality, setTonality] = useState<Tonality>("any");
   // Bumping this tells MidiConnect to throw away the take it is holding.
   const [resetToken, setResetToken] = useState(0);
+  const [room, setRoom] = useState<JoinRoomResponse | null>(null);
+  const roomEnabled = backend?.room === true;
 
   // Moving between steps changes what the page is about, so focus follows.
   // Without this a screen-reader user is left where the old content was.
@@ -90,10 +94,28 @@ export default function Page() {
       setResult(res);
       if (wanted.length === 0) setGenrePalette(res.available_genres);
       setStep(2);
+      await refreshRoom(res);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
       setBusy(false);
+    }
+  }
+
+  /** Once joined, every re-analysis updates the stored profile and the matches. */
+  async function refreshRoom(res: AnalyzeResponse) {
+    const member = loadMember();
+    if (!room || !member || !res.profile) return;
+    try {
+      setRoom(await joinRoom({
+        client_id: memberId(member),
+        ...member,
+        signature_progression: res.cp,
+        mode: res.key?.mode ?? "major",
+        profile: res.profile,
+      }));
+    } catch {
+      // keep the previous matches; the join form is not shown again
     }
   }
 
@@ -108,6 +130,7 @@ export default function Page() {
 
   function reset() {
     setResult(null);
+    setRoom(null);
     setError("");
     setLastChords(null);
     setGenrePalette({});
@@ -275,7 +298,13 @@ export default function Page() {
             }
           />
           {result.profile && <TasteProfile profile={result.profile} />}
-          <MatchList result={result} />
+          {!roomEnabled ? (
+            result.matches.length > 0 && <MatchList matches={result.matches} />
+          ) : room === null ? (
+            <JoinRoom result={result} onJoined={setRoom} />
+          ) : (
+            <MatchList matches={room.matches} roomSize={room.room_size} />
+          )}
 
           <div className="panel mascot-panel">
             <PianoCat />

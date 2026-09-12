@@ -16,6 +16,7 @@ from .adapters.genre_llm import (
 )
 from .adapters.hooktheory import HooktheoryClient, HttpHooktheoryClient
 from .adapters.ratelimit import TokenBucket
+from .adapters.supabase import RoomStore, SupabaseRoom
 from .adapters.theorytab import HttpTheoryTabClient, TheoryTabClient
 from .config import Settings, get_settings
 from .services.matching import PersonaPool
@@ -40,6 +41,8 @@ class Services:
     #: Shared by every request: the Hooktheory quota is account-wide, so one
     #: bucket per process. With more than one worker this must become Redis.
     bucket: TokenBucket
+    #: Real musicians who have joined. None means fall back to the seed pool.
+    room: RoomStore | None = None
 
 
 @lru_cache
@@ -83,4 +86,10 @@ def get_services() -> Services:
     if settings.theorytab_enabled and not settings.chordcat_offline:
         theorytab = HttpTheoryTabClient(cache=cache)
 
-    return Services(settings, cache, client, genres, pool, theorytab, bucket)
+    room: RoomStore | None = None
+    if settings.has_supabase and not settings.chordcat_offline:
+        room = SupabaseRoom(url=settings.supabase_url, key=settings.supabase_key)
+    else:
+        log.warning("Supabase not configured; matches come from the seed pool only.")
+
+    return Services(settings, cache, client, genres, pool, theorytab, bucket, room)
