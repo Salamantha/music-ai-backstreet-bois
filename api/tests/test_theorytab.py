@@ -96,6 +96,27 @@ class TestProgressionCoverage:
     def test_no_occurrence_scores_zero(self):
         assert progression_coverage(["I", "IV", "V"], ["i", "ii"]) == 0.0
 
+    def test_ignores_chord_modifiers_the_way_the_query_does(self):
+        """Queries go out as plain triads, so coverage must compare that way.
+
+        Usher's "Confessions Part II" contains `V vi ii7 iii7`, which is exactly
+        what the `V vi ii iii` query found. Comparing raw strings scored it zero,
+        so it appeared in the results as a match with nothing highlighted and no
+        percentage -- looking for all the world like a false positive.
+        """
+        usher = (
+            "IV7 V vi IV7 V vi IV7 V vi IV7 V vi IV7 V vi IV7 V vi "
+            "ii7 iii7 IV7 I V"
+        ).split()
+        assert progression_coverage(usher, ["V", "vi", "ii", "iii"]) > 0
+
+    def test_inversion_figures_are_ignored_too(self):
+        assert progression_coverage(["i64", "ii42"], ["i", "ii"]) == 1.0
+
+    def test_quality_is_still_significant(self):
+        """Stripping must not go so far that diminished matches minor."""
+        assert progression_coverage(["vii", "I"], ["viio", "I"]) == 0.0
+
     def test_is_case_insensitive_but_not_degree_insensitive(self):
         assert progression_coverage(["I", "II"], ["i", "ii"]) == 1.0
         assert progression_coverage(["i", "iii"], ["i", "ii"]) == 0.0

@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from typing import Iterable, Mapping, Sequence
 
 from .events import ArtistHit, SongHit
+from .pitch import strip_modifiers
 from .ngrams import Ngram, rarity
 
 #: A window that opens the take is slightly better evidence of intent.
@@ -79,8 +80,10 @@ def progression_coverage(
     n = len(pattern)
     if n > len(song_chords):
         return 0.0
-    target = [c.casefold() for c in pattern]
-    chords = [c.casefold() for c in song_chords]
+    # Normalise both sides the way the query was normalised, or a song written
+    # `V vi ii7 iii7` scores zero against the `V vi ii iii` that found it.
+    target = [strip_modifiers(c).casefold() for c in pattern]
+    chords = [strip_modifiers(c).casefold() for c in song_chords]
     covered = 0
     i = 0
     while i <= len(chords) - n:

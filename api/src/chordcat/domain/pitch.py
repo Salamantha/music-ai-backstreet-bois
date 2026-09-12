@@ -5,6 +5,7 @@ Pure module: no I/O, no state. Pitch classes are ints in 0..11 with 0 = C.
 
 from __future__ import annotations
 
+import re
 from typing import Final, Literal
 
 Mode = Literal[
@@ -107,6 +108,28 @@ def degree_offset(mode: Mode, degree: int) -> int:
 
 #: Roman numerals by 0-indexed degree, upper- and lower-case forms.
 _UPPER: Final[tuple[str, ...]] = ("I", "II", "III", "IV", "V", "VI", "VII")
+
+
+#: Everything after the numeral that a triadic comparison should ignore:
+#: sevenths, sixths, suspensions, added tones and inversion figures.
+_ROMAN_HEAD: Final = re.compile(r"^([b#\u266d\u266f]*)([ivxIVX]+)(o|0|\u00b0|\u00f8|\+)?")
+
+
+def strip_modifiers(roman: str) -> str:
+    """Reduce a roman numeral to the triad it is built on.
+
+    Queries are sent to Hooktheory as plain triads so that `V vi ii iii` matches
+    a song analysed as `V vi ii7 iii7`. Anything that then compares the played
+    progression against the song's own chords has to normalise the same way --
+    comparing `ii` against `ii7` as raw strings finds nothing, and a real match
+    silently scores zero.
+    """
+    token = roman.strip().replace("\u266d", "b").replace("\u266f", "#")
+    match = _ROMAN_HEAD.match(token)
+    if not match:
+        return token
+    accidental, numeral, quality = match.groups()
+    return f"{accidental}{numeral}{quality or ''}"
 
 
 def roman_for(offset: int, quality: str, mode: Mode) -> str:

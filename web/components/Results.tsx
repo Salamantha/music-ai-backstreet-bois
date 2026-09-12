@@ -37,22 +37,39 @@ function ChordString({ song }: { song: Song }) {
   }
   const hits = matchedPositions(song.song_chords, song.matched_chords);
   const MAX = 16;
-  const shown = song.song_chords.slice(0, MAX);
+
+  // Window the display around the first match rather than truncating from the
+  // start. A long progression whose match sits late would otherwise be shown
+  // entirely in grey, reading as a false positive.
+  const first = [...hits].sort((a, b) => a - b)[0] ?? 0;
+  let from = 0;
+  if (song.song_chords.length > MAX && first + song.matched_chords.length > MAX) {
+    from = Math.min(
+      Math.max(0, first - 2),
+      song.song_chords.length - MAX,
+    );
+  }
+  const shown = song.song_chords.slice(from, from + MAX);
+
   return (
     <span className="mono" style={{ fontSize: 12 }}>
-      {shown.map((chord, i) => (
-        <span
-          key={i}
-          style={{
-            color: hits.has(i) ? "var(--accent)" : "var(--muted)",
-            fontWeight: hits.has(i) ? 700 : 400,
-            marginRight: 5,
-          }}
-        >
-          {chord}
-        </span>
-      ))}
-      {song.song_chords.length > MAX && (
+      {from > 0 && <span style={{ color: "var(--muted)" }}>… </span>}
+      {shown.map((chord, i) => {
+        const at = from + i;
+        return (
+          <span
+            key={at}
+            style={{
+              color: hits.has(at) ? "var(--accent)" : "var(--muted)",
+              fontWeight: hits.has(at) ? 700 : 400,
+              marginRight: 5,
+            }}
+          >
+            {chord}
+          </span>
+        );
+      })}
+      {from + MAX < song.song_chords.length && (
         <span style={{ color: "var(--muted)" }}>…</span>
       )}
     </span>

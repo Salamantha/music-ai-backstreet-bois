@@ -36,6 +36,8 @@ from typing import Protocol, Sequence
 
 import httpx
 
+from ..domain.pitch import strip_modifiers
+
 log = logging.getLogger(__name__)
 
 SEARCH_URL = "https://www.hooktheory.com/theorytab/advanced-search"
@@ -372,31 +374,6 @@ class FakeTheoryTabClient:
         ignore_modifiers: bool = True,
     ) -> list[TheoryTabHit]:
         return await _paged(self, chord_string, max_pages, ignore_modifiers)
-
-
-#: Everything after the numeral that `ignoreModifiers` is meant to disregard:
-#: sevenths, sixths, suspensions and added tones. Chord *quality* is carried by
-#: the numeral's case and by the degree symbol, so neither is stripped.
-_MODIFIER = re.compile(
-    r"(maj7|7sus4|7sus2|sus42|sus4|sus2|add9|add11|add13|7|6|9|11|13)+$"
-)
-_ROMAN = re.compile(r"^([b#]*)([ivxIVX]+)(o|0|\u00f8|\+)?")
-
-
-def strip_modifiers(roman: str) -> str:
-    """Reduce a roman numeral to the triad `ignoreModifiers` will match.
-
-    The ChordCat voices nearly everything as an extended chord, so its
-    progressions come out as `ii7 iii7` where Hooktheory analyses the same
-    music as `ii iii`. Sending the sevenths through defeats the search: the
-    `ignoreModifiers` flag relaxes the *database* side of the comparison, not
-    the query, so the query has to be the plain triad.
-    """
-    match = _ROMAN.match(roman)
-    if not match:
-        return _MODIFIER.sub("", roman)
-    accidental, numeral, quality = match.groups()
-    return f"{accidental}{numeral}{quality or ''}"
 
 
 def romans_to_chord_string(
