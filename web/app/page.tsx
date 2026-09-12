@@ -252,6 +252,8 @@ export default function Page() {
 
       {step === 2 && result && (
         <>
+          <ChordTimeline result={result} />
+
           {result.notes.length > 0 && (
             <div className="panel">
               <h2>Worth knowing</h2>
@@ -260,8 +262,6 @@ export default function Page() {
               </ul>
             </div>
           )}
-
-          <ChordTimeline result={result} />
           {result.key && (
             <KeyPanel keyInfo={result.key} onOverride={override} busy={busy} />
           )}

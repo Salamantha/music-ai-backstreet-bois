@@ -143,22 +143,21 @@ export function SongMatches({ result }: { result: AnalyzeResponse }) {
             <tr key={`${s.artist}-${s.song}`}>
               <td>{s.artist}</td>
               <td>
+                {/* Straight to the recording when the source knew which one
+                    it is; a search only when it did not. Either way the title
+                    is the link -- one destination, no second guess to make. */}
                 <a
-                  href={youtubeSearch(s.artist, s.song)}
+                  href={s.video_url || youtubeSearch(s.artist, s.song)}
                   target="_blank"
                   rel="noreferrer"
-                  title="Find it on YouTube"
+                  aria-label={`${s.song} on YouTube`}
+                  title={
+                    s.video_url
+                      ? "Watch on YouTube"
+                      : "Search YouTube for this song"
+                  }
                 >
                   {s.song}
-                </a>
-                <a
-                  href={s.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  title="Open the Hooktheory analysis"
-                  style={{ color: "var(--muted)", fontSize: 11, marginLeft: 6 }}
-                >
-                  theory ↗
                 </a>
                 {s.section && (
                   <div style={{ color: "var(--muted)", fontSize: 11, marginTop: 2 }}>

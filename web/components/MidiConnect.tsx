@@ -427,8 +427,6 @@ export default function MidiConnect({
         there is no need to release before the next.
       </p>
 
-      {children && <div className="setup">{children}</div>}
-
       <div className="row">
         {!recording ? (
           <>
@@ -502,6 +500,10 @@ export default function MidiConnect({
           />
         </div>
       )}
+
+      {/* Search setup last: while a take is running the chords being captured
+          are what the player needs in front of them. */}
+      {children && <div className="setup">{children}</div>}
     </div>
   );
 }
