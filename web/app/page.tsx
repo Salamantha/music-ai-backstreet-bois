@@ -33,6 +33,12 @@ export default function Page() {
     }
   }
 
+  function reset() {
+    setResult(null);
+    setError("");
+    setLastChords(null);
+  }
+
   function override(pc: number, mode: string) {
     if (lastChords) void onChords(lastChords, { pc, mode });
   }
@@ -53,7 +59,7 @@ export default function Page() {
         </span>
       </div>
 
-      <MidiConnect onChords={onChords} busy={busy} />
+      <MidiConnect onChords={onChords} onReset={reset} busy={busy} />
 
       {busy && <div className="panel"><p style={{ margin: 0 }}>Analysing…</p></div>}
       {error && <div className="panel"><p className="error" style={{ margin: 0 }}>{error}</p></div>}

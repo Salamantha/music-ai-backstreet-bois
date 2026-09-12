@@ -13,6 +13,9 @@ import {
 
 interface Props {
   onChords: (steps: { pitches: number[]; duration_ms?: number }[]) => void;
+  /** Discard the analysis on screen, because it no longer describes anything
+   *  the user can see -- the progression it came from has been cleared. */
+  onReset: () => void;
   busy: boolean;
 }
 
@@ -22,7 +25,7 @@ const RELEASE_COMMIT_MS = 90;
 const IDENTIFY_DEBOUNCE_MS = 120;
 const MIN_NOTES_PER_STEP = 2;
 
-export default function MidiConnect({ onChords, busy }: Props) {
+export default function MidiConnect({ onChords, onReset, busy }: Props) {
   const captureRef = useRef<MidiCapture | null>(null);
   // Web MIDI support cannot be determined during server rendering -- `navigator`
   // does not exist there -- so resolve it after mount. Computing it in the
@@ -167,6 +170,7 @@ export default function MidiConnect({ onChords, busy }: Props) {
     setPending([]);
     setLive(null);
     pendingRef.current = [];
+    onReset();
   }
 
   /** Begin a new take, discarding anything captured before. */
