@@ -5,6 +5,18 @@ import { toNumber, type AnalyzeResponse } from "@/lib/api";
 /** The modes whose tonic triad is major. Everything else reads as minor. */
 const MAJOR_MODES = new Set(["major", "lydian", "mixolydian"]);
 
+/**
+ * Just the note a reading is built on: "F mixolydian" -> "F".
+ *
+ * The mode name is the one piece of this that needs a theory background to
+ * read, and the section title already says whether it is heard as major or
+ * minor -- so dropping the word loses nothing and invents nothing. Calling
+ * F mixolydian "F major" would have been the lie.
+ */
+function tonicOf(keyName: string): string {
+  return keyName.split(" ")[0] || keyName;
+}
+
 interface Reading {
   /** "F mixolydian", "G minor". */
   keyName: string;
@@ -35,7 +47,7 @@ function ReadingBlock({
   return (
     <>
       <p className="sub" style={{ margin: "0 0 10px" }}>
-        Built around <strong>{reading.keyName}</strong>.
+        Built around <strong>{tonicOf(reading.keyName)}</strong>.
       </p>
 
       <div className="chords">
@@ -93,7 +105,7 @@ export default function ChordTimeline({ result }: { result: AnalyzeResponse }) {
   // thinks in the reading we did not pick -- but it folds away.
   const sections: { title: string; reading: Reading; open: boolean }[] = [
     { title: "As a major progression", reading: major, open: tonality !== "minor" },
-    { title: "As a minor progression", reading: minor, open: tonality !== "major" },
+    { title: "As a minor progression", reading: minor, open: tonality === "minor" },
   ];
   // The reading you asked for leads. Without a preference the major one does,
   // which is only a tie-break -- neither is more correct than the other.
@@ -107,7 +119,7 @@ export default function ChordTimeline({ result }: { result: AnalyzeResponse }) {
         <details key={s.title} className="reading" open={s.open}>
           <summary>
             <span className="reading-title">{s.title}</span>{" "}
-            <span className="meta">{s.reading.keyName}</span>
+            <span className="meta">{tonicOf(s.reading.keyName)}</span>
           </summary>
           <div className="reading-body">
             <ReadingBlock reading={s.reading} symbols={symbols} holes={holes} />
