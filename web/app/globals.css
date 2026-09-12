@@ -425,3 +425,6 @@ main { position: relative; z-index: 1; }
   margin: 1.1rem 0;
 }
 .setup h3 { font-size: 1rem; margin: 0; }
+
+/* A step's forward action, inside the card that completes it. */
+.card-nav { display: flex; justify-content: flex-end; margin-top: 1.25rem; }

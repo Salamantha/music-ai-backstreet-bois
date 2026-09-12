@@ -31,6 +31,9 @@ interface Props {
       not after it: what you tell us here decides which songs and which people
       the progression is matched against. */
   children?: React.ReactNode;
+  /** The step's forward action, placed in the card so it is reachable as soon
+      as a device is chosen -- not below whatever else the page has to say. */
+  next?: React.ReactNode;
   busy: boolean;
 }
 
@@ -47,7 +50,7 @@ const ONSET_WINDOW_MS = 70;
 const MIN_NOTES_PER_STEP = 2;
 
 export default function MidiConnect({
-  show, onConnected, onChords, onReset, busy, resetToken, children,
+  show, onConnected, onChords, onReset, busy, resetToken, children, next,
 }: Props) {
   const captureRef = useRef<MidiCapture | null>(null);
   // Web MIDI support cannot be determined during server rendering -- `navigator`
@@ -330,8 +333,8 @@ export default function MidiConnect({
         ) : (
           <>
             <p className="sub" id="device-help">
-              Pick the port your notes arrive on. A dot marks any port currently
-              receiving.
+              Pick the one your notes are coming in on. A green dot means we
+              can hear it.
             </p>
             <div className="row">
               <label htmlFor="midi-in">Input</label>
@@ -400,8 +403,8 @@ export default function MidiConnect({
 
             {ports.length === 0 && (
               <p className="sub">
-                No inputs detected. Connect the ChordCat over USB-C — it needs no
-                drivers — and the list will refresh on its own.
+                Nothing found yet. Plug the ChordCat in over USB-C — it needs no
+                drivers — and it will appear here on its own.
               </p>
             )}
           </>
@@ -409,6 +412,7 @@ export default function MidiConnect({
 
         {error && <p className="error">{error}</p>}
 
+        {next && <div className="card-nav">{next}</div>}
       </div>
     );
   }

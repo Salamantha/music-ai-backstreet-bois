@@ -185,6 +185,17 @@ export default function Page() {
         onReset={reset}
         busy={busy}
         resetToken={resetToken}
+        next={
+          step === 0 ? (
+            <button
+              className="primary"
+              onClick={() => setStep(1)}
+              disabled={!steps[1].reachable}
+            >
+              Next: play your chords
+            </button>
+          ) : null
+        }
       >
         {step === 1 && (
           <GenreFilter
@@ -202,37 +213,24 @@ export default function Page() {
       </MidiConnect>
 
       {step === 0 && (
-        <>
-          <div className="panel">
-            <h2>How it works</h2>
-            <ol className="how">
-              <li>
-                <strong>Plug in.</strong> Connect your ChordCat — or any MIDI
-                keyboard — so the browser can hear what you play.
-              </li>
-              <li>
-                <strong>Play a few chords.</strong> Four is plenty. Anything you
-                like the sound of.
-              </li>
-              <li>
-                <strong>Meet the people who play like you.</strong> We work out
-                your key and your progression, find the songs built on it, and
-                rank everyone else here by how close their harmony is to yours.
-              </li>
-            </ol>
-          </div>
-
-          <div className="step-nav">
-            <span />
-            <button
-              className="primary"
-              onClick={() => setStep(1)}
-              disabled={!steps[1].reachable}
-            >
-              Next: play your chords
-            </button>
-          </div>
-        </>
+        <div className="panel">
+          <h2>How it works</h2>
+          <ol className="how">
+            <li>
+              <strong>Plug in.</strong> Connect your ChordCat — or any MIDI
+              keyboard — so the browser can hear what you play.
+            </li>
+            <li>
+              <strong>Play a few chords.</strong> Four is plenty. Anything you
+              like the sound of.
+            </li>
+            <li>
+              <strong>Meet the people who play like you.</strong> We work out
+              your key and your progression, find the songs built on it, and
+              rank everyone else here by how close their harmony is to yours.
+            </li>
+          </ol>
+        </div>
       )}
 
       {step === 1 && (
