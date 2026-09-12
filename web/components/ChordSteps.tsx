@@ -2,7 +2,7 @@
 
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { noteName } from "@/lib/webmidi";
-import type { Identified } from "@/lib/api";
+import { toNumber, type Identified } from "@/lib/api";
 
 export interface Step {
   id: number;
@@ -117,7 +117,7 @@ export default function ChordSteps({
   return (
     <div className="panel">
       <div className="row spread">
-        <h3 style={{ margin: 0 }}>Progression</h3>
+        <h3 style={{ margin: 0 }}>Chord progression</h3>
         <span className="row" style={{ gap: 8 }}>
           <span className="pill">{steps.length} chord{steps.length === 1 ? "" : "s"}</span>
           {steps.length > 0 && (
@@ -195,7 +195,7 @@ export default function ChordSteps({
                 </button>
               </div>
               <div className="sym">{s.chord?.symbol ?? "?"}</div>
-              <div className="rom">{s.chord?.roman ?? `${i + 1}`}</div>
+              <div className="rom">{s.chord?.roman ? toNumber(s.chord.roman) : `${i + 1}`}</div>
               <div className="cp">{s.pitches.map((p) => noteName(p)).join(" ")}</div>
               <button
                 className="step-remove"

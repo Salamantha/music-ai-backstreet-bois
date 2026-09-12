@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import {
-  matchedPositions, stripModifiers, youtubeSearch,
+  matchedPositions, stripModifiers, toNumber, youtubeSearch,
   type AnalyzeResponse, type Match, type Profile, type Song,
 } from "@/lib/api";
 import { BAND, CatFace, type Cat } from "./CatBand";
@@ -71,7 +71,7 @@ function ChordString({
               marginRight: 5,
             }}
           >
-            {chord}
+            {toNumber(chord)}
           </span>
         );
       })}

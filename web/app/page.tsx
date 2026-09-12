@@ -62,14 +62,14 @@ export default function Page() {
     {
       id: "play",
       label: "Play",
-      hint: "Capture a progression",
+      hint: "Capture a chord progression",
       complete: result !== null,
       reachable: connected || lastChords !== null,
     },
     {
       id: "connect",
       label: "Connect",
-      hint: "Musicians who match you",
+      hint: "Match with musicians",
       complete: false,
       reachable: result !== null,
     },

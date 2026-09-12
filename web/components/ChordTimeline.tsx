@@ -1,6 +1,6 @@
 "use client";
 
-import type { AnalyzeResponse } from "@/lib/api";
+import { toNumber, type AnalyzeResponse } from "@/lib/api";
 
 /** The modes whose tonic triad is major. Everything else reads as minor. */
 const MAJOR_MODES = new Set(["major", "lydian", "mixolydian"]);
@@ -10,7 +10,6 @@ interface Reading {
   keyName: string;
   mode: string;
   romans: (string | null)[];
-  cp: string;
 }
 
 interface Hole {
@@ -35,12 +34,9 @@ function ReadingBlock({
 }) {
   return (
     <>
-      <div className="row spread" style={{ marginBottom: 10 }}>
-        <p className="sub" style={{ margin: 0 }}>
-          Built around <strong>{reading.keyName}</strong>.
-        </p>
-        <span className="pill mono">{reading.cp || "no cp tokens"}</span>
-      </div>
+      <p className="sub" style={{ margin: "0 0 10px" }}>
+        Built around <strong>{reading.keyName}</strong>.
+      </p>
 
       <div className="chords">
         {symbols.map((symbol, i) => {
@@ -48,7 +44,7 @@ function ReadingBlock({
           return (
             <div key={i} className={`chord${hole ? " hole" : ""}`}>
               <div className="sym">{symbol}</div>
-              <div className="rom">{reading.romans[i] ?? "—"}</div>
+              <div className="rom">{toNumber(reading.romans[i])}</div>
             </div>
           );
         })}
@@ -65,7 +61,6 @@ export default function ChordTimeline({ result }: { result: AnalyzeResponse }) {
     keyName: result.key?.name ?? "an unknown key",
     mode: result.key?.mode ?? "major",
     romans: result.chords.map((c) => c.roman),
-    cp: result.cp,
   };
 
   const alternate: Reading | null = result.alternate_key_name
@@ -73,7 +68,6 @@ export default function ChordTimeline({ result }: { result: AnalyzeResponse }) {
         keyName: result.alternate_key_name,
         mode: result.alternate_key_mode,
         romans: result.alternate_romans,
-        cp: result.alternate_cp,
       }
     : null;
 
@@ -81,7 +75,7 @@ export default function ChordTimeline({ result }: { result: AnalyzeResponse }) {
   if (!alternate) {
     return (
       <div className="panel">
-        <h2 style={{ marginTop: 0 }}>Progression</h2>
+        <h2 style={{ marginTop: 0 }}>Chord progression</h2>
         <ReadingBlock reading={primary} symbols={symbols} holes={holes} />
         <Caveats result={result} />
       </div>
@@ -101,15 +95,13 @@ export default function ChordTimeline({ result }: { result: AnalyzeResponse }) {
     { title: "As a major progression", reading: major, open: tonality !== "minor" },
     { title: "As a minor progression", reading: minor, open: tonality !== "major" },
   ];
+  // The reading you asked for leads. Without a preference the major one does,
+  // which is only a tie-break -- neither is more correct than the other.
+  if (tonality === "minor") sections.reverse();
 
   return (
     <div className="panel">
-      <h2 style={{ marginTop: 0 }}>Progression</h2>
-      <p className="sub" style={{ marginTop: 0 }}>
-        {tonality === "any"
-          ? "The same chords can be heard two ways, and the notes alone cannot settle which. So here are both."
-          : `You chose ${tonality}, so that version is open. The same chords heard the other way are below.`}
-      </p>
+      <h2 style={{ marginTop: 0 }}>Chord progression</h2>
 
       {sections.map((s) => (
         <details key={s.title} className="reading" open={s.open}>
