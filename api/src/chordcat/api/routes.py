@@ -9,6 +9,7 @@ from pathlib import Path
 
 from fastapi import APIRouter, HTTPException
 
+from ..adapters.hooktheory import AuthError, HooktheoryError
 from ..deps import get_services
 from ..domain.chords import identify_chord
 from ..domain.cp import to_cp
@@ -92,6 +93,42 @@ async def genres() -> dict:
     from ..domain.taxonomy import selectable_genres
 
     return {"genres": list(selectable_genres())}
+
+
+@router.get("/hooktheory/nodes")
+async def hooktheory_nodes(cp: str = "") -> dict:
+    """Raw next-chord probabilities for a child path.
+
+    Powers the voice/harmoniser features, which need one probability lookup
+    per bar rather than a full /analyze pipeline run. Goes through the same
+    HttpHooktheoryClient, shared rate limiter and SQLite cache as /analyze --
+    never a second client with its own quota.
+    """
+    services = get_services()
+    if services.client is None:
+        raise HTTPException(503, "Hooktheory is not configured")
+    try:
+        rows = await services.client.nodes(cp or None)
+    except AuthError as e:
+        raise HTTPException(502, str(e)) from e
+    except HooktheoryError as e:
+        raise HTTPException(503, f"Hooktheory unavailable: {e}") from e
+    return {"cp": cp, "nodes": rows}
+
+
+@router.get("/hooktheory/songs")
+async def hooktheory_songs(cp: str, page: int = 1) -> dict:
+    """Raw song hits for a child path, for the voice feature's 'used in' callouts."""
+    services = get_services()
+    if services.client is None:
+        raise HTTPException(503, "Hooktheory is not configured")
+    try:
+        rows = await services.client.songs(cp, page)
+    except AuthError as e:
+        raise HTTPException(502, str(e)) from e
+    except HooktheoryError as e:
+        raise HTTPException(503, f"Hooktheory unavailable: {e}") from e
+    return {"cp": cp, "page": page, "songs": rows}
 
 
 @router.post("/identify", response_model=IdentifyResponse)
