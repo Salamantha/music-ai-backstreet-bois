@@ -52,6 +52,12 @@ class SegmentResult:
     #: Estimated inter-onset interval in ms when grid pooling kicked in.
     grid_ms: float | None = None
     stuck_notes: int = 0
+    #: Why candidate segments were discarded. Producing zero chords from a large
+    #: note stream is the confusing failure, so it has to explain itself.
+    notes_paired: int = 0
+    clusters_found: int = 0
+    dropped_too_few_notes: int = 0
+    max_simultaneous: int = 0
 
 
 def pair_notes(
@@ -286,24 +292,50 @@ def segment_notes(
     clusters = _cluster_onsets(notes, cfg)
     arp, ioi = _looks_arpeggiated(clusters, cfg)
     if arp and ioi is not None:
-        return SegmentResult(tuple(_grid_segments(notes, ioi, cfg)), "grid", grid_ms=ioi)
+        return SegmentResult(
+            tuple(_grid_segments(notes, ioi, cfg)), "grid", grid_ms=ioi,
+            notes_paired=len(notes), clusters_found=len(clusters),
+            max_simultaneous=_max_simultaneous(notes),
+        )
 
     end = session_end_ms if session_end_ms is not None else max(n.off_ms for n in notes)
     boundaries = [t for t, _ in clusters] + [end]
 
     events: list[ChordEvent] = []
+    too_few = 0
     for i, (t, members) in enumerate(clusters):
         seg_end = boundaries[i + 1]
         if seg_end <= t:
             continue
         ev = _build_event(t, seg_end, members, notes, cfg)
-        if ev is None or len(ev.pcs) < min(cfg.min_notes_for_chord, len(ev.pitches)):
+        if ev is None:
             continue
-        if len(ev.pitches) < cfg.min_notes_for_chord:
+        if len(ev.pitches) < cfg.min_notes_for_chord or len(ev.pcs) < min(
+            cfg.min_notes_for_chord, len(ev.pitches)
+        ):
+            too_few += 1
             continue
         events.append(ev)
 
-    return SegmentResult(tuple(events), "onset")
+    return SegmentResult(
+        tuple(events), "onset",
+        notes_paired=len(notes), clusters_found=len(clusters),
+        dropped_too_few_notes=too_few, max_simultaneous=_max_simultaneous(notes),
+    )
+
+
+def _max_simultaneous(notes: Sequence[Sounding]) -> int:
+    """Largest number of notes sounding at once across the take."""
+    points: list[tuple[float, int]] = []
+    for n in notes:
+        points.append((n.on_ms, 1))
+        points.append((n.off_ms, -1))
+    points.sort()
+    current = best = 0
+    for _, delta in points:
+        current += delta
+        best = max(best, current)
+    return best
 
 
 def events_from_raw(
@@ -315,4 +347,8 @@ def events_from_raw(
     """Convenience: pair then segment."""
     notes, stuck = pair_notes(raw, session_end_ms=session_end_ms, cfg=cfg)
     result = segment_notes(notes, cfg, session_end_ms=session_end_ms)
-    return SegmentResult(result.events, result.mode, result.grid_ms, stuck)
+    return SegmentResult(
+        result.events, result.mode, result.grid_ms, stuck,
+        result.notes_paired, result.clusters_found,
+        result.dropped_too_few_notes, result.max_simultaneous,
+    )

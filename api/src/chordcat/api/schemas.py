@@ -15,6 +15,7 @@ class NoteEventIn(BaseModel):
     p: int | None = Field(default=None, ge=0, le=127, description="MIDI note number")
     v: int = Field(default=0, ge=0, le=127, description="velocity / controller value")
     n: int | None = Field(default=None, ge=0, le=127, description="controller number")
+    c: int | None = Field(default=None, ge=1, le=16, description="MIDI channel, 1-16")
 
 
 class AnalyzeRequest(BaseModel):
@@ -115,6 +116,7 @@ class AnalyzeResponse(BaseModel):
     queried: list[str]
     segmentation_mode: str
     stuck_notes: int
+    diagnostics: dict = Field(default_factory=dict)
     notes: list[str] = Field(
         default_factory=list,
         description="Human-readable caveats about this analysis.",

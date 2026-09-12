@@ -169,6 +169,33 @@ async def analyze(req: AnalyzeRequest) -> AnalyzeResponse:
         ]
 
     notes: list[str] = []
+
+    if not result.chords:
+        d = result.diagnostics
+        notes.append(
+            f"No chords were identified from {d.get('raw_events', 0)} MIDI events."
+        )
+        if d.get("max_simultaneous", 0) < d.get("min_notes_for_chord", 3):
+            notes.append(
+                f"At most {d.get('max_simultaneous', 0)} note(s) ever sounded at "
+                "once, so nothing formed a chord. If the ChordCat is streaming a "
+                "sequencer track, make sure a harmony channel is selected rather "
+                "than a bass or lead line."
+            )
+        elif d.get("dropped_too_few_notes", 0):
+            notes.append(
+                f"{d['dropped_too_few_notes']} of {d.get('clusters_found', 0)} "
+                "candidate segments had fewer than "
+                f"{d.get('min_notes_for_chord', 3)} notes sounding together. This "
+                "usually means several tracks are interleaved, or the notes are "
+                "arriving one at a time."
+            )
+        elif not d.get("notes_paired"):
+            notes.append(
+                "No note-on/note-off pairs were found. The stream may be clock "
+                "or control messages only."
+            )
+
     if services.client is None:
         notes.append(
             "Hooktheory is not configured, so no song matches were attempted. "
@@ -219,5 +246,6 @@ async def analyze(req: AnalyzeRequest) -> AnalyzeResponse:
         queried=result.search.queried,
         segmentation_mode=result.segmentation_mode,
         stuck_notes=result.stuck_notes,
+        diagnostics=result.diagnostics,
         notes=notes,
     )

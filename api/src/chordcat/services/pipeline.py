@@ -45,6 +45,7 @@ class AnalysisResult:
     segmentation_mode: str = "onset"
     stuck_notes: int = 0
     unmapped: tuple[dict, ...] = ()
+    diagnostics: dict = field(default_factory=dict)
 
     @property
     def cp_string(self) -> str:
@@ -75,8 +76,19 @@ async def analyse(
     with no song matches lands in anyway.
     """
     segmented = events_from_raw(raw_events, segment_cfg, session_end_ms=session_end_ms)
+    diagnostics = {
+        "raw_events": len(raw_events),
+        "notes_paired": segmented.notes_paired,
+        "clusters_found": segmented.clusters_found,
+        "dropped_too_few_notes": segmented.dropped_too_few_notes,
+        "max_simultaneous": segmented.max_simultaneous,
+        "segments": len(segmented.events),
+        "min_notes_for_chord": segment_cfg.min_notes_for_chord,
+    }
     if not segmented.events:
-        return AnalysisResult(segmentation_mode=segmented.mode)
+        return AnalysisResult(
+            segmentation_mode=segmented.mode, diagnostics=diagnostics
+        )
 
     # Pass 1: identify without key context, so key detection is not circular.
     first_pass = merge_identified(
@@ -143,6 +155,7 @@ async def analyse(
         segmentation_mode=segmented.mode,
         stuck_notes=segmented.stuck_notes,
         unmapped=unmapped,
+        diagnostics={**diagnostics, "chords_identified": len(chords)},
     )
 
 

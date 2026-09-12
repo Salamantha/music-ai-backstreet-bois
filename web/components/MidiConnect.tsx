@@ -1,9 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import MidiMonitor from "./MidiMonitor";
 import {
-  MidiCapture, checkSupport, heldNotes, looksLikeChordcat, noteName,
-  type MidiEvent, type MidiPort, type MidiSupport,
+  MidiCapture, channelStats, checkSupport, filterChannels, heldNotes,
+  looksLikeChordcat, noteName, suggestHarmonyChannels,
+  type ChannelStats, type MidiEvent, type MidiPort, type MidiSupport,
+  type RawMessage,
 } from "@/lib/webmidi";
 
 interface Props {
@@ -24,6 +27,10 @@ export default function MidiConnect({ onEvents, busy }: Props) {
   const [held, setHeld] = useState<number[]>([]);
   const [count, setCount] = useState(0);
   const [error, setError] = useState("");
+  const [stats, setStats] = useState<ChannelStats[]>([]);
+  const [recent, setRecent] = useState<RawMessage[]>([]);
+  const [channels, setChannels] = useState<Set<number>>(new Set());
+  const [touchedChannels, setTouchedChannels] = useState(false);
 
   useEffect(() => {
     setSupport(checkSupport());
@@ -49,7 +56,16 @@ export default function MidiConnect({ onEvents, busy }: Props) {
       capture.subscribe((_e, all) => {
         setHeld(heldNotes(all));
         setCount(all.length);
+        const next = channelStats(all);
+        setStats(next);
+        // Preselect the channels that look like harmony, but never fight the
+        // user once they have made a choice of their own.
+        setTouchedChannels((touched) => {
+          if (!touched) setChannels(suggestHarmonyChannels(next));
+          return touched;
+        });
       });
+      capture.subscribeRaw(() => setRecent(capture.rawMessages()));
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     }
@@ -69,15 +85,54 @@ export default function MidiConnect({ onEvents, busy }: Props) {
     captureRef.current!.start();
     setCount(0);
     setHeld([]);
+    setStats([]);
+    setRecent([]);
+    setTouchedChannels(false);
     setRecording(true);
+  }
+
+  function toggleChannel(channel: number) {
+    setTouchedChannels(true);
+    setChannels((prev) => {
+      const next = new Set(prev);
+      if (next.has(channel)) next.delete(channel);
+      else next.add(channel);
+      return next;
+    });
+  }
+
+  function download() {
+    const capture = captureRef.current!;
+    const payload = {
+      captured_at: new Date().toISOString(),
+      device: ports.find((p) => p.id === selected)?.name ?? "unknown",
+      elapsed_ms: capture.elapsed(),
+      channel_stats: channelStats(capture.snapshot()),
+      events: capture.snapshot(),
+      raw_tail: capture.rawMessages(),
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 1)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `chordcat-take-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   function stop() {
     const capture = captureRef.current!;
     setRecording(false);
-    const events = capture.snapshot();
-    if (!events.length) {
+    const all = capture.snapshot();
+    if (!all.length) {
       setError("No MIDI came through. Check the ChordCat is on the selected port and try playing again.");
+      return;
+    }
+    const events = channels.size > 0 ? filterChannels(all, channels) : all;
+    if (!events.length) {
+      setError("Every captured channel is excluded. Tick at least one channel to analyse.");
       return;
     }
     onEvents(events, capture.elapsed());
@@ -152,6 +207,19 @@ export default function MidiConnect({ onEvents, busy }: Props) {
       )}
 
       {error && <p className="error" style={{ marginBottom: 0 }}>{error}</p>}
+
+      {(stats.length > 0 || recent.length > 0) && (
+        <div style={{ marginTop: 16, marginLeft: -18, marginRight: -18, marginBottom: -18 }}>
+          <MidiMonitor
+            stats={stats}
+            recent={recent}
+            selected={channels}
+            onToggle={toggleChannel}
+            totalEvents={count}
+            onDownload={download}
+          />
+        </div>
+      )}
 
       {connected && ports.length === 0 && (
         <p className="sub" style={{ margin: "10px 0 0" }}>
