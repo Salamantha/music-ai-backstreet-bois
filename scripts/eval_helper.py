@@ -25,26 +25,40 @@ CAPTURES = ROOT / "api" / "tests" / "fixtures" / "midi"
 def main(baseline_path: str) -> int:
     rows = json.loads(Path(baseline_path).read_text())
     agreed = 0
+    tied = 0
     ratings: list[int] = []
     fallbacks = 0
 
-    print(f"{'capture':44} {'tutor':22} {'system':22} {'agree':6} rating")
+    print(f"{'capture':38} {'tutor':20} {'system':20} {'verdict':12} rating")
     for row in rows:
         result = analyse_capture(CAPTURES / row["capture"])
-        chosen = result.choice.node.id if result.choice else "-"
-        agree = chosen == row["tutor_would_suggest"]
-        agreed += agree
+        choice = result.choice
+        chosen = choice.node.id if choice else "-"
+        wanted = row["tutor_would_suggest"]
+
+        if chosen == wanted:
+            verdict = "agree"
+            agreed += 1
+        elif choice is not None and wanted in choice.tied_with:
+            # The map found it and rated it equal; only the tie-break missed.
+            verdict = "tied"
+            tied += 1
+        else:
+            verdict = "missed"
+
         if row.get("tutor_rating_of_system"):
             ratings.append(int(row["tutor_rating_of_system"]))
         fallbacks += result.response.used_fallback
         print(
-            f"{row['capture']:44} {row['tutor_would_suggest']:22} {chosen:22} "
-            f"{str(agree):6} {row.get('tutor_rating_of_system') or '-'}"
+            f"{row['capture']:38} {wanted:20} {chosen:20} {verdict:12} "
+            f"{row.get('tutor_rating_of_system') or '-'}"
         )
 
     n = len(rows)
     print(f"\nn = {n}")
-    print(f"suggestion agreement with tutor : {agreed}/{n}")
+    print(f"agreed outright                 : {agreed}/{n}")
+    print(f"tied but lost the tie-break     : {tied}/{n}   <- a ranking problem")
+    print(f"not on the frontier at all      : {n - agreed - tied}/{n}   <- a map problem")
     if ratings:
         print(f"mean tutor rating (1-5)         : {sum(ratings) / len(ratings):.2f}")
     print(f"templated fallbacks             : {fallbacks}/{n}")

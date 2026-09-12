@@ -8,7 +8,7 @@ offered yet. So "why are you telling me this?" always has a real answer.
 from __future__ import annotations
 
 from collections import deque
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from ..facts import FactSet
 from ..session import Session
@@ -31,6 +31,11 @@ INTENT_TAGS: dict[str, tuple[str, ...]] = {
 #: How far out we look when nothing sits directly on the frontier.
 MAX_DISTANCE = 2
 
+#: Weight for a node whose absence the truth layer actually measured, over one
+#: it simply has no reading for. Smaller than the intent-tag weight on purpose:
+#: if the user asks for something, they get it even on thinner evidence.
+MEASURED_BONUS = 3.0
+
 
 @dataclass(frozen=True, slots=True)
 class Choice:
@@ -39,6 +44,14 @@ class Choice:
     why: tuple[str, ...]
     distance: int
     score: float
+    #: Whether the facts this node's detector reads were present at all. False
+    #: means "we have no reading", not "you did not do it".
+    measured: bool = True
+    #: Other frontier nodes that scored identically. Ties are currently broken
+    #: alphabetically, which is deterministic but arbitrary -- surfacing the tie
+    #: is how the tutor evaluation tells a ranking problem (the right answer was
+    #: in here) from a map problem (it was not on the frontier at all).
+    tied_with: tuple[str, ...] = ()
 
 
 def visited(facts: FactSet, nodes: dict[str, ConceptNode]) -> set[str]:
@@ -90,25 +103,34 @@ def choose(
         wanted |= set(INTENT_TAGS.get(tag, ()))
 
     best: Choice | None = None
+    scored: dict[str, float] = {}
     for reach in range(1, MAX_DISTANCE + 1):
         for node_id in sorted(frontier(lit, nodes, reach)):
             node = nodes[node_id]
             if require_approved and node.status != APPROVED:
                 continue
+            measured = DETECTORS[node.detect].measured(facts)
             score = 10.0 - dist[node_id]
+            if measured:
+                score += MEASURED_BONUS
             if node_id in wanted:
                 score += 5.0
             if node_id in session.suggested_nodes:
                 score -= 8.0
             if node_id in session.tried_nodes:
                 score -= 4.0
+            scored[node_id] = score
             if best is None or score > best.score:
                 best = Choice(
                     node=node,
                     why=tuple(sorted(_neighbours(node_id, nodes) & lit)),
                     distance=dist[node_id],
                     score=score,
+                    measured=measured,
                 )
         if best is not None:
-            return best
+            tied = tuple(
+                sorted(i for i, v in scored.items() if v == best.score and i != best.node.id)
+            )
+            return replace(best, tied_with=tied)
     return best

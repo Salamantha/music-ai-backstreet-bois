@@ -70,6 +70,10 @@ def main(argv: list[str] | None = None) -> int:
             f"\nWHY THIS: {result.choice.node.id} is {result.choice.distance} step(s) "
             f"from {', '.join(result.choice.why) or 'what you played'}"
         )
+        if not result.choice.measured:
+            print("  (no reading for this -- absence is unobserved, not measured)")
+        if result.choice.tied_with:
+            print(f"  tied with: {', '.join(result.choice.tied_with)}")
         if result.choice.node.status != APPROVED:
             print("  (draft prose -- not for a demo)")
     print("\nNOTICED\n")

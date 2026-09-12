@@ -5,8 +5,13 @@
 # means an engineer wrote it to make the code run and it MUST NOT reach a user.
 # Rewrite the prose, then change status to `tutor-approved`.
 #
-# Rules for the prose: no term without its plain meaning in the same breath.
-# Never call anything the player did wrong. Second person, present tense.
+# Rules for the prose:
+#  - no term without its plain meaning in the same breath
+#  - never call anything the player did wrong
+#  - describe the CONCEPT, not the player. A node is offered when the player has
+#    NOT done it, so "how hard you hit is varying" reads as a contradiction the
+#    moment it is suggested. Write "hitting some chords harder than others"
+#    instead. This one bites every time.
 #
 # `on_device: TUTOR_TODO` needs filling from the ChordCat manual.
 # `detect:` names a predicate in detectors.py -- leave those alone.
@@ -350,7 +355,7 @@
   edges: [dynamic_range, sus_chords]
   status: draft
   what_it_means: >
-    Most of what you played is the same handful of chords returning.
+    The same handful of chords coming back round instead of a new one each time.
   what_it_does_to_the_sound: >
     Hypnotic and solid -- the foundation most records are built on.
   when_it_helps: >
@@ -367,7 +372,7 @@
   edges: []
   status: draft
   what_it_means: >
-    How hard you hit is varying rather than staying flat.
+    Hitting some chords harder than others, instead of every one the same.
   what_it_does_to_the_sound: >
     Human. A flat loop sounds programmed even when the notes are right.
   when_it_helps: >
