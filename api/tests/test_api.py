@@ -168,3 +168,21 @@ def test_step_entry_reproduces_the_real_capture_chords(client):
     assert len(body["chords"]) >= 19
     symbols = {c["symbol"] for c in body["chords"]}
     assert {"F#m7", "Emaj7", "Am7", "Dm7"} <= symbols
+
+
+def test_analyze_accepts_a_single_chord(client):
+    """A player exploring one voicing should still get an answer."""
+    r = client.post("/api/analyze", json={"chords": [{"pitches": [48, 60, 64, 67]}]})
+    assert r.status_code == 200
+    body = r.json()
+    assert [c["symbol"] for c in body["chords"]] == ["C"]
+    assert body["cp"] == "1"
+    assert body["key"] is not None
+
+
+def test_analyze_single_extended_chordcat_voicing(client):
+    """The five-note voicings the device actually sends, one at a time."""
+    body = client.post(
+        "/api/analyze", json={"chords": [{"pitches": [45, 55, 60, 62, 67]}]}
+    ).json()
+    assert [c["symbol"] for c in body["chords"]] == ["Am7"]

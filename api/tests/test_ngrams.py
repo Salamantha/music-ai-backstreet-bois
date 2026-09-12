@@ -77,3 +77,29 @@ def test_prioritize_is_deterministic():
     seq = toks(*(["4", "1", "5", "6"] * 3))
     assert [g.cp for g in prioritize(generate_ngrams(seq))] == \
            [g.cp for g in prioritize(generate_ngrams(seq))]
+
+
+def test_single_chord_still_produces_a_query():
+    """One chord is weak evidence, but it is evidence -- not nothing.
+
+    Without this the configured window sizes (4, 3, 2) mean a one-chord take
+    generates no query at all and silently returns no matches.
+    """
+    grams = generate_ngrams(toks("1"))
+    assert [g.cp for g in grams] == ["1"]
+    assert grams[0].n == 1
+
+
+def test_two_chord_run_between_holes_is_queried_whole():
+    from chordcat.domain.events import Hole
+
+    seq = (*toks("1", "5"), Hole(2, "X", "unmappable"), *toks("6"))
+    grams = {g.cp for g in generate_ngrams(seq)}
+    assert "1,5" in grams
+    assert "6" in grams
+
+
+def test_a_single_chord_outranks_nothing_but_loses_to_a_progression():
+    one = Ngram(("1",), 1, 1.0)
+    four = Ngram(("1", "5", "6", "4"), 1, 1.0)
+    assert 0 < priority(one) < priority(four)

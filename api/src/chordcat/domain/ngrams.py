@@ -109,9 +109,17 @@ def generate_ngrams(
         tokens = [t.root_position_token for t in run]
         period = detect_loop_period(tokens, cfg)
 
-        lengths = list(cfg.lengths)
+        lengths = [n for n in cfg.lengths if n <= len(run)]
         if cfg.try_five and run is longest_run and len(run) >= 5:
             lengths = [5, *lengths]
+        if not lengths:
+            # The run is shorter than the smallest configured window -- a single
+            # chord, or a two-chord fragment between holes. Query it whole
+            # rather than returning nothing. A one-chord query is weak evidence
+            # (`LENGTH_WEIGHT` scores it accordingly) but it is real: it finds
+            # every song that uses that chord, which is the honest answer to
+            # "what does this chord belong to".
+            lengths = [len(run)]
 
         for n in lengths:
             if n > len(run):

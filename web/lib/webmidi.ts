@@ -153,6 +153,29 @@ export class MidiCapture {
     this.startedAt = performance.now();
   }
 
+  /**
+   * Continue an existing take rather than replacing it.
+   *
+   * The time origin is rebased so new events carry on from where the previous
+   * pass left off. Without that, resuming would stamp fresh events at t=0 and
+   * interleave them with the earlier ones, scrambling the order segmentation
+   * depends on. The gap while capture was stopped is deliberately collapsed to
+   * a single chord's length -- the player paused, they did not hold a chord for
+   * three minutes.
+   */
+  resume(gapMs = 600): void {
+    if (this.events.length === 0) {
+      this.start();
+      return;
+    }
+    const last = this.events[this.events.length - 1].t;
+    this.startedAt = performance.now() - (last + gapMs);
+  }
+
+  hasCapture(): boolean {
+    return this.events.length > 0;
+  }
+
   rawMessages(): RawMessage[] {
     return [...this.raw];
   }

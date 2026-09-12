@@ -36,10 +36,10 @@ export default function ChordSteps({
           <button
             className="primary"
             onClick={onAnalyse}
-            disabled={busy || steps.length < 2}
+            disabled={busy || steps.length < 1}
             style={{ padding: "6px 13px", fontSize: 13 }}
           >
-            Analyse {steps.length >= 2 ? `${steps.length} chords` : ""}
+            Analyse {steps.length === 1 ? "1 chord" : steps.length > 1 ? `${steps.length} chords` : ""}
           </button>
         </span>
       </div>

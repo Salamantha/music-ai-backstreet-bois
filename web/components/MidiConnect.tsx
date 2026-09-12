@@ -47,6 +47,7 @@ export default function MidiConnect({ onEvents, onChords, busy }: Props) {
   const [steps, setSteps] = useState<Step[]>([]);
   const [pending, setPending] = useState<number[]>([]);
   const [live, setLive] = useState<Identified | null>(null);
+  const [hasCapture, setHasCapture] = useState(false);
 
   // The MIDI subscription is registered once, so its closure would capture
   // stale state. Everything the handler reads lives in a ref.
@@ -66,6 +67,7 @@ export default function MidiConnect({ onEvents, onChords, busy }: Props) {
     setPending([]);
     setLive(null);
     if (pitches.length < MIN_NOTES_PER_STEP) return;
+    setHasCapture(true);
     // Identify asynchronously; the step appears immediately either way, so a
     // slow or failed lookup never costs the player their chord.
     const id = nextId.current++;
@@ -135,6 +137,7 @@ export default function MidiConnect({ onEvents, onChords, busy }: Props) {
         const currentlyHeld = heldNotes(all);
         setHeld(currentlyHeld);
         setCount(all.length);
+        if (all.length > 0) setHasCapture(true);
         onHeldChange(currentlyHeld);
         const next = channelStats(all);
         setStats(next);
@@ -166,8 +169,10 @@ export default function MidiConnect({ onEvents, onChords, busy }: Props) {
     setPending([]);
     setLive(null);
     pendingRef.current = [];
+    setHasCapture(false);
   }
 
+  /** Begin a new take, discarding anything captured before. */
   function start() {
     captureRef.current!.start();
     resetSteps();
@@ -176,6 +181,13 @@ export default function MidiConnect({ onEvents, onChords, busy }: Props) {
     setStats([]);
     setRecent([]);
     setTouchedChannels(false);
+    setRecording(true);
+  }
+
+  /** Carry on adding to the take already captured. */
+  function resume() {
+    captureRef.current!.resume();
+    setHeld([]);
     setRecording(true);
   }
 
@@ -268,9 +280,24 @@ export default function MidiConnect({ onEvents, onChords, busy }: Props) {
               ))}
             </select>
             {!recording ? (
-              <button className="primary" onClick={start} disabled={!selected || busy}>
-                {mode === "steps" ? "Start capturing" : "Start recording"}
-              </button>
+              <>
+                {hasCapture && (
+                  <button className="primary" onClick={resume} disabled={!selected || busy}>
+                    {mode === "steps"
+                      ? `Add more chords (${steps.length} so far)`
+                      : `Continue recording (${count} events)`}
+                  </button>
+                )}
+                <button
+                  className={hasCapture ? "" : "primary"}
+                  onClick={start}
+                  disabled={!selected || busy}
+                >
+                  {hasCapture
+                    ? "Start over"
+                    : mode === "steps" ? "Start capturing" : "Start recording"}
+                </button>
+              </>
             ) : mode === "steps" ? (
               <button
                 className="danger"
