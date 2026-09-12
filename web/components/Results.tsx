@@ -112,7 +112,7 @@ export function SongMatches({ result, filter }: {
   const shown = expanded ? result.songs : result.songs.slice(0, INITIAL);
   return (
     <div className="panel">
-      <h2 style={{ margin: 0 }}>Songs using this progression</h2>
+      <h2 style={{ margin: 0 }}>Songs with similar chords as yours</h2>
       {result.songs.some((s) =>
         differsFromPlayed(s.matched_chords, result.romans),
       ) && (

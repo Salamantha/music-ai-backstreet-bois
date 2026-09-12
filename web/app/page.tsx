@@ -8,6 +8,9 @@ import KeyPanel from "@/components/KeyPanel";
 import Stepper, { type StepDef } from "@/components/Stepper";
 import PianoCat from "@/components/PianoCat";
 import Analysing from "@/components/Analysing";
+import {
+  SHOW_CHORD_PROGRESSION, SHOW_KEY, SHOW_WORTH_KNOWING,
+} from "@/lib/features";
 import { BAND, CatFace } from "@/components/CatBand";
 import { JoinRoom } from "@/components/JoinRoom";
 import { MatchList, SongMatches, TasteProfile } from "@/components/Results";
@@ -266,9 +269,9 @@ export default function Page() {
 
       {step === 2 && result && (
         <>
-          <ChordTimeline result={result} />
+          {SHOW_CHORD_PROGRESSION && <ChordTimeline result={result} />}
 
-          {result.notes.length > 0 && (
+          {SHOW_WORTH_KNOWING && result.notes.length > 0 && (
             <div className="panel">
               <h2>Worth knowing</h2>
               <ul className="note-list">
@@ -276,7 +279,7 @@ export default function Page() {
               </ul>
             </div>
           )}
-          {result.key && (
+          {SHOW_KEY && result.key && (
             <KeyPanel keyInfo={result.key} onOverride={override} busy={busy} />
           )}
 
