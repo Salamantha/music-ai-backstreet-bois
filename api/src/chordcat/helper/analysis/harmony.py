@@ -96,7 +96,7 @@ def root_motion(inp: AnalysisInput) -> list[Fact]:
         return []
     moves = Counter(
         INTERVAL_NAMES[(b.best.root_pc - a.best.root_pc) % 12]
-        for a, b in zip(inp.chords, inp.chords[1:])
+        for a, b in zip(inp.chords, inp.chords[1:], strict=False)
     )
     return [
         Fact(
@@ -121,7 +121,7 @@ def cadences(inp: AnalysisInput) -> list[Fact]:
     }
     found: Counter[str] = Counter()
     where: list[int] = []
-    for i, (a, b) in enumerate(zip(inp.chords, inp.chords[1:])):
+    for i, (a, b) in enumerate(zip(inp.chords, inp.chords[1:], strict=False)):
         if b.best.root_pc == tonic and a.best.root_pc in named:
             found[named[a.best.root_pc]] += 1
             where.append(i)

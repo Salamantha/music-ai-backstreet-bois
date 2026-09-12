@@ -7,7 +7,7 @@ and conversation are untouched.
 
 from __future__ import annotations
 
-from typing import Callable
+from collections.abc import Callable
 
 from ..facts import Fact, FactSet
 from ..prepare import AnalysisInput
