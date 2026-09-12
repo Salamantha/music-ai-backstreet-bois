@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import logging
 from collections import Counter
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Sequence
 
 from ..adapters.genre_llm import GenreResolver
@@ -35,7 +35,12 @@ from ..domain.key import detect_key
 from ..domain.pitch import parent_major_tonic
 from ..domain.ngrams import NgramConfig
 from ..domain.profile import TasteProfile, build_profile, harmonic_features
-from ..domain.ranking import NgramResult, normalize_name, progression_coverage
+from ..domain.ranking import (
+    NgramResult,
+    filter_songs_by_genre,
+    normalize_name,
+    progression_coverage,
+)
 from ..domain.taxonomy import map_hooktheory_genres
 from ..domain.segment import SegmentConfig, events_from_raw
 from ..domain.ranking import rollup_artists, score_songs
@@ -58,6 +63,9 @@ class AnalysisResult:
     #: Genres Hooktheory itself assigns, keyed by normalised artist name. Better
     #: evidence than an LLM guess, and free with the TheoryTab result.
     source_genres: dict[str, tuple[str, ...]] = field(default_factory=dict)
+    #: Genre -> song count across the matches *before* any filter, so the client
+    #: can offer a filter over what is genuinely there rather than a fixed list.
+    available_genres: dict[str, int] = field(default_factory=dict)
 
     @property
     def cp_string(self) -> str:
@@ -73,6 +81,7 @@ async def analyse(
     genres: GenreResolver | None,
     theorytab: TheoryTabClient | None = None,
     key_override: Key | None = None,
+    wanted_genres: Sequence[str] = (),
     session_end_ms: float | None = None,
     budget: int = 12,
     segment_cfg: SegmentConfig = SegmentConfig(),
@@ -213,6 +222,20 @@ async def analyse(
                 if mapped:
                     source_genres[normalize_name(hit.artist)] = mapped
 
+    # Genre filtering happens before profiling, so the taste profile and the
+    # musician matches derived from it reflect the filter too -- not just the
+    # visible song list.
+    available = Counter[str]()
+    for song in outcome.songs:
+        for g in song.genres:
+            available[g] += 1
+
+    if wanted_genres and outcome.songs:
+        outcome = await _apply_genre_filter(outcome, wanted_genres, genres)
+        for song in outcome.songs:
+            for g in song.genres:
+                available.setdefault(g, 0)
+
     harmonic = harmonic_features(chords, estimate.key, outcome.ngrams, transitions)
     profile = await build_taste_profile(
         outcome.songs, harmonic, genres, source_genres=source_genres
@@ -229,6 +252,43 @@ async def analyse(
         unmapped=unmapped,
         diagnostics={**diagnostics, "chords_identified": len(chords)},
         source_genres=source_genres,
+        available_genres=dict(available.most_common()),
+    )
+
+
+async def _apply_genre_filter(
+    outcome: SearchOutcome,
+    wanted: Sequence[str],
+    resolver: GenreResolver | None,
+) -> SearchOutcome:
+    """Drop songs outside the requested genres.
+
+    Songs from the Trends API arrive without genres, so fall back to the
+    artist-level labels before deciding -- otherwise every Trends result would
+    be filtered out regardless of what it actually is.
+    """
+    unlabelled = [s.artist for s in outcome.songs if not s.genres]
+    by_artist: dict[str, tuple[str, ...]] = {}
+    if unlabelled and resolver is not None:
+        labels = await resolver.resolve(sorted(set(unlabelled)))
+        by_artist = {
+            key: profile.genres for key, profile in labels.items() if not profile.unknown
+        }
+
+    enriched = tuple(
+        s if s.genres
+        else replace(s, genres=by_artist.get(normalize_name(s.artist), ()))
+        for s in outcome.songs
+    )
+    kept = filter_songs_by_genre(enriched, wanted)
+    return SearchOutcome(
+        songs=kept,
+        artists=rollup_artists(kept),
+        results=outcome.results,
+        ngrams=outcome.ngrams,
+        requests_spent=outcome.requests_spent,
+        queried=outcome.queried,
+        stopped_early=outcome.stopped_early,
     )
 
 
@@ -255,6 +315,7 @@ def _merge_theorytab(
                 section=hit.section or "",
                 url=hit.url,
                 video_url=hit.youtube_url,
+                genres=map_hooktheory_genres(list(hit.genres)),
             )
         )
         key = (normalize_name(hit.artist), normalize_name(hit.song))

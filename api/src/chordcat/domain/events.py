@@ -168,6 +168,8 @@ class SongHit:
     matched_ngrams: tuple[str, ...] = ()
     #: Link to the recording itself, when the source knows one.
     video_url: str = ""
+    #: Genres for this song, in the project's closed taxonomy.
+    genres: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)

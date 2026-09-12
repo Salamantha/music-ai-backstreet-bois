@@ -62,3 +62,39 @@ def test_artist_volume_is_damped():
 def test_empty_results_are_safe():
     assert score_songs([]) == ()
     assert rollup_artists([]) == ()
+
+
+class TestGenreFilter:
+    def songs(self):
+        from chordcat.domain.events import SongHit
+        return [
+            SongHit("Arctic Monkeys", "505", "Chorus", "u",
+                    genres=("rock", "alternative", "indie rock")),
+            SongHit("Avicii", "Levels", "Chorus", "u", genres=("edm", "house")),
+            SongHit("Nobody", "Unlabelled", "Verse", "u", genres=()),
+        ]
+
+    def test_no_filter_keeps_everything(self):
+        from chordcat.domain.ranking import filter_songs_by_genre
+        assert len(filter_songs_by_genre(self.songs(), [])) == 3
+
+    def test_keeps_songs_matching_any_selected_genre(self):
+        from chordcat.domain.ranking import filter_songs_by_genre
+        kept = filter_songs_by_genre(self.songs(), ["rock"])
+        assert [s.song for s in kept] == ["505"]
+
+    def test_unlabelled_songs_are_excluded_while_filtering(self):
+        """Unknown is not a match. Keeping them would quietly reintroduce
+        exactly the material the filter was meant to remove."""
+        from chordcat.domain.ranking import filter_songs_by_genre
+        kept = filter_songs_by_genre(self.songs(), ["rock", "edm"])
+        assert "Unlabelled" not in {s.song for s in kept}
+        assert len(kept) == 2
+
+    def test_is_case_insensitive(self):
+        from chordcat.domain.ranking import filter_songs_by_genre
+        assert len(filter_songs_by_genre(self.songs(), ["ROCK"])) == 1
+
+    def test_unknown_genre_matches_nothing(self):
+        from chordcat.domain.ranking import filter_songs_by_genre
+        assert filter_songs_by_genre(self.songs(), ["polka"]) == ()

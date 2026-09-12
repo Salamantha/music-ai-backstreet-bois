@@ -143,6 +143,7 @@ def score_songs(
             section=", ".join(sorted(sections[k])),
             url=display[k].url,
             video_url=display[k].video_url,
+            genres=display[k].genres,
             score=v
             * _section_multiplier(len(sections[k]))
             * _coverage_multiplier(coverage.get(k) if coverage else None),
@@ -185,6 +186,21 @@ def rollup_artists(
         )
     hits.sort(key=lambda a: (-a.score, normalize_name(a.artist)))
     return tuple(hits)
+
+
+def filter_songs_by_genre(
+    songs: Sequence[SongHit], wanted: Sequence[str]
+) -> tuple[SongHit, ...]:
+    """Keep only songs in the requested genres.
+
+    A song with no genre at all is dropped when a filter is active: including
+    it would quietly reintroduce exactly the material the filter was meant to
+    exclude, and "we don't know" is not the same as "it matches".
+    """
+    if not wanted:
+        return tuple(songs)
+    keep = {g.casefold() for g in wanted}
+    return tuple(s for s in songs if keep & {g.casefold() for g in s.genres})
 
 
 def top_artist_names(artists: Iterable[ArtistHit], n: int = 5) -> tuple[str, ...]:

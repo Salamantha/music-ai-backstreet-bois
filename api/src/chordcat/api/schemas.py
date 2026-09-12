@@ -66,6 +66,8 @@ class AnalyzeRequest(BaseModel):
     key_mode: str | None = None
     #: Let the client ask for a bigger search when the user explicitly retries.
     budget: int | None = Field(default=None, ge=1, le=24)
+    #: Keep only songs in these genres. Empty means no filtering.
+    genres: list[str] = Field(default_factory=list, max_length=40)
 
 
 class ChordOut(BaseModel):
@@ -100,6 +102,7 @@ class SongOut(BaseModel):
     matched_ngrams: list[str] = Field(default_factory=list)
     #: The recording on YouTube, when the source provided one.
     video_url: str = ""
+    genres: list[str] = Field(default_factory=list)
 
 
 class ArtistOut(BaseModel):
@@ -160,6 +163,10 @@ class AnalyzeResponse(BaseModel):
     segmentation_mode: str
     stuck_notes: int
     diagnostics: dict = Field(default_factory=dict)
+    #: Genres present in the unfiltered matches, with how many songs each has.
+    #: Lets the client offer a filter over what is actually there.
+    available_genres: dict[str, int] = Field(default_factory=dict)
+    applied_genres: list[str] = Field(default_factory=list)
     notes: list[str] = Field(
         default_factory=list,
         description="Human-readable caveats about this analysis.",

@@ -165,6 +165,7 @@ async def analyze(req: AnalyzeRequest) -> AnalyzeResponse:
         genres=services.genres,
         theorytab=services.theorytab,
         key_override=override,
+        wanted_genres=req.genres,
         session_end_ms=req.session_end_ms,
         budget=req.budget or services.settings.song_request_budget,
         artist_document_frequency=services.cache.artist_frequencies(),
@@ -267,6 +268,13 @@ async def analyze(req: AnalyzeRequest) -> AnalyzeResponse:
 
     notes: list[str] = []
 
+    if req.genres and not result.search.songs:
+        notes.append(
+            "No matched song is in the selected genre"
+            f"{'s' if len(req.genres) > 1 else ''}. Clearing the filter will "
+            "show everything the progression matched."
+        )
+
     if not result.chords:
         d = result.diagnostics
         notes.append(
@@ -330,7 +338,7 @@ async def analyze(req: AnalyzeRequest) -> AnalyzeResponse:
             SongOut(
                 artist=s.artist, song=s.song, section=s.section, url=s.url,
                 score=s.score, matched_ngrams=list(s.matched_ngrams),
-                video_url=s.video_url,
+                video_url=s.video_url, genres=list(s.genres),
             )
             for s in result.search.songs[:40]
         ],
@@ -345,5 +353,7 @@ async def analyze(req: AnalyzeRequest) -> AnalyzeResponse:
         segmentation_mode=result.segmentation_mode,
         stuck_notes=result.stuck_notes,
         diagnostics=result.diagnostics,
+        available_genres=result.available_genres,
+        applied_genres=list(req.genres),
         notes=notes,
     )

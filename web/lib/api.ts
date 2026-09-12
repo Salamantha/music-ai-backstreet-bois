@@ -17,6 +17,7 @@ export interface Song {
   score: number; matched_ngrams: string[];
   /** The recording on YouTube, when the source knew one. */
   video_url: string;
+  genres: string[];
 }
 export interface Artist { artist: string; score: number; songs: string[] }
 export interface Harmonic {
@@ -41,6 +42,8 @@ export interface AnalyzeResponse {
   songs: Song[]; artists: Artist[]; profile: Profile | null; matches: Match[];
   requests_spent: number; queried: string[];
   segmentation_mode: string; stuck_notes: number; notes: string[];
+  available_genres: Record<string, number>;
+  applied_genres: string[];
 }
 
 export async function analyze(
@@ -108,7 +111,7 @@ export interface ChordStep {
 /** Analyse a progression the player already separated into chords. */
 export async function analyzeChords(
   chords: ChordStep[],
-  opts: { keyTonicPc?: number; keyMode?: string } = {},
+  opts: { keyTonicPc?: number; keyMode?: string; genres?: string[] } = {},
 ): Promise<AnalyzeResponse> {
   const res = await fetch(`${BASE}/api/analyze`, {
     method: "POST",
@@ -117,6 +120,7 @@ export async function analyzeChords(
       chords,
       key_tonic_pc: opts.keyTonicPc,
       key_mode: opts.keyMode,
+      genres: opts.genres ?? [],
     }),
   });
   if (!res.ok) {

@@ -186,3 +186,20 @@ def test_analyze_single_extended_chordcat_voicing(client):
         "/api/analyze", json={"chords": [{"pitches": [45, 55, 60, 62, 67]}]}
     ).json()
     assert [c["symbol"] for c in body["chords"]] == ["Am7"]
+
+
+def test_analyze_reports_available_genres(client):
+    """Offline, so no song matches -- but the field must still be present."""
+    body = client.post(
+        "/api/analyze", json={"chords": [{"pitches": [48, 60, 64, 67]}]}
+    ).json()
+    assert "available_genres" in body
+    assert body["applied_genres"] == []
+
+
+def test_analyze_echoes_the_applied_genre_filter(client):
+    body = client.post(
+        "/api/analyze",
+        json={"chords": [{"pitches": [48, 60, 64, 67]}], "genres": ["rock", "pop"]},
+    ).json()
+    assert body["applied_genres"] == ["rock", "pop"]

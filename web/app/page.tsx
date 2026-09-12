@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import GenreFilter from "@/components/GenreFilter";
 import MidiConnect from "@/components/MidiConnect";
 import ChordTimeline from "@/components/ChordTimeline";
 import KeyPanel from "@/components/KeyPanel";
@@ -13,19 +14,31 @@ export default function Page() {
   const [error, setError] = useState("");
   const [backend, setBackend] = useState<Record<string, unknown> | null>(null);
   const [lastChords, setLastChords] = useState<ChordStep[] | null>(null);
+  const [genres, setGenres] = useState<string[]>([]);
+  // Genres available before filtering. Kept across a filtered re-analysis so
+  // narrowing to one genre does not collapse the chooser to that single option.
+  const [genrePalette, setGenrePalette] = useState<Record<string, number>>({});
 
   useEffect(() => {
     health().then(setBackend).catch(() => setBackend(null));
   }, []);
 
-  async function onChords(chords: ChordStep[], key?: { pc: number; mode: string }) {
+  async function onChords(
+    chords: ChordStep[],
+    key?: { pc: number; mode: string },
+    wanted: string[] = genres,
+  ) {
     setBusy(true);
     setError("");
     setLastChords(chords);
     try {
-      setResult(
-        await analyzeChords(chords, { keyTonicPc: key?.pc, keyMode: key?.mode }),
-      );
+      const res = await analyzeChords(chords, {
+        keyTonicPc: key?.pc,
+        keyMode: key?.mode,
+        genres: wanted,
+      });
+      setResult(res);
+      if (wanted.length === 0) setGenrePalette(res.available_genres);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -37,6 +50,13 @@ export default function Page() {
     setResult(null);
     setError("");
     setLastChords(null);
+    setGenres([]);
+    setGenrePalette({});
+  }
+
+  function applyGenres(next: string[]) {
+    setGenres(next);
+    if (lastChords) void onChords(lastChords, undefined, next);
   }
 
   function override(pc: number, mode: string) {
@@ -77,6 +97,16 @@ export default function Page() {
           {result.key && (
             <KeyPanel keyInfo={result.key} onOverride={override} busy={busy} />
           )}
+          <GenreFilter
+            available={
+              Object.keys(genrePalette).length > 0
+                ? genrePalette
+                : result.available_genres
+            }
+            selected={genres}
+            onChange={applyGenres}
+            busy={busy}
+          />
           <SongMatches result={result} />
           {result.profile && <TasteProfile profile={result.profile} />}
           <MatchList result={result} />
