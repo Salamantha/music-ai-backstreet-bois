@@ -190,10 +190,22 @@ button.primary:active:not(:disabled) { transform: translateY(2px); box-shadow: 0
 button.danger { background: var(--danger); color: var(--on-bright); border-color: transparent; }
 button.quiet { font-weight: 400; padding: 0.45rem 0.8rem; min-height: 2.25rem; font-size: 0.9rem; }
 
+/* The native dropdown arrow is anchored to the border box and ignores
+   padding, so against a pill radius it sits almost on the curve. Draw our own
+   instead, which can be positioned, and reserve room for it on the right. */
 select {
   font: inherit; background: var(--panel-2); color: var(--text);
   border: 1px solid var(--line); border-radius: 999px;
-  padding: 0.6rem 0.75rem; min-height: 2.75rem;
+  padding: 0.6rem 2.6rem 0.6rem 0.95rem; min-height: 2.75rem;
+  appearance: none; -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%23c3b6e6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1.1rem center;
+}
+/* Forced-colours users get the platform control back; our drawn chevron would
+   not survive the colour override. */
+@media (forced-colors: active) {
+  select { appearance: auto; -webkit-appearance: auto; background-image: none; }
 }
 
 label { font-weight: 700; font-size: 0.9rem; }
