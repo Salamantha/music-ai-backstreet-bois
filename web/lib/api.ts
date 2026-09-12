@@ -273,3 +273,51 @@ export function youtubeSearch(artist: string, song: string): string {
   const q = encodeURIComponent(`${artist} ${song}`.replace(/\s+/g, " ").trim());
   return `https://www.youtube.com/results?search_query=${q}`;
 }
+
+export interface HelperFact {
+  id: string; kind: string; value: unknown;
+  n_observations: number; confidence: number;
+}
+
+export interface HelperTurn {
+  node_id: string | null;
+  plain_name: string | null;
+  text: string;
+  why: string[];
+  distance: number;
+  measured: boolean;
+  tied_with: string[];
+  draft: boolean;
+  templated: boolean;
+  facts: HelperFact[];
+  chords: string[];
+  key: string | null;
+}
+
+export interface HelperTurnRequest {
+  events: MidiEvent[];
+  elapsed_ms: number;
+  harmony_channel?: number | null;
+  user_text?: string | null;
+  intent_tags?: string[];
+  suggested_nodes?: string[];
+  tried_nodes?: string[];
+}
+
+/** Ask the helper what to try next. No Hooktheory I/O, so no shared quota. */
+export async function helperTurn(req: HelperTurnRequest): Promise<HelperTurn> {
+  const res = await fetch(`${BASE}/api/helper/turn`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(req),
+  });
+  if (!res.ok) throw new Error(`helper failed: ${res.status} ${await res.text()}`);
+  return res.json();
+}
+
+/** The bundled ChordCat recording, for testing with no hardware present. */
+export async function helperDemo(): Promise<HelperTurnRequest & { elapsed_ms: number }> {
+  const res = await fetch(`${BASE}/api/helper/demo`);
+  if (!res.ok) throw new Error(`no recorded take available (${res.status})`);
+  return res.json();
+}

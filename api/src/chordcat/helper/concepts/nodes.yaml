@@ -1,0 +1,382 @@
+# The concept map. Edges mean "one step away from".
+#
+# TUTOR: what_it_means / what_it_does_to_the_sound / when_it_helps /
+# common_mistake are yours. Everything currently reads `status: draft`, which
+# means an engineer wrote it to make the code run and it MUST NOT reach a user.
+# Rewrite the prose, then change status to `tutor-approved`.
+#
+# Rules for the prose:
+#  - no term without its plain meaning in the same breath
+#  - never call anything the player did wrong
+#  - describe the CONCEPT, not the player. A node is offered when the player has
+#    NOT done it, so "how hard you hit is varying" reads as a contradiction the
+#    moment it is suggested. Write "hitting some chords harder than others"
+#    instead. This one bites every time.
+#
+# `on_device: TUTOR_TODO` needs filling from the ChordCat manual.
+# `detect:` names a predicate in detectors.py -- leave those alone.
+
+- id: chords_in_a_key
+  kind: harmony
+  plain_name: "chords that belong to one set of notes"
+  detect: has_chords
+  prerequisites: []
+  edges: [seventh_chords, sus_chords, inversions, moves_by_fourths_node, minor_key, looping]
+  status: draft
+  what_it_means: >
+    Everything you are playing is drawn from one family of notes that fit
+    together.
+  what_it_does_to_the_sound: >
+    Settled and coherent. Nothing sounds like a mistake.
+  when_it_helps: >
+    As the ground that everything else is a departure from.
+  on_device: TUTOR_TODO
+  common_mistake: >
+    Staying here and wondering why it sounds plain.
+
+- id: seventh_chords
+  kind: harmony
+  plain_name: "adding a fourth note"
+  detect: has_sevenths
+  prerequisites: [chords_in_a_key]
+  edges: [extended_harmony, moves_by_fourths_node]
+  status: draft
+  what_it_means: >
+    Where a chord uses three notes, this adds a fourth one on top.
+  what_it_does_to_the_sound: >
+    Less finished -- the chord leans somewhere instead of sitting still. It is
+    most of what makes music sound smoky or jazzy.
+  when_it_helps: >
+    When a loop feels correct but plain, or when you want one chord to pull
+    toward the next.
+  on_device: TUTOR_TODO
+  common_mistake: >
+    Putting it on every chord. The effect comes from contrast.
+
+- id: extended_harmony
+  kind: harmony
+  plain_name: "stacking a fifth note on"
+  detect: has_extended_voicings
+  prerequisites: [seventh_chords]
+  edges: [open_voicing, slow_harmony]
+  status: draft
+  what_it_means: >
+    One more note above the fourth, further from the bottom of the chord.
+  what_it_does_to_the_sound: >
+    Richer and hazier. The chord stops having one obvious centre.
+  when_it_helps: >
+    On a chord you sit on for a long time.
+  on_device: TUTOR_TODO
+  common_mistake: >
+    Using it where the chord changes fast -- there is no time to hear it.
+
+- id: sus_chords
+  kind: harmony
+  plain_name: "swapping the middle note out"
+  detect: has_sus
+  prerequisites: [chords_in_a_key]
+  edges: [moves_by_step_node]
+  status: draft
+  what_it_means: >
+    The note in the middle of the chord moves up or down one place, so the chord
+    is no longer clearly the bright kind or the dark kind.
+  what_it_does_to_the_sound: >
+    Suspended and unresolved, like a held breath.
+  when_it_helps: >
+    Just before the chord you actually want to land on.
+  on_device: TUTOR_TODO
+  common_mistake: >
+    Leaving it hanging with nothing after it.
+
+- id: inversions
+  kind: voicing
+  plain_name: "same chord, different bottom note"
+  detect: has_inversions
+  prerequisites: [chords_in_a_key]
+  edges: [close_voicing, open_voicing, moves_by_step_node]
+  status: draft
+  what_it_means: >
+    The same notes, but a different one of them is lowest.
+  what_it_does_to_the_sound: >
+    Smoother movement between chords, and less of a thud on each change.
+  when_it_helps: >
+    When the chords are right but the changes feel lumpy.
+  on_device: TUTOR_TODO
+  common_mistake: >
+    Inverting everything, which loses the weight of the root position.
+
+- id: close_voicing
+  kind: voicing
+  plain_name: "keeping the notes near each other"
+  detect: is_close_voiced
+  prerequisites: [inversions]
+  edges: [open_voicing]
+  status: draft
+  what_it_means: >
+    Every note of the chord sits inside a single octave.
+  what_it_does_to_the_sound: >
+    Compact and blended. The chord reads as one object.
+  when_it_helps: >
+    When something else -- a bass line, a vocal -- needs the space.
+  on_device: TUTOR_TODO
+  common_mistake: >
+    Keeping it low, where close notes turn to mud.
+
+- id: open_voicing
+  kind: voicing
+  plain_name: "spreading the notes apart"
+  detect: is_open_voiced
+  prerequisites: [chords_in_a_key]
+  edges: [wide_register]
+  status: draft
+  what_it_means: >
+    The same notes, but with gaps between them instead of bunched together.
+  what_it_does_to_the_sound: >
+    Bigger and clearer. Each note is audible on its own.
+  when_it_helps: >
+    When a chord sounds cramped or muddy.
+  on_device: TUTOR_TODO
+  common_mistake: >
+    Spreading so far the chord stops sounding like one thing.
+
+- id: wide_register
+  kind: voicing
+  plain_name: "using the very low and very high ends together"
+  detect: spans_wide_register
+  prerequisites: [open_voicing]
+  edges: []
+  status: draft
+  what_it_means: >
+    More than two octaves between your lowest and highest note.
+  what_it_does_to_the_sound: >
+    Cinematic and wide, with a hole in the middle.
+  when_it_helps: >
+    On a moment that is meant to feel large.
+  on_device: TUTOR_TODO
+  common_mistake: >
+    Living there, which leaves nothing in reserve.
+
+- id: minor_key
+  kind: harmony
+  plain_name: "building on the darker set of notes"
+  detect: is_minor_key
+  prerequisites: [chords_in_a_key]
+  edges: [backdoor_cadence, moves_by_thirds_node]
+  status: draft
+  what_it_means: >
+    The note everything resolves to has the darker of the two common flavours
+    built on top of it.
+  what_it_does_to_the_sound: >
+    Heavier, sadder, more serious.
+  when_it_helps: >
+    When a bright loop is not carrying the mood you want.
+  on_device: TUTOR_TODO
+  common_mistake: >
+    Assuming darker has to mean slower.
+
+- id: authentic_cadence
+  kind: harmony
+  plain_name: "the strongest way to land"
+  detect: has_authentic_cadence
+  prerequisites: [chords_in_a_key]
+  edges: [plagal_cadence, backdoor_cadence, moves_by_fourths_node]
+  status: draft
+  what_it_means: >
+    The chord five places up from home, going straight back to home.
+  what_it_does_to_the_sound: >
+    Final. It closes the door.
+  when_it_helps: >
+    At the end of a section you want to feel finished.
+  on_device: TUTOR_TODO
+  common_mistake: >
+    Using it mid-loop, which stops the loop dead every time round.
+
+- id: plagal_cadence
+  kind: harmony
+  plain_name: "the gentler way to land"
+  detect: has_plagal_cadence
+  prerequisites: [authentic_cadence]
+  edges: []
+  status: draft
+  what_it_means: >
+    The chord four places up from home, falling back to home.
+  what_it_does_to_the_sound: >
+    Arrival without finality -- warm rather than closed.
+  when_it_helps: >
+    When you want to come home but keep going.
+  on_device: TUTOR_TODO
+  common_mistake: >
+    Expecting it to carry the weight of a full stop.
+
+- id: backdoor_cadence
+  kind: harmony
+  plain_name: "arriving home from an unexpected side"
+  detect: has_backdoor_cadence
+  prerequisites: [authentic_cadence]
+  edges: []
+  status: draft
+  what_it_means: >
+    Landing on home from the chord one whole step below it, which is not one of
+    the notes your key is built from.
+  what_it_does_to_the_sound: >
+    A softer, more surprising arrival. Common in soul and neo-soul.
+  when_it_helps: >
+    When the usual landing has started to sound obvious.
+  on_device: TUTOR_TODO
+  common_mistake: >
+    Using it so often the surprise wears off.
+
+- id: moves_by_fourths_node
+  kind: harmony
+  plain_name: "the strongest chord-to-chord move"
+  detect: moves_by_fourths
+  prerequisites: [chords_in_a_key]
+  edges: [authentic_cadence, moves_by_step_node]
+  status: draft
+  what_it_means: >
+    Each chord's home note sits four places above the last one.
+  what_it_does_to_the_sound: >
+    Driven and purposeful -- each chord feels pulled into the next.
+  when_it_helps: >
+    When a progression feels like it is wandering.
+  on_device: TUTOR_TODO
+  common_mistake: >
+    Chaining so many that it becomes a loop of its own.
+
+- id: moves_by_step_node
+  kind: harmony
+  plain_name: "moving to the chord next door"
+  detect: moves_by_step
+  prerequisites: [moves_by_fourths_node]
+  edges: [moves_chromatically_node]
+  status: draft
+  what_it_means: >
+    The next chord's home note is one place up or down from this one.
+  what_it_does_to_the_sound: >
+    Smooth and rising, without the strong pull of a bigger jump.
+  when_it_helps: >
+    When you want motion but not drama.
+  on_device: TUTOR_TODO
+  common_mistake: >
+    Only ever going up.
+
+- id: moves_by_thirds_node
+  kind: harmony
+  plain_name: "moving to a chord that shares notes with this one"
+  detect: moves_by_thirds
+  prerequisites: [chords_in_a_key]
+  edges: []
+  status: draft
+  what_it_means: >
+    The next chord's home note is two places away, so the two chords have most
+    of their notes in common.
+  what_it_does_to_the_sound: >
+    A shift of colour rather than a change of place.
+  when_it_helps: >
+    When you want the mood to move but the ground to stay put.
+  on_device: TUTOR_TODO
+  common_mistake: >
+    Mistaking it for no change at all and over-using it.
+
+- id: moves_chromatically_node
+  kind: harmony
+  plain_name: "sliding by the smallest possible step"
+  detect: moves_chromatically
+  prerequisites: [moves_by_step_node]
+  edges: [tritone_motion_node]
+  status: draft
+  what_it_means: >
+    The next chord's home note is the closest possible distance away.
+  what_it_does_to_the_sound: >
+    Slippery and unsettled, like the floor tilting.
+  when_it_helps: >
+    As a one-off move into a section change.
+  on_device: TUTOR_TODO
+  common_mistake: >
+    Repeating it until the music has no ground at all.
+
+- id: tritone_motion_node
+  kind: harmony
+  plain_name: "moving to the furthest-away chord"
+  detect: moves_by_tritone
+  prerequisites: [moves_chromatically_node]
+  edges: []
+  status: draft
+  what_it_means: >
+    The next chord is the maximum distance from this one -- exactly halfway
+    round.
+  what_it_does_to_the_sound: >
+    A hard cut. The two chords share almost nothing.
+  when_it_helps: >
+    When you want an obvious seam between two ideas.
+  on_device: TUTOR_TODO
+  common_mistake: >
+    Using it as a normal move rather than as an event.
+
+- id: slow_harmony
+  kind: harmony
+  plain_name: "letting each chord sit"
+  detect: is_slow_harmony
+  prerequisites: [chords_in_a_key]
+  edges: [fast_harmony]
+  status: draft
+  what_it_means: >
+    Each chord lasts several seconds before the next one.
+  what_it_does_to_the_sound: >
+    Spacious. There is room to hear everything inside the chord.
+  when_it_helps: >
+    When you have added notes to a chord and cannot hear them.
+  on_device: TUTOR_TODO
+  common_mistake: >
+    Sitting so long the loop stops moving.
+
+- id: fast_harmony
+  kind: harmony
+  plain_name: "changing chord quickly"
+  detect: is_fast_harmony
+  prerequisites: [chords_in_a_key]
+  edges: []
+  status: draft
+  what_it_means: >
+    A new chord roughly once a beat or faster.
+  what_it_does_to_the_sound: >
+    Busy and propulsive. Individual chords stop registering as colours.
+  when_it_helps: >
+    Through a turnaround or a lead-in.
+  on_device: TUTOR_TODO
+  common_mistake: >
+    Keeping complicated chords at this speed -- nobody hears them.
+
+- id: looping
+  kind: performance
+  plain_name: "coming back round to the same shapes"
+  detect: is_looping
+  prerequisites: [chords_in_a_key]
+  edges: [dynamic_range, sus_chords]
+  status: draft
+  what_it_means: >
+    The same handful of chords coming back round instead of a new one each time.
+  what_it_does_to_the_sound: >
+    Hypnotic and solid -- the foundation most records are built on.
+  when_it_helps: >
+    Always, as a base. The question is what you change on top of it.
+  on_device: TUTOR_TODO
+  common_mistake: >
+    Treating the loop as finished because it works.
+
+- id: dynamic_range
+  kind: performance
+  plain_name: "playing some chords harder than others"
+  detect: has_dynamic_range
+  prerequisites: [looping]
+  edges: []
+  status: draft
+  what_it_means: >
+    Hitting some chords harder than others, instead of every one the same.
+  what_it_does_to_the_sound: >
+    Human. A flat loop sounds programmed even when the notes are right.
+  when_it_helps: >
+    When a correct loop still sounds stiff.
+  on_device: TUTOR_TODO
+  common_mistake: >
+    Varying at random instead of leaning on the chord that matters.
