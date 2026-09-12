@@ -150,7 +150,7 @@ export default function Page() {
         </div>
         <span className={`pill ${backend ? "ok" : "bad"}`}>
           {backend
-            ? `${backend.personas} musicians looking to play`
+            ? `${backend.personas} musicians looking to jam`
             : "backend unreachable"}
         </span>
       </header>
