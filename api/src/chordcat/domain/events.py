@@ -170,6 +170,14 @@ class SongHit:
     video_url: str = ""
     #: Genres for this song, in the project's closed taxonomy.
     genres: tuple[str, ...] = ()
+    #: The song's own progression, as Hooktheory analyses it.
+    song_chords: tuple[str, ...] = ()
+    #: The part of it that matched what was played.
+    matched_chords: tuple[str, ...] = ()
+    #: The song's key, which is what its roman numerals are relative to.
+    song_key: str = ""
+    #: Share of the song's progression the played pattern accounts for.
+    coverage: float = 0.0
 
 
 @dataclass(frozen=True, slots=True)

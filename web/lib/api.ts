@@ -18,6 +18,10 @@ export interface Song {
   /** The recording on YouTube, when the source knew one. */
   video_url: string;
   genres: string[];
+  song_chords: string[];
+  matched_chords: string[];
+  song_key: string;
+  coverage: number;
 }
 export interface Artist { artist: string; score: number; songs: string[] }
 export interface Harmonic {
@@ -135,4 +139,31 @@ export async function selectableGenres(): Promise<string[]> {
   const res = await fetch(`${BASE}/api/genres`);
   if (!res.ok) throw new Error(`Could not load genres (${res.status})`);
   return (await res.json()).genres as string[];
+}
+
+/**
+ * Reduce a roman numeral to the triad it is built on.
+ *
+ * Mirrors the server, which queries in plain triads so that `i ii` matches a
+ * song written `i7 ii7`. The highlighting has to compare the same way, or the
+ * matched chords in such a song would appear unmatched.
+ */
+export function stripModifiers(roman: string): string {
+  const m = /^([b#]*)([ivxIVX]+)(o|0|ø|\+)?/.exec(roman.trim());
+  return m ? `${m[1]}${m[2]}${m[3] ?? ""}` : roman.trim();
+}
+
+/** Indices of chords covered by an occurrence of `pattern`. */
+export function matchedPositions(chords: string[], pattern: string[]): Set<number> {
+  const hits = new Set<number>();
+  if (pattern.length === 0) return hits;
+  const norm = chords.map(stripModifiers);
+  const want = pattern.map(stripModifiers);
+  for (let i = 0; i + want.length <= norm.length; i++) {
+    if (want.every((w, j) => norm[i + j] === w)) {
+      for (let j = 0; j < want.length; j++) hits.add(i + j);
+      i += want.length - 1;
+    }
+  }
+  return hits;
 }

@@ -316,6 +316,9 @@ def _merge_theorytab(
                 url=hit.url,
                 video_url=hit.youtube_url,
                 genres=map_hooktheory_genres(list(hit.genres)),
+                song_chords=tuple(hit.chords),
+                matched_chords=tuple(romans),
+                song_key=hit.key_name,
             )
         )
         key = (normalize_name(hit.artist), normalize_name(hit.song))

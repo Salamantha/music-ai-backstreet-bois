@@ -103,6 +103,11 @@ class SongOut(BaseModel):
     #: The recording on YouTube, when the source provided one.
     video_url: str = ""
     genres: list[str] = Field(default_factory=list)
+    #: The song's own progression, and the part of it you played.
+    song_chords: list[str] = Field(default_factory=list)
+    matched_chords: list[str] = Field(default_factory=list)
+    song_key: str = ""
+    coverage: float = 0.0
 
 
 class ArtistOut(BaseModel):

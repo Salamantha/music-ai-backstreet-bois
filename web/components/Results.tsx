@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { AnalyzeResponse, Profile } from "@/lib/api";
+import { matchedPositions, type AnalyzeResponse, type Profile, type Song } from "@/lib/api";
 
 function Bars({ data, alt = false, max = 6 }: {
   data: Record<string, number>; alt?: boolean; max?: number;
@@ -26,6 +26,39 @@ function Bars({ data, alt = false, max = 6 }: {
   );
 }
 
+/** A song's own progression, with the part you played picked out. */
+function ChordString({ song }: { song: Song }) {
+  if (song.song_chords.length === 0) {
+    return (
+      <span className="mono" style={{ color: "var(--muted)", fontSize: 12 }}>
+        {song.matched_ngrams.join("  ") || "—"}
+      </span>
+    );
+  }
+  const hits = matchedPositions(song.song_chords, song.matched_chords);
+  const MAX = 16;
+  const shown = song.song_chords.slice(0, MAX);
+  return (
+    <span className="mono" style={{ fontSize: 12 }}>
+      {shown.map((chord, i) => (
+        <span
+          key={i}
+          style={{
+            color: hits.has(i) ? "var(--accent)" : "var(--muted)",
+            fontWeight: hits.has(i) ? 700 : 400,
+            marginRight: 5,
+          }}
+        >
+          {chord}
+        </span>
+      ))}
+      {song.song_chords.length > MAX && (
+        <span style={{ color: "var(--muted)" }}>…</span>
+      )}
+    </span>
+  );
+}
+
 export function SongMatches({ result }: { result: AnalyzeResponse }) {
   const [expanded, setExpanded] = useState(false);
   if (result.songs.length === 0) return null;
@@ -42,8 +75,9 @@ export function SongMatches({ result }: { result: AnalyzeResponse }) {
       <table style={{ marginTop: 12 }}>
         <thead>
           <tr>
-            <th>Artist</th><th>Song</th><th>Section</th>
-            <th style={{ width: 64 }}>Score</th>
+            <th>Artist</th><th>Song</th><th>Key</th>
+            <th>Their chords · yours in green</th>
+            <th style={{ width: 52 }}>Match</th>
           </tr>
         </thead>
         <tbody>
@@ -65,8 +99,17 @@ export function SongMatches({ result }: { result: AnalyzeResponse }) {
                   <span style={{ color: "var(--muted)", fontSize: 11 }}> ↗ theory</span>
                 )}
               </td>
-              <td style={{ color: "var(--muted)" }}>{s.section}</td>
-              <td className="mono">{s.score.toFixed(2)}</td>
+              <td style={{ color: "var(--muted)", whiteSpace: "nowrap" }}>
+                {s.song_key || "—"}
+              </td>
+              <td><ChordString song={s} /></td>
+              <td
+                className="mono"
+                title={`relevance score ${s.score.toFixed(2)}`}
+                style={{ color: s.coverage >= 0.99 ? "var(--accent)" : undefined }}
+              >
+                {s.coverage > 0 ? `${Math.round(s.coverage * 100)}%` : "—"}
+              </td>
             </tr>
           ))}
         </tbody>

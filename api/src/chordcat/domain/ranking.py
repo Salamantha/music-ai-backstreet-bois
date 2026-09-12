@@ -144,6 +144,10 @@ def score_songs(
             url=display[k].url,
             video_url=display[k].video_url,
             genres=display[k].genres,
+            song_chords=display[k].song_chords,
+            matched_chords=display[k].matched_chords,
+            song_key=display[k].song_key,
+            coverage=coverage.get(k, 0.0) if coverage else 0.0,
             score=v
             * _section_multiplier(len(sections[k]))
             * _coverage_multiplier(coverage.get(k) if coverage else None),

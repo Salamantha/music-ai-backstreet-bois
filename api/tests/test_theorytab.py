@@ -111,3 +111,21 @@ async def test_fake_client_pages_and_dedupes():
     fake = FakeTheoryTabClient(fixtures={"i ii": [hit]})
     assert await fake.search_all("i ii") == [hit]
     assert fake.calls[0] == "i ii"
+
+
+def test_hit_carries_the_songs_own_progression(hits):
+    """What matched is only meaningful against what the song actually plays."""
+    chorus = next(h for h in hits if h.section == "Chorus")
+    assert chorus.chords == ("i", "ii") * 4
+    assert chorus.key_name == "D Dorian"
+    # The whole song is the played pattern, looped.
+    assert progression_coverage(chorus.chords, ["i", "ii"]) == 1.0
+
+
+def test_coverage_separates_looping_from_incidental_use():
+    """A song built on your two chords beats one that passes through them."""
+    loop = ["i", "ii"] * 4
+    incidental = ["i", "ii", "i", "i65", "VI9", "i65sus4", "VI9", "ii7"]
+    assert progression_coverage(loop, ["i", "ii"]) > progression_coverage(
+        incidental, ["i", "ii"]
+    )

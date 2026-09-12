@@ -347,6 +347,9 @@ async def analyze(req: AnalyzeRequest) -> AnalyzeResponse:
                 artist=s.artist, song=s.song, section=s.section, url=s.url,
                 score=s.score, matched_ngrams=list(s.matched_ngrams),
                 video_url=s.video_url, genres=list(s.genres),
+                song_chords=list(s.song_chords),
+                matched_chords=list(s.matched_chords),
+                song_key=s.song_key, coverage=s.coverage,
             )
             for s in result.search.songs[:40]
         ],
