@@ -15,7 +15,7 @@ function flag(value: string | undefined, fallback: boolean): boolean {
 /** The major/minor readings of the captured chords. */
 export const SHOW_CHORD_PROGRESSION = flag(
   process.env.NEXT_PUBLIC_SHOW_CHORD_PROGRESSION,
-  false,
+  true,
 );
 
 /** Caveats about the analysis -- stuck notes, no song matches, and so on. */
