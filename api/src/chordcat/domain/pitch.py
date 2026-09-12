@@ -59,6 +59,20 @@ _NATURAL_PC: Final[tuple[int, ...]] = (0, 2, 4, 5, 7, 9, 11)
 _ACCIDENTALS: Final[dict[int, str]] = {-2: "bb", -1: "b", 0: "", 1: "#", 2: "##"}
 
 
+#: How a chord root is written when no key is known. Convention is not
+#: symmetrical: Bb, Eb and Ab are overwhelmingly commoner than A#, D# and G#,
+#: while F# is commoner than Gb and C# than Db. Defaulting everything to sharps
+#: spells three of the five black keys the way almost nobody writes them.
+_CONTEXTLESS_NAMES: Final[tuple[str, ...]] = (
+    "C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B",
+)
+
+
+def chord_name(pitch_class: int) -> str:
+    """Name a chord root with no key to go on, following common practice."""
+    return _CONTEXTLESS_NAMES[pitch_class % 12]
+
+
 def spell_in_key(pitch_class: int, tonic_pc: int, mode: str) -> str:
     """Name a pitch class as it would be written in a given key.
 
@@ -141,6 +155,20 @@ _FLAT_MODES: Final[frozenset[str]] = frozenset(
 _LETTERS: Final[str] = "CDEFGAB"
 _NATURAL_PC: Final[tuple[int, ...]] = (0, 2, 4, 5, 7, 9, 11)
 _ACCIDENTALS: Final[dict[int, str]] = {-2: "bb", -1: "b", 0: "", 1: "#", 2: "##"}
+
+
+#: How a chord root is written when no key is known. Convention is not
+#: symmetrical: Bb, Eb and Ab are overwhelmingly commoner than A#, D# and G#,
+#: while F# is commoner than Gb and C# than Db. Defaulting everything to sharps
+#: spells three of the five black keys the way almost nobody writes them.
+_CONTEXTLESS_NAMES: Final[tuple[str, ...]] = (
+    "C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B",
+)
+
+
+def chord_name(pitch_class: int) -> str:
+    """Name a chord root with no key to go on, following common practice."""
+    return _CONTEXTLESS_NAMES[pitch_class % 12]
 
 
 def spell_in_key(pitch_class: int, tonic_pc: int, mode: str) -> str:

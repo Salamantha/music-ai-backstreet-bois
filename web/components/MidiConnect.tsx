@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import ChordSteps, { type Step } from "./ChordSteps";
 import { identify, type Identified } from "@/lib/api";
-import { DEMOS } from "@/lib/demo";
 import {
   MidiCapture, channelStats, checkSupport, filterChannels, heldNotes,
   looksLikeChordcat, noteName, suggestHarmonyChannels,
@@ -12,6 +11,14 @@ import {
 } from "@/lib/webmidi";
 
 interface Props {
+  /**
+   * Which half of the capture flow to render. "none" renders nothing while
+   * keeping the component mounted -- the MIDI connection and the captured
+   * chords live in here, and unmounting to change step would discard both.
+   */
+  show: "connect" | "capture" | "none";
+  /** Fired once a device is selected, so the flow can move on. */
+  onConnected?: () => void;
   onChords: (steps: { pitches: number[]; duration_ms?: number }[]) => void;
   /** Discard the analysis on screen, because it no longer describes anything
    *  the user can see -- the progression it came from has been cleared. */
@@ -31,7 +38,9 @@ interface Props {
 const ONSET_WINDOW_MS = 70;
 const MIN_NOTES_PER_STEP = 2;
 
-export default function MidiConnect({ onChords, onReset, busy }: Props) {
+export default function MidiConnect({
+  show, onConnected, onChords, onReset, busy,
+}: Props) {
   const captureRef = useRef<MidiCapture | null>(null);
   // Web MIDI support cannot be determined during server rendering -- `navigator`
   // does not exist there -- so resolve it after mount. Computing it in the
@@ -162,6 +171,7 @@ export default function MidiConnect({ onChords, onReset, busy }: Props) {
         setOutputId(preferredOut.id);
         await capture.selectOutput(preferredOut.id);
       }
+      if (preferred) onConnected?.();
       capture.subscribe((e, all) => {
         setHeld(heldNotes(all));
         setCount(all.length);
@@ -238,25 +248,6 @@ export default function MidiConnect({ onChords, onReset, busy }: Props) {
     }
   }
 
-  /** Load a demo progression, so the capture UI can be exercised with no
-   *  hardware attached. In step mode it fills the chord list; in continuous
-   *  mode it feeds the same synthetic note stream the segmenter would see. */
-  function loadDemo(demoId: string) {
-    const demo = DEMOS.find((d) => d.id === demoId);
-    if (!demo) return;
-    resetSteps();
-    setHasStoppedCapture(true);
-    demo.chords.forEach((pitches) => {
-      const id = nextId.current++;
-      setSteps((prev) => [...prev, { id, pitches, chord: null }]);
-      identify(pitches)
-        .then((chord) =>
-          setSteps((prev) => prev.map((s) => (s.id === id ? { ...s, chord } : s))),
-        )
-        .catch(() => undefined);
-    });
-  }
-
   /** Move a captured chord to a different position in the progression. */
   function reorderStep(from: number, to: number) {
     setSteps((prev) => {
@@ -288,132 +279,176 @@ export default function MidiConnect({ onChords, onReset, busy }: Props) {
     );
   }
 
-  return (
-    <div className="panel">
-      <div className="row spread">
-        <h2 style={{ margin: 0 }}>MIDI input</h2>
-        <span className={`pill ${connected ? "ok" : ""}`}>
-          {connected ? `${ports.length} device${ports.length === 1 ? "" : "s"}` : "not connected"}
-        </span>
-      </div>
+  // Step 1: choose a device. Step 2: play into it. Separate stages of the flow,
+  // so only one is on screen at a time -- but the component stays mounted
+  // throughout, because it owns the connection and the captured chords.
+  if (show === "none") return null;
 
-      <div className="row" style={{ marginTop: 12 }}>
+  if (show === "connect") {
+    return (
+      <div className="panel">
+        <div className="row spread">
+          <h2 style={{ margin: 0 }}>Connect your instrument</h2>
+          <span className={`pill ${connected ? "ok" : ""}`}>
+            {connected
+              ? `${ports.length} device${ports.length === 1 ? "" : "s"}`
+              : "not connected"}
+          </span>
+        </div>
+
         {!connected ? (
-          <button className="primary" onClick={connect}>Connect MIDI</button>
+          <>
+            <p className="sub">
+              Your browser needs permission to read MIDI. Nothing is recorded
+              until you choose to start.
+            </p>
+            <button className="primary" onClick={connect}>
+              Connect MIDI
+            </button>
+          </>
         ) : (
           <>
-            <select value={selected} onChange={(e) => void choose(e.target.value)}>
-              {ports.length === 0 && <option value="">No MIDI inputs found</option>}
-              {ports.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}{p.manufacturer ? ` — ${p.manufacturer}` : ""}
-                  {looksLikeChordcat(p) ? "  ✓ ChordCat" : ""}
-                  {p.state !== "connected" ? `  (${p.state})` : ""}
-                  {p.messages > 0 ? `  ● ${p.messages}` : ""}
-                </option>
-              ))}
-            </select>
-            {!recording ? (
-              <>
-                {/* Only offer to resume when there is something to resume. A
-                    capture that was stopped without producing a chord has
-                    nothing to add to, so it reads as a fresh start. */}
-                {hasStoppedCapture && steps.length > 0 && (
-                  <button className="primary" onClick={resume} disabled={!selected || busy}>
-                    Add more chords ({steps.length} so far)
-                  </button>
-                )}
-                {/* Start over clears the take and waits, rather than
-                    immediately recording again -- discarding work and opening a
-                    live capture are two different intentions. */}
-                <button
-                  className={steps.length > 0 ? "" : "primary"}
-                  onClick={steps.length > 0 ? startOver : start}
-                  disabled={!selected || busy}
-                >
-                  {steps.length > 0 ? "Start over" : "Start capturing"}
-                </button>
-              </>
-            ) : (
-              <button
-                className="danger"
-                onClick={() => {
-                  // Commit a chord still inside its onset window, so the last
-                  // one played is not lost to the stop.
-                  flushChord();
-                  setRecording(false);
-                  setHasStoppedCapture(true);
-                }}
+            <p className="sub" id="device-help">
+              Pick the port your notes arrive on. A dot marks any port currently
+              receiving.
+            </p>
+            <div className="row">
+              <label htmlFor="midi-in">Input</label>
+              <select
+                id="midi-in"
+                aria-describedby="device-help"
+                value={selected}
+                onChange={(e) => void choose(e.target.value)}
               >
-                Stop capturing
-              </button>
+                {ports.length === 0 && <option value="">No MIDI inputs found</option>}
+                {ports.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}{p.manufacturer ? ` — ${p.manufacturer}` : ""}
+                    {looksLikeChordcat(p) ? "  ✓ ChordCat" : ""}
+                    {p.state !== "connected" ? `  (${p.state})` : ""}
+                    {p.messages > 0 ? `  ● ${p.messages}` : ""}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {outputs.length > 1 && (
+              <div className="row" style={{ marginTop: "0.75rem" }}>
+                <label htmlFor="midi-out">Play back to</label>
+                <select
+                  id="midi-out"
+                  value={outputId}
+                  onChange={(e) => {
+                    setOutputId(e.target.value);
+                    captureRef.current!
+                      .selectOutput(e.target.value)
+                      .catch((err) =>
+                        setError(err instanceof Error ? err.message : String(err)),
+                      );
+                  }}
+                >
+                  {outputs.map((o) => (
+                    <option key={o.id} value={o.id}>
+                      {o.name}{looksLikeChordcat(o) ? "  ✓ ChordCat" : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            <p
+              className="row"
+              style={{ marginTop: "0.9rem" }}
+              role="status"
+              aria-live="polite"
+            >
+              <span className={`pill ${traffic > 0 ? "ok" : ""}`}>
+                {traffic > 0
+                  ? `${traffic} MIDI message${traffic === 1 ? "" : "s"} received`
+                  : "no MIDI received yet"}
+              </span>
+              {traffic === 0 && (
+                <span className="sub" style={{ margin: 0 }}>
+                  {ports.some((p) => p.messages > 0 && p.id !== selected)
+                    ? `Notes are arriving on ${ports.find((p) => p.messages > 0 && p.id !== selected)?.name} — choose it above.`
+                    : "Play a note to check the connection."}
+                </span>
+              )}
+            </p>
+
+            {ports.length === 0 && (
+              <p className="sub">
+                No inputs detected. Connect the ChordCat over USB-C — it needs no
+                drivers — and the list will refresh on its own.
+              </p>
             )}
           </>
         )}
+
+        {error && <p className="error">{error}</p>}
+
+      </div>
+    );
+  }
+
+  return (
+    <div className="panel">
+      <div className="row spread">
+        <h2 style={{ margin: 0 }}>Play your chords</h2>
+        <span className={`pill ${recording ? "ok" : ""}`}>
+          {recording ? "listening" : "not listening"}
+        </span>
       </div>
 
-      {connected && (
-        <div style={{ marginTop: 14 }}>
-          {/* Whether anything is arriving at all. Without this, a port that is
-              selected but silent -- a virtual bus with nothing routed to it --
-              is indistinguishable from one that is working. */}
-          <div className="row" style={{ gap: 8, marginBottom: 8 }}>
-            <span className={`pill ${traffic > 0 ? "ok" : ""}`}>
-              {traffic > 0
-                ? `${traffic} MIDI message${traffic === 1 ? "" : "s"} received`
-                : "no MIDI received yet on this port"}
-            </span>
-            {traffic > 0 && count === 0 && (
-              <span className="sub" style={{ margin: 0, fontSize: 12 }}>
-                Messages are arriving but none are notes — the port is working,
-                the notes are not routed to it.
-              </span>
-            )}
-            {traffic === 0 && (
-              <span className="sub" style={{ margin: 0, fontSize: 12 }}>
-                {ports.some((p) => p.messages > 0 && p.id !== selected)
-                  ? `Notes are arriving on ${ports.find((p) => p.messages > 0 && p.id !== selected)?.name} — switch to it above.`
-                  : "Play something. If this stays at zero, nothing is reaching the browser from any port."}
-              </span>
-            )}
-          </div>
-          <div className="live">
-            {held.length === 0 ? (
-              <span className="pill">
-                {recording ? "recording — play a progression" : "idle"}
-              </span>
-            ) : (
-              held.map((p) => <span key={p} className="note">{noteName(p)}</span>)
-            )}
-          </div>
-        </div>
-      )}
+      <p className="sub">
+        Play one chord after another. Each is captured the moment you play it, so
+        there is no need to release before the next.
+      </p>
 
-      {error && <p className="error" style={{ marginBottom: 0 }}>{error}</p>}
-
-      {!recording && (
-        <div style={{ marginTop: 14 }}>
-          <p className="sub" style={{ margin: "0 0 8px" }}>
-            No ChordCat to hand? Load a progression to try the interface.
-          </p>
-          <div className="keys">
-            {DEMOS.map((d) => (
-              <button
-                key={d.id}
-                onClick={() => loadDemo(d.id)}
-                disabled={busy}
-                title={d.hint}
-                style={{ fontSize: 13 }}
-              >
-                {d.label}
+      <div className="row">
+        {!recording ? (
+          <>
+            {hasStoppedCapture && steps.length > 0 && (
+              <button className="primary" onClick={resume} disabled={!selected || busy}>
+                Add more chords
               </button>
-            ))}
-          </div>
-        </div>
-      )}
+            )}
+            <button
+              className={steps.length > 0 ? "" : "primary"}
+              onClick={steps.length > 0 ? startOver : start}
+              disabled={!selected || busy}
+            >
+              {steps.length > 0 ? "Start over" : "Start capturing"}
+            </button>
+          </>
+        ) : (
+          <button
+            className="danger"
+            onClick={() => {
+              flushChord();
+              setRecording(false);
+              setHasStoppedCapture(true);
+            }}
+          >
+            Stop capturing
+          </button>
+        )}
+      </div>
+
+      <div className="live" style={{ marginTop: "0.9rem" }} role="status" aria-live="polite">
+        {held.length === 0 ? (
+          <span className="pill">
+            {recording ? "listening — play a chord" : "idle"}
+          </span>
+        ) : (
+          held.map((p) => <span key={p} className="note">{noteName(p)}</span>)
+        )}
+      </div>
+
+      {error && <p className="error">{error}</p>}
 
       {(recording || steps.length > 0) && (
-        <div style={{ marginTop: 16, marginLeft: -18, marginRight: -18 }}>
+        <div style={{ marginTop: "1.25rem" }}>
           <ChordSteps
             steps={steps}
             pending={pending}
@@ -426,16 +461,10 @@ export default function MidiConnect({ onChords, onReset, busy }: Props) {
             canPlay={connected && outputs.length > 0}
             playing={playing}
             onAnalyse={() => {
-              // Analysing ends the take. Without this, anything played while
-              // the results load would quietly append to the progression that
-              // was just analysed.
               const inFlight = [...chordBuffer.current].sort((a, b) => a - b);
               flushChord();
               setRecording(false);
               setHasStoppedCapture(true);
-
-              // A chord still inside its onset window has not reached `steps`
-              // yet, so include it explicitly rather than losing it.
               const captured = steps.map((s) => ({
                 pitches: s.pitches,
                 duration_ms: 600,
@@ -447,37 +476,6 @@ export default function MidiConnect({ onChords, onReset, busy }: Props) {
             }}
           />
         </div>
-      )}
-
-
-      {connected && outputs.length > 1 && (
-        <div className="row" style={{ marginTop: 10, gap: 8 }}>
-          <span className="sub" style={{ margin: 0 }}>Play back to</span>
-          <select
-            value={outputId}
-            onChange={(e) => {
-              setOutputId(e.target.value);
-              captureRef.current!
-                .selectOutput(e.target.value)
-                .catch((err) =>
-                  setError(err instanceof Error ? err.message : String(err)),
-                );
-            }}
-          >
-            {outputs.map((o) => (
-              <option key={o.id} value={o.id}>
-                {o.name}{looksLikeChordcat(o) ? "  ✓ ChordCat" : ""}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
-
-      {connected && ports.length === 0 && (
-        <p className="sub" style={{ margin: "10px 0 0" }}>
-          No inputs detected. Connect the ChordCat over USB-C and it should appear
-          without drivers; the list refreshes automatically.
-        </p>
       )}
     </div>
   );

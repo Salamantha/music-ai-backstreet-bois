@@ -13,6 +13,7 @@ from ..domain.cp import to_cp
 from ..domain.events import ChordEvent, Hole, IdentifiedChord, Key, RawEvent
 from ..domain.pitch import (
     MODES,
+    chord_name,
     key_name,
     pc_name,
     prefers_flats,
@@ -67,7 +68,7 @@ def _symbol(root_pc: int, quality: str, key: Key | None = None) -> str:
     root = (
         spell_in_key(root_pc, key.tonic_pc, key.mode)
         if key is not None
-        else pc_name(root_pc)
+        else chord_name(root_pc)
     )
     return root + _QUALITY_SYMBOL.get(quality, "")
 
@@ -119,7 +120,7 @@ async def identify(req: IdentifyRequest) -> IdentifyResponse:
     spell = (
         (lambda pc: spell_in_key(pc, key.tonic_pc, key.mode))
         if key is not None
-        else (lambda pc: pc_name(pc, prefer_flats=flats))
+        else chord_name
     )
     event = _chord_event(pitches)
     candidates = identify_chord(event, key=key)
@@ -229,7 +230,7 @@ async def analyze(req: AnalyzeRequest) -> AnalyzeResponse:
             root=(
                 spell_in_key(c.best.root_pc, analysed_key.tonic_pc, analysed_key.mode)
                 if analysed_key
-                else pc_name(c.best.root_pc)
+                else chord_name(c.best.root_pc)
             ),
             quality=c.best.quality,
             inversion=c.best.inversion,

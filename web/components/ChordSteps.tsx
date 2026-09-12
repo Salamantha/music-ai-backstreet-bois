@@ -117,7 +117,7 @@ export default function ChordSteps({
   return (
     <div className="panel">
       <div className="row spread">
-        <h2 style={{ margin: 0 }}>Progression</h2>
+        <h3 style={{ margin: 0 }}>Progression</h3>
         <span className="row" style={{ gap: 8 }}>
           <span className="pill">{steps.length} chord{steps.length === 1 ? "" : "s"}</span>
           {steps.length > 0 && (
@@ -150,10 +150,8 @@ export default function ChordSteps({
         </span>
       </div>
 
-      <p className="sub" style={{ margin: "8px 0 12px" }}>
-        Play one chord after another — each is captured the moment you play it,
-        so you don&apos;t need to release before the next. Pick a chord up and move
-        it to change the order.
+      <p className="sub">
+        Drag a chord to reorder it, or use its arrows. Remove one with ×.
       </p>
 
       <div className="chords">

@@ -180,6 +180,22 @@ class TestSpelling:
             ]
             assert len(set(letters)) == 7, f"tonic {tonic}: {letters}"
 
+    def test_contextless_chord_names_follow_common_practice(self):
+        """With no key to go on, convention is not symmetrical.
+
+        Bb, Eb and Ab are overwhelmingly commoner than A#, D# and G#, so
+        defaulting everything to sharps spells three of the five black keys the
+        way almost nobody writes them.
+        """
+        from chordcat.domain.pitch import chord_name
+
+        assert chord_name(10) == "Bb"
+        assert chord_name(3) == "Eb"
+        assert chord_name(8) == "Ab"
+        assert chord_name(6) == "F#"
+        assert chord_name(1) == "C#"
+        assert chord_name(0) == "C"
+
     def test_known_spellings(self):
         from chordcat.domain.pitch import spell_in_key
 

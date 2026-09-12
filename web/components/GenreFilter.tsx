@@ -14,6 +14,8 @@ interface Props {
   /** True once results exist, so counts can be shown and zeroes dimmed. */
   hasResults: boolean;
   busy: boolean;
+  /** Render without the surrounding panel, for use inside another one. */
+  bare?: boolean;
 }
 
 const TONALITIES: { value: Tonality; label: string; hint: string }[] = [
@@ -24,6 +26,7 @@ const TONALITIES: { value: Tonality; label: string; hint: string }[] = [
 
 export default function GenreFilter({
   options, counts, selected, onChange, hasResults, busy, tonality, onTonality,
+  bare = false,
 }: Props) {
   const active = new Set(selected);
   if (options.length === 0) return null;
@@ -42,7 +45,7 @@ export default function GenreFilter({
   }
 
   return (
-    <div className="panel">
+    <div className={bare ? "" : "panel"}>
       <div className="row spread" style={{ marginBottom: 12 }}>
         <h2 style={{ margin: 0 }}>Tonality</h2>
         <span className="row" style={{ gap: 4 }}>
