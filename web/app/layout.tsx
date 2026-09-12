@@ -27,7 +27,7 @@ const mono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "ChordCat Connect — The HackStreet Bois",
   description:
-    "Play some chords. Find some musicians to jam with!",
+    "Play some chords. Find musicians who hear music the same way you do.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

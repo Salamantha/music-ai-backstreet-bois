@@ -143,8 +143,8 @@ export default function Page() {
           <div>
           <h1>ChordCat Connect</h1>
           <p className="lede">
-            Play some chords. Find some musicians to jam with! Brought to you
-            by The HackStreet Bois.
+            Play some chords. Find musicians who hear music the same way you
+            do. Brought to you by The HackStreet Bois.
           </p>
           </div>
         </div>
