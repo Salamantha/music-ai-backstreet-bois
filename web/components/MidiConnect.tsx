@@ -140,7 +140,13 @@ export default function MidiConnect({ onChords, onReset, busy }: Props) {
 
       // Watch every input, so a port carrying notes is visible even when it is
       // not the one selected.
-      await capture.watchAllInputs(() => setPorts(capture.ports()));
+      // The pill must count *every* message, not only note events. A port
+      // carrying clock or controller data but no notes is a routing problem
+      // worth distinguishing from a port carrying nothing at all.
+      await capture.watchAllInputs(() => {
+        setPorts(capture.ports());
+        setTraffic(capture.traffic().count);
+      });
 
       const preferred = found.find(looksLikeChordcat) ?? found[0];
       if (preferred) {
@@ -357,6 +363,12 @@ export default function MidiConnect({ onChords, onReset, busy }: Props) {
                 ? `${traffic} MIDI message${traffic === 1 ? "" : "s"} received`
                 : "no MIDI received yet on this port"}
             </span>
+            {traffic > 0 && count === 0 && (
+              <span className="sub" style={{ margin: 0, fontSize: 12 }}>
+                Messages are arriving but none are notes — the port is working,
+                the notes are not routed to it.
+              </span>
+            )}
             {traffic === 0 && (
               <span className="sub" style={{ margin: 0, fontSize: 12 }}>
                 {ports.some((p) => p.messages > 0 && p.id !== selected)
