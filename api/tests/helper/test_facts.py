@@ -3,8 +3,8 @@ from __future__ import annotations
 from chordcat.helper.facts import MIN_OBSERVATIONS, Fact, FactSet
 
 
-def make(kind: str, value, n: int = 5) -> Fact:
-    return Fact(id=f"{kind}#0", kind=kind, value=value, n_observations=n)
+def make(kind: str, value, n: int = 5, **kw) -> Fact:
+    return Fact(id=f"{kind}#0", kind=kind, value=value, n_observations=n, **kw)
 
 
 def test_namespace_is_the_part_before_the_dot():
@@ -23,6 +23,15 @@ def test_thin_evidence_is_withheld_not_asserted():
     fs = FactSet((make("harmony.cadence", "authentic", n=1), make("harmony.chord", "C", n=9)))
     assert {f.kind for f in fs.supported().facts} == {"harmony.chord"}
     assert MIN_OBSERVATIONS > 1
+
+
+def test_a_direct_observation_is_never_thresholded_away():
+    """One chord played is one chord played -- that is not a thin pattern."""
+    fs = FactSet((
+        make("harmony.chord", "Cmaj7", n=1, is_pattern=False),
+        make("harmony.rhythm", {"chords": 2}, n=2),
+    ))
+    assert {f.kind for f in fs.supported().facts} == {"harmony.chord"}
 
 
 def test_ids_are_unique_within_a_set():

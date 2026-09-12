@@ -23,6 +23,11 @@ class Fact:
     #: Indices into the identified-chord sequence that produced this fact.
     evidence: tuple[int, ...] = ()
     n_observations: int = 0
+    #: True for a claim about a *pattern* ("your chords mostly last 3 seconds"),
+    #: which needs evidence behind it before it may be asserted. False for a
+    #: direct observation ("you played Cmaj7"), which is self-supporting at n=1
+    #: and must never be thresholded away -- doing so unlights the concept map.
+    is_pattern: bool = True
 
     @property
     def namespace(self) -> str:
@@ -47,7 +52,13 @@ class FactSet:
         return frozenset(f.id for f in self.facts)
 
     def supported(self, minimum: int = MIN_OBSERVATIONS) -> FactSet:
-        return FactSet(tuple(f for f in self.facts if f.n_observations >= minimum))
+        return FactSet(
+            tuple(
+                f
+                for f in self.facts
+                if not f.is_pattern or f.n_observations >= minimum
+            )
+        )
 
     def __iter__(self):
         return iter(self.facts)

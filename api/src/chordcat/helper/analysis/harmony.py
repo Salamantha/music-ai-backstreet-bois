@@ -53,6 +53,7 @@ def chords(inp: AnalysisInput) -> list[Fact]:
             confidence=min(c.best.score, 1.0),
             evidence=(i,),
             n_observations=1,
+            is_pattern=False,
         )
         for i, c in enumerate(inp.chords)
     ]
