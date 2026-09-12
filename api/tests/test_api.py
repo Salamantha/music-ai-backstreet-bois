@@ -131,7 +131,7 @@ def test_analyze_chord_steps_honour_a_key_override(client):
     body = client.post("/api/analyze", json=payload).json()
     assert body["key"]["name"] == "A minor"
     assert body["key"]["source"] == "user"
-    assert body["cp"] == "B3,B7,B1,B6"
+    assert body["cp"] == "b3,b7,b1,b6"
 
 
 def test_analyze_requires_some_input(client):

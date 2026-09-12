@@ -42,7 +42,7 @@ def test_axis_progression_in_c_major():
 
 
 def test_minor_progression_uses_b_prefix():
-    assert cps([Am, F, C, G], Key(9, "minor")) == ["B1", "B6", "B3", "B7"]
+    assert cps([Am, F, C, G], Key(9, "minor")) == ["b1", "b6", "b3", "b7"]
 
 
 def test_secondary_dominant_prefers_v_of_vi_over_iv_of_vii():
@@ -52,7 +52,7 @@ def test_secondary_dominant_prefers_v_of_vi_over_iv_of_vii():
 
 
 def test_borrowed_chords():
-    assert cps([C, Ab, Bb, C], Key(0, "major")) == ["1", "B6", "B7", "1"]
+    assert cps([C, Ab, Bb, C], Key(0, "major")) == ["1", "b6", "b7", "1"]
 
 
 def test_sus_chords_resolve_to_a_triad_not_a_dominant_seventh():

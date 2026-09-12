@@ -51,7 +51,7 @@ async def test_key_override_changes_the_cp_tokens(genres):
         key_override=Key(9, "minor"),
     )
     assert as_major.cp_string == "1,5,6,4"
-    assert as_minor.cp_string == "B3,B7,B1,B6"
+    assert as_minor.cp_string == "b3,b7,b1,b6"
     assert as_minor.key_estimate.source == "user"
 
 

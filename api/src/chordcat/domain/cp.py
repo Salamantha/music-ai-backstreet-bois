@@ -26,8 +26,12 @@ from typing import Final, Iterable, Sequence
 from .events import CpSequence, CpToken, Hole, IdentifiedChord, Key
 from .pitch import MODE_SCALES, Mode, roman_for
 
+#: Hooktheory's own `child_path` values come back lowercase for the minor
+#: prefix -- `b1`, `b4`, `b6` -- and it renders as a flat sign in their chord
+#: HTML (`b6` displays as bVI). Matching their casing keeps our tokens readable
+#: as the flats they are, rather than looking like B-something chords.
 MODE_PREFIX: Final[dict[Mode, str]] = {
-    "major": "", "minor": "B", "dorian": "D", "phrygian": "Y",
+    "major": "", "minor": "b", "dorian": "D", "phrygian": "Y",
     "lydian": "L", "mixolydian": "M", "locrian": "C",
 }
 PREFIX_MODE: Final[dict[str, Mode]] = {v: k for k, v in MODE_PREFIX.items()}
@@ -40,7 +44,7 @@ DEAD_TOKENS: Final[frozenset[str]] = frozenset(
 
 #: Collision priority: when several tokens denote the same (offset, quality),
 #: keep the first prefix listed here.
-_PREFIX_PRIORITY: Final[tuple[str, ...]] = ("", "B", "M", "D", "L", "Y", "C")
+_PREFIX_PRIORITY: Final[tuple[str, ...]] = ("", "b", "M", "D", "L", "Y", "C")
 
 #: Priority among applied-chord numerators. Secondary dominants first.
 _APPLIED_PRIORITY: Final[tuple[str, ...]] = ("5", "57", "7", "4")

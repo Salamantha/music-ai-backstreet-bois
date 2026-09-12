@@ -95,8 +95,17 @@ export function looksLikeChordcat(port: MidiPort): boolean {
   return /chordcat|chord\s*cat/i.test(`${port.name} ${port.manufacturer}`);
 }
 
+/** Milliseconds per beat at a given tempo. */
+export function beatMs(bpm: number): number {
+  return 60000 / bpm;
+}
+
 export class MidiCapture {
   private access: MIDIAccess | null = null;
+  private output: MIDIOutput | null = null;
+  /** Notes currently scheduled or sounding from playback, for a clean stop. */
+  private playing: { pitch: number; channel: number }[] = [];
+  private playbackEndsAt = 0;
   private input: MIDIInput | null = null;
   private events: MidiEvent[] = [];
   private raw: RawMessage[] = [];
@@ -122,6 +131,74 @@ export class MidiCapture {
       name: i.name ?? "unnamed",
       manufacturer: i.manufacturer ?? "",
     }));
+  }
+
+  /** Output ports, for sending a progression back to the device. */
+  outputs(): MidiPort[] {
+    if (!this.access) return [];
+    return Array.from(this.access.outputs.values()).map((o) => ({
+      id: o.id,
+      name: o.name ?? "unnamed",
+      manufacturer: o.manufacturer ?? "",
+    }));
+  }
+
+  selectOutput(portId: string): void {
+    if (!this.access) throw new Error("call connect() first");
+    const port = this.access.outputs.get(portId);
+    if (!port) throw new Error(`no MIDI output with id ${portId}`);
+    this.output = port;
+  }
+
+  hasOutput(): boolean {
+    return this.output !== null;
+  }
+
+  /**
+   * Play a progression back out to the device.
+   *
+   * Every note is scheduled up front with an explicit timestamp rather than
+   * driven by timers: Web MIDI delivers scheduled messages on its own clock, so
+   * the playback stays in time even if the main thread is busy rendering.
+   *
+   * Returns the total duration so the caller can clear its playing state.
+   */
+  play(
+    chords: number[][],
+    { chordMs = 900, gapMs = 40, velocity = 96, channel = 1 } = {},
+  ): number {
+    if (!this.output) throw new Error("no MIDI output selected");
+    this.stopPlayback();
+
+    const status = (base: number) => base | ((channel - 1) & 0x0f);
+    const start = performance.now() + 60;  // a beat of headroom
+    let at = start;
+
+    for (const pitches of chords) {
+      for (const pitch of pitches) {
+        this.output.send([status(0x90), pitch, velocity], at);
+        this.output.send([status(0x80), pitch, 0], at + chordMs);
+        this.playing.push({ pitch, channel });
+      }
+      at += chordMs + gapMs;
+    }
+    this.playbackEndsAt = at;
+    return at - start;
+  }
+
+  /** Silence anything playing, including notes already scheduled. */
+  stopPlayback(): void {
+    if (!this.output) return;
+    for (const { pitch, channel } of this.playing) {
+      this.output.send([0x80 | ((channel - 1) & 0x0f), pitch, 0]);
+    }
+    // All Notes Off / All Sound Off, in case a scheduled note-on slipped past.
+    for (let ch = 0; ch < 16; ch++) {
+      this.output.send([0xb0 | ch, 123, 0]);
+      this.output.send([0xb0 | ch, 120, 0]);
+    }
+    this.playing = [];
+    this.playbackEndsAt = 0;
   }
 
   onStateChange(cb: () => void): void {
@@ -195,8 +272,10 @@ export class MidiCapture {
   }
 
   disconnect(): void {
+    this.stopPlayback();
     if (this.input) this.input.onmidimessage = null;
     this.input = null;
+    this.output = null;
   }
 
   private handle(msg: MIDIMessageEvent): void {

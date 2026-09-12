@@ -23,7 +23,7 @@ def test_normalize_name():
 def test_rare_progression_outweighs_a_cliche():
     """Matching I-V-vi-IV means little; matching a rare loop means a lot."""
     common = Ngram(("1", "5", "6", "4"), 3, 1.0)
-    rare = Ngram(("B6", "B7", "B1", "5"), 1, 1.0)
+    rare = Ngram(("b6", "b7", "b1", "5"), 1, 1.0)
     songs = score_songs([
         NgramResult(common, (hit("Cliche Band", "Four Chords"),), total_hits=1500),
         NgramResult(rare, (hit("Rare Band", "Odd Loop"),), total_hits=5),

@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import ChordSteps, { type Step } from "./ChordSteps";
-import MidiMonitor from "./MidiMonitor";
 import { identify, type Identified } from "@/lib/api";
+import { DEMOS } from "@/lib/demo";
 import {
   MidiCapture, channelStats, checkSupport, filterChannels, heldNotes,
   looksLikeChordcat, noteName, suggestHarmonyChannels,
@@ -11,10 +11,7 @@ import {
   type RawMessage,
 } from "@/lib/webmidi";
 
-export type CaptureMode = "steps" | "continuous";
-
 interface Props {
-  onEvents: (events: MidiEvent[], elapsedMs: number) => void;
   onChords: (steps: { pitches: number[]; duration_ms?: number }[]) => void;
   busy: boolean;
 }
@@ -25,7 +22,7 @@ const RELEASE_COMMIT_MS = 90;
 const IDENTIFY_DEBOUNCE_MS = 120;
 const MIN_NOTES_PER_STEP = 2;
 
-export default function MidiConnect({ onEvents, onChords, busy }: Props) {
+export default function MidiConnect({ onChords, busy }: Props) {
   const captureRef = useRef<MidiCapture | null>(null);
   // Web MIDI support cannot be determined during server rendering -- `navigator`
   // does not exist there -- so resolve it after mount. Computing it in the
@@ -38,12 +35,7 @@ export default function MidiConnect({ onEvents, onChords, busy }: Props) {
   const [held, setHeld] = useState<number[]>([]);
   const [count, setCount] = useState(0);
   const [error, setError] = useState("");
-  const [stats, setStats] = useState<ChannelStats[]>([]);
-  const [recent, setRecent] = useState<RawMessage[]>([]);
-  const [channels, setChannels] = useState<Set<number>>(new Set());
-  const [touchedChannels, setTouchedChannels] = useState(false);
 
-  const [mode, setMode] = useState<CaptureMode>("steps");
   const [steps, setSteps] = useState<Step[]>([]);
   const [pending, setPending] = useState<number[]>([]);
   const [live, setLive] = useState<Identified | null>(null);
@@ -51,17 +43,19 @@ export default function MidiConnect({ onEvents, onChords, busy }: Props) {
   // before the user presses Start -- the device streams whenever it is playing --
   // so "has any events" is not the same thing as "has a capture to add to".
   const [hasStoppedCapture, setHasStoppedCapture] = useState(false);
+  const [outputs, setOutputs] = useState<MidiPort[]>([]);
+  const [outputId, setOutputId] = useState("");
+  const [playing, setPlaying] = useState(false);
+  const playTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // The MIDI subscription is registered once, so its closure would capture
   // stale state. Everything the handler reads lives in a ref.
-  const modeRef = useRef<CaptureMode>("steps");
   const recordingRef = useRef(false);
   const pendingRef = useRef<number[]>([]);
   const identifyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const commitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const nextId = useRef(1);
 
-  useEffect(() => { modeRef.current = mode; }, [mode]);
   useEffect(() => { recordingRef.current = recording; }, [recording]);
 
   const commitPending = useCallback(() => {
@@ -85,7 +79,7 @@ export default function MidiConnect({ onEvents, onChords, busy }: Props) {
 
   const onHeldChange = useCallback(
     (held: number[]) => {
-      if (modeRef.current !== "steps" || !recordingRef.current) return;
+      if (!recordingRef.current) return;
 
       if (commitTimer.current) clearTimeout(commitTimer.current);
 
@@ -128,28 +122,31 @@ export default function MidiConnect({ onEvents, onChords, busy }: Props) {
       const found = await capture.connect();
       setPorts(found);
       setConnected(true);
-      capture.onStateChange(() => setPorts(capture.ports()));
+      capture.onStateChange(() => {
+        setPorts(capture.ports());
+        setOutputs(capture.outputs());
+      });
 
       const preferred = found.find(looksLikeChordcat) ?? found[0];
       if (preferred) {
         setSelected(preferred.id);
         capture.select(preferred.id);
       }
+
+      // Pick an output too, so the progression can be played back to the device.
+      const outs = capture.outputs();
+      setOutputs(outs);
+      const preferredOut = outs.find(looksLikeChordcat) ?? outs[0];
+      if (preferredOut) {
+        setOutputId(preferredOut.id);
+        capture.selectOutput(preferredOut.id);
+      }
       capture.subscribe((_e, all) => {
         const currentlyHeld = heldNotes(all);
         setHeld(currentlyHeld);
         setCount(all.length);
         onHeldChange(currentlyHeld);
-        const next = channelStats(all);
-        setStats(next);
-        // Preselect the channels that look like harmony, but never fight the
-        // user once they have made a choice of their own.
-        setTouchedChannels((touched) => {
-          if (!touched) setChannels(suggestHarmonyChannels(next));
-          return touched;
-        });
       });
-      capture.subscribeRaw(() => setRecent(capture.rawMessages()));
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     }
@@ -179,9 +176,6 @@ export default function MidiConnect({ onEvents, onChords, busy }: Props) {
     setHasStoppedCapture(false);
     setCount(0);
     setHeld([]);
-    setStats([]);
-    setRecent([]);
-    setTouchedChannels(false);
     setRecording(true);
   }
 
@@ -190,6 +184,42 @@ export default function MidiConnect({ onEvents, onChords, busy }: Props) {
     captureRef.current!.resume();
     setHeld([]);
     setRecording(true);
+  }
+
+  function playBack() {
+    const capture = captureRef.current!;
+    if (playing) {
+      capture.stopPlayback();
+      if (playTimer.current) clearTimeout(playTimer.current);
+      setPlaying(false);
+      return;
+    }
+    try {
+      const total = capture.play(steps.map((s) => s.pitches));
+      setPlaying(true);
+      playTimer.current = setTimeout(() => setPlaying(false), total + 200);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    }
+  }
+
+  /** Load a demo progression, so the capture UI can be exercised with no
+   *  hardware attached. In step mode it fills the chord list; in continuous
+   *  mode it feeds the same synthetic note stream the segmenter would see. */
+  function loadDemo(demoId: string) {
+    const demo = DEMOS.find((d) => d.id === demoId);
+    if (!demo) return;
+    resetSteps();
+    setHasStoppedCapture(true);
+    demo.chords.forEach((pitches) => {
+      const id = nextId.current++;
+      setSteps((prev) => [...prev, { id, pitches, chord: null }]);
+      identify(pitches)
+        .then((chord) =>
+          setSteps((prev) => prev.map((s) => (s.id === id ? { ...s, chord } : s))),
+        )
+        .catch(() => undefined);
+    });
   }
 
   /** Move a captured chord to a different position in the progression. */
@@ -204,53 +234,6 @@ export default function MidiConnect({ onEvents, onChords, busy }: Props) {
     });
   }
 
-  function toggleChannel(channel: number) {
-    setTouchedChannels(true);
-    setChannels((prev) => {
-      const next = new Set(prev);
-      if (next.has(channel)) next.delete(channel);
-      else next.add(channel);
-      return next;
-    });
-  }
-
-  function download() {
-    const capture = captureRef.current!;
-    const payload = {
-      captured_at: new Date().toISOString(),
-      device: ports.find((p) => p.id === selected)?.name ?? "unknown",
-      elapsed_ms: capture.elapsed(),
-      channel_stats: channelStats(capture.snapshot()),
-      events: capture.snapshot(),
-      raw_tail: capture.rawMessages(),
-    };
-    const blob = new Blob([JSON.stringify(payload, null, 1)], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `chordcat-take-${Date.now()}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }
-
-  function stop() {
-    const capture = captureRef.current!;
-    setRecording(false);
-    setHasStoppedCapture(true);
-    const all = capture.snapshot();
-    if (!all.length) {
-      setError("No MIDI came through. Check the ChordCat is on the selected port and try playing again.");
-      return;
-    }
-    const events = channels.size > 0 ? filterChannels(all, channels) : all;
-    if (!events.length) {
-      setError("Every captured channel is excluded. Tick at least one channel to analyse.");
-      return;
-    }
-    onEvents(events, capture.elapsed());
-  }
 
   if (support === null) {
     return (
@@ -297,9 +280,7 @@ export default function MidiConnect({ onEvents, onChords, busy }: Props) {
               <>
                 {hasStoppedCapture && (
                   <button className="primary" onClick={resume} disabled={!selected || busy}>
-                    {mode === "steps"
-                      ? `Add more chords (${steps.length} so far)`
-                      : `Continue recording (${count} events)`}
+                    Add more chords ({steps.length} so far)
                   </button>
                 )}
                 <button
@@ -307,12 +288,10 @@ export default function MidiConnect({ onEvents, onChords, busy }: Props) {
                   onClick={start}
                   disabled={!selected || busy}
                 >
-                  {hasStoppedCapture
-                    ? "Start over"
-                    : mode === "steps" ? "Start capturing" : "Start recording"}
+                  {hasStoppedCapture ? "Start over" : "Start capturing"}
                 </button>
               </>
-            ) : mode === "steps" ? (
+            ) : (
               <button
                 className="danger"
                 onClick={() => {
@@ -324,35 +303,7 @@ export default function MidiConnect({ onEvents, onChords, busy }: Props) {
               >
                 Stop capturing
               </button>
-            ) : (
-              <button className="danger" onClick={stop}>
-                Stop &amp; analyse ({count} events)
-              </button>
             )}
-            <span className="row" style={{ gap: 4, marginLeft: "auto" }}>
-              <button
-                onClick={() => setMode("steps")}
-                disabled={recording}
-                style={{
-                  padding: "6px 11px", fontSize: 13,
-                  borderColor: mode === "steps" ? "var(--accent)" : undefined,
-                }}
-                title="Play one chord at a time (Chord Cruiser)"
-              >
-                Chord by chord
-              </button>
-              <button
-                onClick={() => setMode("continuous")}
-                disabled={recording}
-                style={{
-                  padding: "6px 11px", fontSize: 13,
-                  borderColor: mode === "continuous" ? "var(--accent)" : undefined,
-                }}
-                title="Record a continuous performance and segment it"
-              >
-                Continuous
-              </button>
-            </span>
           </>
         )}
       </div>
@@ -373,7 +324,28 @@ export default function MidiConnect({ onEvents, onChords, busy }: Props) {
 
       {error && <p className="error" style={{ marginBottom: 0 }}>{error}</p>}
 
-      {mode === "steps" && (recording || steps.length > 0) && (
+      {!recording && (
+        <div style={{ marginTop: 14 }}>
+          <p className="sub" style={{ margin: "0 0 8px" }}>
+            No ChordCat to hand? Load a progression to try the interface.
+          </p>
+          <div className="keys">
+            {DEMOS.map((d) => (
+              <button
+                key={d.id}
+                onClick={() => loadDemo(d.id)}
+                disabled={busy}
+                title={d.hint}
+                style={{ fontSize: 13 }}
+              >
+                {d.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {(recording || steps.length > 0) && (
         <div style={{ marginTop: 16, marginLeft: -18, marginRight: -18 }}>
           <ChordSteps
             steps={steps}
@@ -383,6 +355,9 @@ export default function MidiConnect({ onEvents, onChords, busy }: Props) {
             onRemove={(id) => setSteps((prev) => prev.filter((s) => s.id !== id))}
             onReorder={reorderStep}
             onClear={resetSteps}
+            onPlay={playBack}
+            canPlay={connected && outputs.length > 0}
+            playing={playing}
             onAnalyse={() =>
               onChords(steps.map((s) => ({ pitches: s.pitches, duration_ms: 600 })))
             }
@@ -390,16 +365,27 @@ export default function MidiConnect({ onEvents, onChords, busy }: Props) {
         </div>
       )}
 
-      {mode === "continuous" && (stats.length > 0 || recent.length > 0) && (
-        <div style={{ marginTop: 16, marginLeft: -18, marginRight: -18, marginBottom: -18 }}>
-          <MidiMonitor
-            stats={stats}
-            recent={recent}
-            selected={channels}
-            onToggle={toggleChannel}
-            totalEvents={count}
-            onDownload={download}
-          />
+
+      {connected && outputs.length > 1 && (
+        <div className="row" style={{ marginTop: 10, gap: 8 }}>
+          <span className="sub" style={{ margin: 0 }}>Play back to</span>
+          <select
+            value={outputId}
+            onChange={(e) => {
+              setOutputId(e.target.value);
+              try {
+                captureRef.current!.selectOutput(e.target.value);
+              } catch (err) {
+                setError(err instanceof Error ? err.message : String(err));
+              }
+            }}
+          >
+            {outputs.map((o) => (
+              <option key={o.id} value={o.id}>
+                {o.name}{looksLikeChordcat(o) ? "  ✓ ChordCat" : ""}
+              </option>
+            ))}
+          </select>
         </div>
       )}
 

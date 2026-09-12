@@ -65,10 +65,10 @@ def test_rarity_is_neutral_without_a_warm_transition_tree():
 
 def test_rare_progressions_outrank_common_ones():
     common = Ngram(("1", "5", "6", "4"), 1, 1.0)
-    rare = Ngram(("B6", "B7", "B1", "5"), 1, 1.0)
+    rare = Ngram(("b6", "b7", "b1", "5"), 1, 1.0)
     table = {
         ("1", "5"): 0.40, ("1", "5", "6"): 0.35, ("1", "5", "6", "4"): 0.40,
-        ("B6", "B7"): 0.01, ("B6", "B7", "B1"): 0.02, ("B6", "B7", "B1", "5"): 0.01,
+        ("b6", "b7"): 0.01, ("b6", "b7", "b1"): 0.02, ("b6", "b7", "b1", "5"): 0.01,
     }
     assert priority(rare, table) > priority(common, table)
 

@@ -71,7 +71,7 @@ select {
 
 .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
 
-.chords { display: flex; gap: 8px; flex-wrap: wrap; }
+.chords { display: flex; gap: 8px; flex-wrap: wrap; position: relative; }
 .chord {
   background: var(--panel-2); border: 1px solid var(--line);
   border-radius: 8px; padding: 9px 13px; min-width: 74px; text-align: center;
@@ -81,9 +81,19 @@ select {
 .chord .cp  { font-size: 11px; color: var(--muted); font-family: ui-monospace, monospace; }
 .chord.hole { border-style: dashed; border-color: var(--warn); }
 
-.chord[draggable="true"] { cursor: grab; padding-top: 20px; }
-.chord[draggable="true"]:active { cursor: grabbing; }
-.chord.drop-target { border-color: var(--accent); box-shadow: -3px 0 0 var(--accent); }
+/* Draggable chord blocks. `touch-action: none` stops a touch drag from
+   scrolling the page instead of picking the block up. */
+.chord.step {
+  padding-top: 20px;
+  touch-action: none;
+  user-select: none;
+  will-change: transform;
+}
+.chord.step.held {
+  border-color: var(--accent);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.55);
+  background: var(--panel);
+}
 
 .step-move {
   position: absolute; top: 2px; left: 4px; right: 4px;
