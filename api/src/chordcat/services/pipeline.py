@@ -14,7 +14,11 @@ from typing import Sequence
 
 from ..adapters.genre_llm import GenreResolver
 from ..adapters.hooktheory import HooktheoryClient
-from ..adapters.theorytab import TheoryTabClient, romans_to_chord_string
+from ..adapters.theorytab import (
+    TheoryTabClient,
+    romans_to_chord_string,
+    strip_modifiers,
+)
 from ..domain.chords import identify_all, merge_identified
 from ..domain.cp import CpConfig, progression_to_cp
 from ..domain.events import (
@@ -180,6 +184,12 @@ async def analyse(
             chord_string = romans_to_chord_string(romans)
             if not chord_string:
                 continue
+            # Coverage has to compare like with like. The query is reduced to
+            # plain triads so it matches Hooktheory's triadic analyses, so the
+            # pattern used for coverage must be reduced the same way -- leaving
+            # `ii7 iii7` here scores zero coverage against a song written `ii
+            # iii`, and the match silently loses its ranking boost.
+            pattern = chord_string.split()
             try:
                 hits = await theorytab.search_all(chord_string, ignore_modifiers=True)
             except Exception as exc:  # noqa: BLE001 - a second source must not break the first
@@ -191,7 +201,7 @@ async def analyse(
                 if key in seen_hits:
                     continue
                 seen_hits.add(key)
-                collected.append((hit, romans))
+                collected.append((hit, pattern))
 
         if collected:
             outcome = _merge_theorytab(

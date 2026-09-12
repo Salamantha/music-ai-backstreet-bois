@@ -348,11 +348,38 @@ class FakeTheoryTabClient:
         return await _paged(self, chord_string, max_pages, ignore_modifiers)
 
 
-def romans_to_chord_string(romans: Sequence[str]) -> str:
+#: Everything after the numeral that `ignoreModifiers` is meant to disregard:
+#: sevenths, sixths, suspensions and added tones. Chord *quality* is carried by
+#: the numeral's case and by the degree symbol, so neither is stripped.
+_MODIFIER = re.compile(
+    r"(maj7|7sus4|7sus2|sus42|sus4|sus2|add9|add11|add13|7|6|9|11|13)+$"
+)
+_ROMAN = re.compile(r"^([b#]*)([ivxIVX]+)(o|0|\u00f8|\+)?")
+
+
+def strip_modifiers(roman: str) -> str:
+    """Reduce a roman numeral to the triad `ignoreModifiers` will match.
+
+    The ChordCat voices nearly everything as an extended chord, so its
+    progressions come out as `ii7 iii7` where Hooktheory analyses the same
+    music as `ii iii`. Sending the sevenths through defeats the search: the
+    `ignoreModifiers` flag relaxes the *database* side of the comparison, not
+    the query, so the query has to be the plain triad.
+    """
+    match = _ROMAN.match(roman)
+    if not match:
+        return _MODIFIER.sub("", roman)
+    accidental, numeral, quality = match.groups()
+    return f"{accidental}{numeral}{quality or ''}"
+
+
+def romans_to_chord_string(
+    romans: Sequence[str], *, ignore_modifiers: bool = True
+) -> str:
     """Render our roman numerals the way the search box expects them.
 
-    Hooktheory writes degree symbols as `o`, half-diminished as `ø`, and does not
-    use parentheses, so the display strings this project generates need a light
+    Hooktheory writes degree symbols as `o` and half-diminished as `ø`, and uses
+    no parentheses, so the display strings this project generates need a light
     normalisation before they go into a query.
     """
     out: list[str] = []
@@ -360,6 +387,9 @@ def romans_to_chord_string(romans: Sequence[str]) -> str:
         token = r.strip()
         if not token or token.startswith("["):
             continue
-        token = token.replace("°", "o").replace("♭", "b").replace("♯", "#")
-        out.append(token)
+        token = token.replace("\u00b0", "o").replace("\u266d", "b").replace("\u266f", "#")
+        if ignore_modifiers:
+            token = strip_modifiers(token)
+        if token:
+            out.append(token)
     return " ".join(out)

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { AnalyzeResponse, Profile } from "@/lib/api";
 
 function Bars({ data, alt = false, max = 6 }: {
@@ -26,7 +27,10 @@ function Bars({ data, alt = false, max = 6 }: {
 }
 
 export function SongMatches({ result }: { result: AnalyzeResponse }) {
+  const [expanded, setExpanded] = useState(false);
   if (result.songs.length === 0) return null;
+  const INITIAL = 20;
+  const shown = expanded ? result.songs : result.songs.slice(0, INITIAL);
   return (
     <div className="panel">
       <div className="row spread">
@@ -40,7 +44,7 @@ export function SongMatches({ result }: { result: AnalyzeResponse }) {
           <tr><th>Artist</th><th>Song</th><th>Section</th><th style={{ width: 64 }}>Score</th></tr>
         </thead>
         <tbody>
-          {result.songs.slice(0, 12).map((s) => (
+          {shown.map((s) => (
             <tr key={`${s.artist}-${s.song}`}>
               <td>{s.artist}</td>
               <td><a href={s.url} target="_blank" rel="noreferrer">{s.song}</a></td>
@@ -50,6 +54,16 @@ export function SongMatches({ result }: { result: AnalyzeResponse }) {
           ))}
         </tbody>
       </table>
+      {result.songs.length > INITIAL && (
+        <button
+          onClick={() => setExpanded((v) => !v)}
+          style={{ marginTop: 10, padding: "6px 12px", fontSize: 13 }}
+        >
+          {expanded
+            ? "Show fewer"
+            : `Show all ${result.songs.length} matches`}
+        </button>
+      )}
     </div>
   );
 }
