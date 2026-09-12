@@ -557,3 +557,24 @@ async def helper_turn(req: HelperTurnRequest) -> HelperTurnResponse:
         changes=change_out,
         turn_number=len(recall.turns) + 1,
     )
+
+
+@router.post("/helper/override")
+async def helper_override(session_id: str, node_id: str = "") -> dict:
+    """Record that the user asked to be shown rather than told.
+
+    Not engagement. The override rate is a health metric on the language layer:
+    when it climbs, the explanations are failing to land and that is a bug in
+    the words, not a sign the feature is popular.
+    """
+    store = get_session_store()
+    store.bump_override(session_id)
+    if node_id:
+        store.mark_tried(session_id, node_id)
+    recall = store.recall(session_id)
+    suggested = len(recall.suggested_nodes) or 1
+    return {
+        "override_count": recall.override_count,
+        "suggestions": len(recall.suggested_nodes),
+        "override_rate": round(recall.override_count / suggested, 3),
+    }

@@ -433,6 +433,31 @@ main { position: relative; z-index: 1; }
   font-size: 0.9rem;
 }
 
+.say {
+  width: 100%;
+  font: inherit;
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.75rem;
+  resize: vertical;
+}
+
+/* What moved since the last take. Measured, so it is stated plainly. */
+.changed {
+  color: var(--accent-2);
+  font-size: 0.9rem;
+  margin: 0 0 0.8rem;
+}
+
+/* The override: named chords, only ever on request. */
+.shown {
+  border-left: 3px solid var(--accent-3);
+  padding: 0.1rem 0 0.1rem 0.8rem;
+  margin: 0.8rem 0 0;
+}
+
 .facts { width: 100%; font-size: 0.85rem; border-collapse: collapse; }
 .facts td { padding: 0.3rem 0.5rem; border-top: 1px solid var(--line); vertical-align: top; }
 .facts td:first-child { color: var(--muted); white-space: nowrap; }

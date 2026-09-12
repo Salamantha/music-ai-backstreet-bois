@@ -117,3 +117,25 @@ def test_song_context_is_accepted_without_any_hooktheory_call():
         ),
     ).json()
     assert body["node_id"]
+
+
+def test_asking_to_be_shown_is_counted_as_an_override():
+    sid = "override-session"
+    turn = client.post("/api/helper/turn", json=take_payload(session_id=sid)).json()
+    body = client.post(
+        "/api/helper/override",
+        params={"session_id": sid, "node_id": turn["node_id"]},
+    ).json()
+    assert body["override_count"] == 1
+    assert body["override_rate"] == 1.0
+
+
+def test_a_node_the_user_asked_to_see_counts_as_tried():
+    sid = "tried-session"
+    first = client.post("/api/helper/turn", json=take_payload(session_id=sid)).json()
+    client.post(
+        "/api/helper/override",
+        params={"session_id": sid, "node_id": first["node_id"]},
+    )
+    second = client.post("/api/helper/turn", json=take_payload(session_id=sid)).json()
+    assert second["node_id"] != first["node_id"]
