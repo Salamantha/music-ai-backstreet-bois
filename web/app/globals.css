@@ -385,11 +385,8 @@ main { position: relative; z-index: 1; }
   overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
 }
 
-/* The "what happens here" list on step one. Numbers stay visible -- the
-   sequence is the point, and a bare list would lose it. */
-.how { margin: 0.75rem 0 0; padding-left: 1.4rem; display: grid; gap: 0.7rem; }
-.how li { line-height: 1.55; }
-.how li::marker { color: var(--accent-2); font-weight: 700; }
+/* The one-line summary on step one. */
+.how { margin: 0.6rem 0 0; line-height: 1.6; font-size: 1.02rem; }
 
 /* ---- Progression readings ------------------------------------------- */
 

@@ -447,8 +447,8 @@ export default function MidiConnect({
       </div>
 
       <p className="sub">
-        Play one chord after another. Each is captured the moment you play it, so
-        there is no need to release before the next.
+        Four is plenty. Anything you like. Each chord is captured the moment you
+        play it, so there is no need to release before the next.
       </p>
 
       <div className="row">

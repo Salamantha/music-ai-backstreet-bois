@@ -215,21 +215,10 @@ export default function Page() {
       {step === 0 && (
         <div className="panel">
           <h2>How it works</h2>
-          <ol className="how">
-            <li>
-              <strong>Plug in.</strong> Connect your ChordCat — or any MIDI
-              keyboard — so the browser can hear what you play.
-            </li>
-            <li>
-              <strong>Play a few chords.</strong> Four is plenty. Anything you
-              like the sound of.
-            </li>
-            <li>
-              <strong>Meet the people who play like you.</strong> We work out
-              your key and your progression, find the songs built on it, and
-              rank everyone else here by how close their harmony is to yours.
-            </li>
-          </ol>
+          <p className="how">
+            We learn how your music sounds, find songs with similar vibes as
+            yours, and match you with like-minded musicians who want to jam!
+          </p>
         </div>
       )}
 
