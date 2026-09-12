@@ -235,14 +235,14 @@ def _shared(a: Mapping[str, float], b: Mapping[str, float], n: int = 5) -> tuple
 
 
 _HARMONIC_LABELS = {
-    "seventh_density": "seventh chords",
-    "borrowed_rate": "borrowed chords",
-    "rarity": "unusual progressions",
-    "chord_variety": "harmonic variety",
-    "cadence:authentic": "V-I cadences",
-    "cadence:plagal": "plagal (IV-I) cadences",
-    "cadence:backdoor": "backdoor (bVII-I) cadences",
-    "cadence:deceptive": "deceptive cadences",
+    "seventh_density": "richer, jazzier chords",
+    "borrowed_rate": "chords borrowed from outside the key",
+    "rarity": "progressions you do not hear every day",
+    "chord_variety": "a wide spread of chords",
+    "cadence:authentic": "strong, settled endings",
+    "cadence:plagal": "gentle, hymn-like endings",
+    "cadence:backdoor": "sideways endings that sneak home",
+    "cadence:deceptive": "endings that dodge where you expect",
 }
 
 

@@ -1,6 +1,10 @@
 "use client";
 
+import type { Tonality } from "@/lib/api";
+
 interface Props {
+  tonality: Tonality;
+  onTonality: (t: Tonality) => void;
   /** Every genre that can be chosen, whether or not anything matched yet. */
   options: string[];
   /** Genre -> how many matched songs carry it. Empty before the first analysis. */
@@ -10,11 +14,27 @@ interface Props {
   /** True once results exist, so counts can be shown and zeroes dimmed. */
   hasResults: boolean;
   busy: boolean;
+  /** Render without the surrounding panel, for use inside another one. */
+  bare?: boolean;
+  /** False once the choice has already been made and shown elsewhere. */
+  showTonality?: boolean;
 }
 
+/* Nested inside the capture panel these sit a level deeper, and a heading
+   order that skips or reverses levels is how screen-reader users lose the
+   shape of a page. */
+
+const TONALITIES: { value: Tonality; label: string; hint: string }[] = [
+  { value: "any", label: "Any", hint: "Not sure — let the analysis decide" },
+  { value: "major", label: "Major", hint: "Brighter, happier" },
+  { value: "minor", label: "Minor", hint: "Darker, sadder" },
+];
+
 export default function GenreFilter({
-  options, counts, selected, onChange, hasResults, busy,
+  options, counts, selected, onChange, hasResults, busy, tonality, onTonality,
+  bare = false, showTonality = true,
 }: Props) {
+  const H = bare ? "h3" : "h2";
   const active = new Set(selected);
   if (options.length === 0) return null;
 
@@ -32,9 +52,41 @@ export default function GenreFilter({
   }
 
   return (
-    <div className="panel">
+    <div className={bare ? "" : "panel"}>
+      {showTonality && (
+        <>
+      <div className="row spread" style={{ marginBottom: 12 }}>
+        <H style={{ margin: 0 }}>Tonality</H>
+        <span className="row" style={{ gap: 4 }}>
+          {TONALITIES.map((t) => (
+            <button
+              key={t.value}
+              onClick={() => onTonality(t.value)}
+              disabled={busy}
+              aria-pressed={tonality === t.value}
+              title={t.hint}
+              style={{
+                fontSize: 13,
+                padding: "6px 13px",
+                fontWeight: tonality === t.value ? 700 : 500,
+                borderColor: tonality === t.value ? "var(--accent)" : undefined,
+                color: tonality === t.value ? "var(--accent)" : undefined,
+              }}
+            >
+              {t.label}
+            </button>
+          ))}
+        </span>
+      </div>
+      <p className="sub" style={{ margin: "0 0 16px" }}>
+        Major tends to sound brighter and happier. Minor usually sounds a
+        little darker or sadder.
+      </p>
+        </>
+      )}
+
       <div className="row spread">
-        <h2 style={{ margin: 0 }}>Genres</h2>
+        <H style={{ margin: 0 }}>Genres</H>
         {selected.length > 0 && (
           <button
             onClick={() => onChange([])}
@@ -46,15 +98,20 @@ export default function GenreFilter({
         )}
       </div>
 
-      <p className="sub" style={{ margin: "8px 0 10px" }}>
-        {selected.length === 0
-          ? hasResults
+      {/* No blurb while setting up -- the buttons say what they do. On the
+          results step it stays, because there it explains an absence: why a
+          song you expected is no longer in the list. */}
+      {!bare && (
+        <p className="sub" style={{ margin: "8px 0 10px" }}>
+          {selected.length === 0
             ? "Showing every match. Pick genres to narrow the songs — and the musicians you get matched with."
-            : "Optional. Pick what you play and the search will keep to it — songs, artists and the musicians you get matched with."
-          : `Keeping only ${selected.join(", ")}. Songs with no known genre are excluded while a genre is chosen.`}
-      </p>
+            : `Keeping only ${selected.join(", ")}. Songs with no known genre are excluded while a genre is chosen.`}
+        </p>
+      )}
 
-      <div className="keys">
+      {/* Without the blurb above them the pills would butt up against the
+          heading, so the space it used to provide comes back explicitly. */}
+      <div className="keys" style={bare ? { marginTop: "0.8rem" } : undefined}>
         {entries.map((genre) => {
           const on = active.has(genre);
           const count = counts[genre] ?? 0;

@@ -2,7 +2,7 @@
 
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { noteName } from "@/lib/webmidi";
-import type { Identified } from "@/lib/api";
+import { toNumber, type Identified } from "@/lib/api";
 
 export interface Step {
   id: number;
@@ -117,7 +117,7 @@ export default function ChordSteps({
   return (
     <div className="panel">
       <div className="row spread">
-        <h2 style={{ margin: 0 }}>Progression</h2>
+        <h3 style={{ margin: 0 }}>Chord progression</h3>
         <span className="row" style={{ gap: 8 }}>
           <span className="pill">{steps.length} chord{steps.length === 1 ? "" : "s"}</span>
           {steps.length > 0 && (
@@ -145,15 +145,14 @@ export default function ChordSteps({
             disabled={busy || steps.length < 1}
             style={{ padding: "6px 13px", fontSize: 13 }}
           >
-            Analyse {steps.length === 1 ? "1 chord" : steps.length > 1 ? `${steps.length} chords` : ""}
+            Find my matches
           </button>
         </span>
       </div>
 
-      <p className="sub" style={{ margin: "8px 0 12px" }}>
-        Play one chord after another — each is captured the moment you play it,
-        so you don&apos;t need to release before the next. Pick a chord up and move
-        it to change the order.
+      <p className="sub">
+        Drag a chord to move it, or use the Move earlier, Move later and Remove
+        buttons on each one.
       </p>
 
       <div className="chords">
@@ -181,29 +180,29 @@ export default function ChordSteps({
                 <button
                   onClick={() => onReorder(i, i - 1)}
                   disabled={busy || i === 0}
-                  aria-label={`move ${s.chord?.symbol ?? "chord"} earlier`}
-                  title="move earlier"
+                  aria-label={`Move ${s.chord?.symbol ?? "chord"} earlier`}
+                  title={`Move ${s.chord?.symbol ?? "chord"} earlier`}
                 >
                   ‹
                 </button>
                 <button
                   onClick={() => onReorder(i, i + 1)}
                   disabled={busy || i === steps.length - 1}
-                  aria-label={`move ${s.chord?.symbol ?? "chord"} later`}
-                  title="move later"
+                  aria-label={`Move ${s.chord?.symbol ?? "chord"} later`}
+                  title={`Move ${s.chord?.symbol ?? "chord"} later`}
                 >
                   ›
                 </button>
               </div>
               <div className="sym">{s.chord?.symbol ?? "?"}</div>
-              <div className="rom">{s.chord?.roman ?? `${i + 1}`}</div>
+              <div className="rom">{s.chord?.roman ? toNumber(s.chord.roman) : `${i + 1}`}</div>
               <div className="cp">{s.pitches.map((p) => noteName(p)).join(" ")}</div>
               <button
                 className="step-remove"
                 onClick={() => onRemove(s.id)}
                 disabled={busy}
-                aria-label={`remove ${s.chord?.symbol ?? "chord"}`}
-                title="remove this chord"
+                aria-label={`Remove ${s.chord?.symbol ?? "chord"}`}
+                title={`Remove ${s.chord?.symbol ?? "chord"}`}
               >
                 ×
               </button>
@@ -228,7 +227,7 @@ export default function ChordSteps({
 
       {live && pending.length > 0 && live.candidates.length > 1 && (
         <p className="sub" style={{ margin: "12px 0 0" }}>
-          Also reads as {live.candidates.slice(1, 3).map((c) => c.symbol).join(" or ")}
+          Could also be {live.candidates.slice(1, 3).map((c) => c.symbol).join(" or ")}
           {live.bass !== live.root ? ` · bass ${live.bass}` : ""}
         </p>
       )}

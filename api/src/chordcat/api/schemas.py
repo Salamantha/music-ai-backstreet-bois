@@ -68,6 +68,9 @@ class AnalyzeRequest(BaseModel):
     budget: int | None = Field(default=None, ge=1, le=24)
     #: Keep only songs in these genres. Empty means no filtering.
     genres: list[str] = Field(default_factory=list, max_length=40)
+    #: What the player says they are playing. Relative major and minor share a
+    #: pitch-class set, so their intent settles what analysis cannot.
+    tonality: Literal["any", "major", "minor"] = "any"
 
 
 class ChordOut(BaseModel):
@@ -154,6 +157,32 @@ class MatchOut(BaseModel):
     signature_progression: str
 
 
+class ProfileIn(BaseModel):
+    """The profile the browser got back from /analyze, sent back verbatim."""
+
+    genres: dict[str, float] = Field(default_factory=dict)
+    artists: dict[str, float] = Field(default_factory=dict)
+    eras: dict[str, float] = Field(default_factory=dict)
+    moods: dict[str, float] = Field(default_factory=dict)
+    harmonic: HarmonicOut
+
+
+class JoinRoomRequest(BaseModel):
+    client_id: str = Field(min_length=1, max_length=64)
+    name: str = Field(min_length=1, max_length=80)
+    city: str = Field(default="", max_length=120)
+    instrument: str = Field(default="", max_length=40)
+    signature_progression: str = Field(default="", max_length=200)
+    mode: str = Field(default="major", max_length=20)
+    profile: ProfileIn
+
+
+class JoinRoomResponse(BaseModel):
+    #: Everyone with a profile, including the caller.
+    room_size: int
+    matches: list[MatchOut]
+
+
 class AnalyzeResponse(BaseModel):
     session_id: str
     chords: list[ChordOut]
@@ -174,6 +203,17 @@ class AnalyzeResponse(BaseModel):
     #: Lets the client offer a filter over what is actually there.
     available_genres: dict[str, int] = Field(default_factory=dict)
     applied_genres: list[str] = Field(default_factory=list)
+    applied_tonality: str = "any"
+    #: The same chords read in the relative key, since which one is home cannot
+    #: be decided from the notes alone.
+    #: True when this key is written with flats, so note names agree.
+    prefer_flats: bool = False
+    alternate_key_name: str = ""
+    #: The alternate reading's mode, so the client can label the two readings
+    #: major and minor without re-deriving which family each mode belongs to.
+    alternate_key_mode: str = ""
+    alternate_romans: list[str] = Field(default_factory=list)
+    alternate_cp: str = ""
     notes: list[str] = Field(
         default_factory=list,
         description="Human-readable caveats about this analysis.",

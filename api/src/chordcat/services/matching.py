@@ -47,31 +47,9 @@ class PersonaPool:
         if not path.exists():
             return cls()
         payload = json.loads(path.read_text())
-        personas = []
-        for raw in payload.get("personas", []):
-            p = raw["profile"]
-            personas.append(
-                Persona(
-                    id=raw["id"],
-                    name=raw["name"],
-                    instrument=raw["instrument"],
-                    city=raw["city"],
-                    bio=raw["bio"],
-                    signature_progression=raw["signature_progression"],
-                    mode=raw.get("mode", "major"),
-                    profile=TasteProfile(
-                        genre_weights=p["genre_weights"],
-                        artist_weights=p["artist_weights"],
-                        era_weights=p["era_weights"],
-                        mood_weights=p["mood_weights"],
-                        harmonic=HarmonicFeatures(**p["harmonic"]),
-                    ),
-                    top_artists=tuple(raw.get("top_artists", [])),
-                    song_matches=raw.get("song_matches", 0),
-                )
-            )
+        personas = tuple(persona_from_dict(raw) for raw in payload.get("personas", []))
         calibration = tuple(payload.get("calibration", {}).get("pairwise_similarities", []))
-        return cls(tuple(personas), calibration)
+        return cls(personas, calibration)
 
     def percentile(self, score: float) -> float:
         if not self.calibration:
@@ -94,6 +72,82 @@ class PersonaPool:
         ]
 
 
+#: Mode prefixes a cp token can carry. The letter is a key-flavour marker, not
+#: part of the number, so it is stripped for display and reported once.
+_CP_PREFIXES = ("b", "B", "D", "Y", "L", "M", "C")
+
+
+def spell_progression(cp: str) -> str:
+    """A cp string as something a beginner can read aloud.
+
+    ``1,5,6,4`` becomes "1-5-6-4"; ``B1,B6,B3,B7`` becomes "minor 1-6-3-7".
+    The raw tokens are Hooktheory's internal spelling and mean nothing to
+    someone who has not read its docs.
+    """
+    degrees: list[str] = []
+    minorish = False
+    for token in cp.split(","):
+        token = token.strip()
+        if not token:
+            continue
+        if token[0] in _CP_PREFIXES:
+            minorish = True
+            token = token[1:]
+        degrees.append(token)
+    if not degrees:
+        return ""
+    shape = "\u2013".join(degrees)
+    return f"minor {shape}" if minorish else shape
+
+
+def persona_from_dict(raw: dict) -> Persona:
+    """Build a Persona from either a seed-file entry or a room-table row.
+
+    Both carry the same `profile` shape; rows identify themselves by
+    `client_id` and usually have no bio.
+    """
+    p = raw["profile"]
+    return Persona(
+        id=raw.get("id") or raw["client_id"],
+        name=raw["name"],
+        instrument=raw.get("instrument") or "",
+        city=raw.get("city") or "",
+        bio=raw.get("bio") or "",
+        signature_progression=raw.get("signature_progression") or "",
+        mode=raw.get("mode") or "major",
+        profile=TasteProfile(
+            genre_weights=p["genre_weights"],
+            artist_weights=p["artist_weights"],
+            era_weights=p["era_weights"],
+            mood_weights=p["mood_weights"],
+            harmonic=HarmonicFeatures(**p["harmonic"]),
+        ),
+        top_artists=tuple(raw.get("top_artists", [])),
+        song_matches=raw.get("song_matches", 0),
+    )
+
+
+def profile_to_dict(profile: TasteProfile) -> dict:
+    """The persona-shaped JSON stored in the room table."""
+    h = profile.harmonic
+    return {
+        "genre_weights": dict(profile.genre_weights),
+        "artist_weights": dict(profile.artist_weights),
+        "era_weights": dict(profile.era_weights),
+        "mood_weights": dict(profile.mood_weights),
+        "harmonic": {
+            "modal_usage": dict(h.modal_usage),
+            "seventh_density": h.seventh_density,
+            "borrowed_rate": h.borrowed_rate,
+            "mean_progression_rarity": h.mean_progression_rarity,
+            "cadence_profile": dict(h.cadence_profile),
+            "key_spread": h.key_spread,
+            "chord_variety": h.chord_variety,
+            "mean_chord_duration_s": h.mean_chord_duration_s,
+        },
+    }
+
+
 def explain(b: SimilarityBreakdown, persona: Persona) -> str:
     """Compose the "why you two should jam" line from what actually overlaps.
 
@@ -114,14 +168,17 @@ def explain(b: SimilarityBreakdown, persona: Persona) -> str:
 
     if not clauses:
         return (
-            f"{persona.name} writes around {persona.signature_progression}, which sits "
-            f"a long way from yours -- that might be the interesting part."
+            f"{persona.name} writes around a {spell_progression(persona.signature_progression)} "
+            f"progression, a long way from yours -- that might be the interesting part."
         )
 
     lead = clauses[0][0].upper() + clauses[0][1:]
     rest = clauses[1:]
     body = lead if not rest else lead + ", and " + " and ".join(rest)
-    return f"{body}. {persona.name} builds most things off {persona.signature_progression}."
+    return (
+        f"{body}. {persona.name} builds most things off a "
+        f"{spell_progression(persona.signature_progression)} progression."
+    )
 
 
 def _join(items: Sequence[str]) -> str:

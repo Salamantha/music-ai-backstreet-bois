@@ -20,7 +20,14 @@ from dataclasses import dataclass
 from typing import Sequence
 
 from .events import IdentifiedChord, Key, KeyEstimate
-from .pitch import MODE_CHARACTERISTIC_DEGREE, MODE_SCALES, MODES, Mode, scale_pcs
+from .pitch import (
+    MODE_CHARACTERISTIC_DEGREE,
+    MODE_SCALES,
+    MODES,
+    Mode,
+    matches_tonality,
+    scale_pcs,
+)
 
 #: Krumhansl-Kessler tonal hierarchy profiles (major and minor are empirical).
 KK_MAJOR = (6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88)
@@ -193,6 +200,12 @@ def _zscore(values: Sequence[float]) -> list[float]:
     return [(v - mean) / sd for v in values] if sd else [0.0] * n
 
 
+#: Added to the z-scored total for candidates in a requested tonality. Large
+#: enough to settle a genuinely close call -- which is what relative major and
+#: minor always are -- but not to overturn a clear result.
+TONALITY_BONUS = 0.8
+
+
 @dataclass(frozen=True, slots=True)
 class KeyConfig:
     #: Low, because the softmax runs over 84 candidates: at T=1.0 even a clear
@@ -204,9 +217,17 @@ class KeyConfig:
 
 
 def detect_key(
-    chords: Sequence[IdentifiedChord], cfg: KeyConfig = KeyConfig()
+    chords: Sequence[IdentifiedChord],
+    cfg: KeyConfig = KeyConfig(),
+    tonality: str = "any",
 ) -> KeyEstimate:
-    """Estimate the key and mode, with ranked alternatives for UI override."""
+    """Estimate the key and mode, with ranked alternatives for UI override.
+
+    ``tonality`` expresses what the player says they are playing. Relative major
+    and minor share a pitch-class set, so no amount of analysis separates them
+    from the notes alone -- the player's own intent is better evidence than any
+    tie-break we could invent.
+    """
     if not chords:
         return KeyEstimate(Key(0, "major"), 0.0)
 
@@ -218,6 +239,11 @@ def detect_key(
 
     ks_z, ch_z = _zscore(ks_raw), _zscore(ch_raw)
     combined = [W_KS * a + W_CHORD * b for a, b in zip(ks_z, ch_z)]
+    if tonality != "any":
+        combined = [
+            c + (TONALITY_BONUS if matches_tonality(k.mode, tonality) else 0.0)
+            for c, k in zip(combined, candidates)
+        ]
 
     exps = [math.exp(c / cfg.softmax_temperature) for c in combined]
     total = sum(exps) or 1.0

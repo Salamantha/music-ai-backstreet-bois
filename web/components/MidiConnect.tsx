@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import ChordSteps, { type Step } from "./ChordSteps";
 import { identify, type Identified } from "@/lib/api";
-import { DEMOS } from "@/lib/demo";
 import {
   MidiCapture, channelStats, checkSupport, filterChannels, heldNotes,
   looksLikeChordcat, noteName, suggestHarmonyChannels,
@@ -12,10 +11,29 @@ import {
 } from "@/lib/webmidi";
 
 interface Props {
+  /**
+   * Which half of the capture flow to render. "none" renders nothing while
+   * keeping the component mounted -- the MIDI connection and the captured
+   * chords live in here, and unmounting to change step would discard both.
+   */
+  show: "connect" | "capture" | "none";
+  /** Fired once a device is selected, so the next step becomes reachable. */
+  onConnected?: () => void;
   onChords: (steps: { pitches: number[]; duration_ms?: number }[]) => void;
   /** Discard the analysis on screen, because it no longer describes anything
    *  the user can see -- the progression it came from has been cleared. */
   onReset: () => void;
+  /** Bumped by the parent's "Start over" so a capture in progress, the chord
+      cards and the MIDI timeline all clear together. A token rather than a
+      callback ref: the parent owns the intent, this component owns the state. */
+  resetToken: number;
+  /** Search setup, rendered inside the capture panel. It belongs with playing,
+      not after it: what you tell us here decides which songs and which people
+      the progression is matched against. */
+  children?: React.ReactNode;
+  /** The step's forward action, placed in the card so it is reachable as soon
+      as a device is chosen -- not below whatever else the page has to say. */
+  next?: React.ReactNode;
   busy: boolean;
 }
 
@@ -31,7 +49,32 @@ interface Props {
 const ONSET_WINDOW_MS = 70;
 const MIN_NOTES_PER_STEP = 2;
 
-export default function MidiConnect({ onChords, onReset, busy }: Props) {
+/**
+ * One line for the device picker.
+ *
+ * Each part earns its place or is left out: the manufacturer only when it is
+ * not already in the name, the ChordCat marker only when the name does not say
+ * so itself -- "Chordcat -- AlphaTheta Corporation   ChordCat" told you the
+ * same thing three times.
+ */
+function portLabel(p: MidiPort): string {
+  const parts = [p.name];
+  const name = p.name.toLowerCase();
+  if (p.manufacturer && !name.includes(p.manufacturer.toLowerCase())) {
+    parts[0] += ` — ${p.manufacturer}`;
+  }
+  const namedByItself = looksLikeChordcat({ ...p, manufacturer: "" });
+  if (looksLikeChordcat(p) && !namedByItself) {
+    parts.push("looks like your ChordCat");
+  }
+  if (p.state !== "connected") parts.push(p.state);
+  if (p.messages > 0) parts.push("receiving");
+  return parts.join(" · ");
+}
+
+export default function MidiConnect({
+  show, onConnected, onChords, onReset, busy, resetToken, children, next,
+}: Props) {
   const captureRef = useRef<MidiCapture | null>(null);
   // Web MIDI support cannot be determined during server rendering -- `navigator`
   // does not exist there -- so resolve it after mount. Computing it in the
@@ -55,6 +98,7 @@ export default function MidiConnect({ onChords, onReset, busy }: Props) {
   const [outputs, setOutputs] = useState<MidiPort[]>([]);
   const [outputId, setOutputId] = useState("");
   const [playing, setPlaying] = useState(false);
+  const [tested, setTested] = useState(false);
   const [traffic, setTraffic] = useState(0);
   const playTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -162,6 +206,7 @@ export default function MidiConnect({ onChords, onReset, busy }: Props) {
         setOutputId(preferredOut.id);
         await capture.selectOutput(preferredOut.id);
       }
+      if (preferred) onConnected?.();
       capture.subscribe((e, all) => {
         setHeld(heldNotes(all));
         setCount(all.length);
@@ -214,6 +259,19 @@ export default function MidiConnect({ onChords, onReset, busy }: Props) {
     setError("");
   }
 
+  // The parent's "Start over" reaches in here, because the take lives in this
+  // component. Skipping the first run keeps mount from clearing a fresh state.
+  const firstReset = useRef(true);
+  useEffect(() => {
+    if (firstReset.current) {
+      firstReset.current = false;
+      return;
+    }
+    startOver();
+    // startOver is redefined every render; the token is the real dependency.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resetToken]);
+
   /** Carry on adding to the take already captured. */
   function resume() {
     captureRef.current!.resume();
@@ -238,25 +296,6 @@ export default function MidiConnect({ onChords, onReset, busy }: Props) {
     }
   }
 
-  /** Load a demo progression, so the capture UI can be exercised with no
-   *  hardware attached. In step mode it fills the chord list; in continuous
-   *  mode it feeds the same synthetic note stream the segmenter would see. */
-  function loadDemo(demoId: string) {
-    const demo = DEMOS.find((d) => d.id === demoId);
-    if (!demo) return;
-    resetSteps();
-    setHasStoppedCapture(true);
-    demo.chords.forEach((pitches) => {
-      const id = nextId.current++;
-      setSteps((prev) => [...prev, { id, pitches, chord: null }]);
-      identify(pitches)
-        .then((chord) =>
-          setSteps((prev) => prev.map((s) => (s.id === id ? { ...s, chord } : s))),
-        )
-        .catch(() => undefined);
-    });
-  }
-
   /** Move a captured chord to a different position in the progression. */
   function reorderStep(from: number, to: number) {
     setSteps((prev) => {
@@ -274,7 +313,7 @@ export default function MidiConnect({ onChords, onReset, busy }: Props) {
     return (
       <div className="panel">
         <h2>MIDI input</h2>
-        <p className="sub" style={{ margin: 0 }}>Checking for Web MIDI support…</p>
+        <p className="sub" style={{ margin: 0 }}>Checking whether this browser can hear your instrument…</p>
       </div>
     );
   }
@@ -288,132 +327,202 @@ export default function MidiConnect({ onChords, onReset, busy }: Props) {
     );
   }
 
-  return (
-    <div className="panel">
-      <div className="row spread">
-        <h2 style={{ margin: 0 }}>MIDI input</h2>
-        <span className={`pill ${connected ? "ok" : ""}`}>
-          {connected ? `${ports.length} device${ports.length === 1 ? "" : "s"}` : "not connected"}
-        </span>
-      </div>
+  // Step 1: choose a device. Step 2: play into it. Separate stages of the flow,
+  // so only one is on screen at a time -- but the component stays mounted
+  // throughout, because it owns the connection and the captured chords.
+  if (show === "none") return null;
 
-      <div className="row" style={{ marginTop: 12 }}>
+  if (show === "connect") {
+    return (
+      <div className="panel">
+        <div className="row spread">
+          <h2 style={{ margin: 0 }}>Plug in your instrument</h2>
+          <span className={`pill ${connected ? "ok" : ""}`}>
+            {connected
+              ? `${ports.length} device${ports.length === 1 ? "" : "s"}`
+              : "not connected"}
+          </span>
+        </div>
+
         {!connected ? (
-          <button className="primary" onClick={connect}>Connect MIDI</button>
+          <>
+            <p className="sub">
+              Your browser needs your permission to hear the instrument.
+              Nothing is recorded until you press start.
+            </p>
+            <button className="primary" onClick={connect}>
+              Connect MIDI
+            </button>
+          </>
         ) : (
           <>
-            <select value={selected} onChange={(e) => void choose(e.target.value)}>
-              {ports.length === 0 && <option value="">No MIDI inputs found</option>}
-              {ports.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}{p.manufacturer ? ` — ${p.manufacturer}` : ""}
-                  {looksLikeChordcat(p) ? "  ✓ ChordCat" : ""}
-                  {p.state !== "connected" ? `  (${p.state})` : ""}
-                  {p.messages > 0 ? `  ● ${p.messages}` : ""}
-                </option>
-              ))}
-            </select>
-            {!recording ? (
-              <>
-                {/* Only offer to resume when there is something to resume. A
-                    capture that was stopped without producing a chord has
-                    nothing to add to, so it reads as a fresh start. */}
-                {hasStoppedCapture && steps.length > 0 && (
-                  <button className="primary" onClick={resume} disabled={!selected || busy}>
-                    Add more chords ({steps.length} so far)
-                  </button>
-                )}
-                {/* Start over clears the take and waits, rather than
-                    immediately recording again -- discarding work and opening a
-                    live capture are two different intentions. */}
-                <button
-                  className={steps.length > 0 ? "" : "primary"}
-                  onClick={steps.length > 0 ? startOver : start}
-                  disabled={!selected || busy}
-                >
-                  {steps.length > 0 ? "Start over" : "Start capturing"}
-                </button>
-              </>
-            ) : (
-              <button
-                className="danger"
-                onClick={() => {
-                  // Commit a chord still inside its onset window, so the last
-                  // one played is not lost to the stop.
-                  flushChord();
-                  setRecording(false);
-                  setHasStoppedCapture(true);
-                }}
+            <p className="sub" id="device-help">
+              Pick the one your notes are coming in on. A green dot means we
+              can hear it.
+            </p>
+            <div className="row">
+              <label htmlFor="midi-in">Input</label>
+              <select
+                id="midi-in"
+                aria-describedby="device-help"
+                value={selected}
+                onChange={(e) => void choose(e.target.value)}
               >
-                Stop capturing
-              </button>
+                {ports.length === 0 && <option value="">No instruments found</option>}
+                {ports.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {portLabel(p)}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Shown even with a single output: playback has to go somewhere,
+                and silently choosing for the user leaves them no way to see
+                where, or to send it elsewhere. */}
+            {outputs.length > 0 && (
+              <>
+                <div className="row" style={{ marginTop: "0.75rem" }}>
+                  <label htmlFor="midi-out">Play back to</label>
+                  <select
+                    id="midi-out"
+                    value={outputId}
+                    onChange={(e) => {
+                      setOutputId(e.target.value);
+                      captureRef.current!
+                        .selectOutput(e.target.value)
+                        .catch((err) =>
+                          setError(err instanceof Error ? err.message : String(err)),
+                        );
+                    }}
+                  >
+                    {outputs.map((o) => (
+                      <option key={o.id} value={o.id}>
+                        {portLabel(o)}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    onClick={() => {
+                      setError("");
+                      setTested(true);
+                      try {
+                        captureRef.current!.testNote();
+                      } catch (e) {
+                        setError(e instanceof Error ? e.message : String(e));
+                      }
+                    }}
+                    style={{ padding: "5px 11px", fontSize: 13 }}
+                  >
+                    Send a test note
+                  </button>
+                </div>
+                {tested && (
+                  <p className="sub" style={{ margin: "0.5rem 0 0" }}>
+                    Sent middle C. If you heard nothing, the notes are leaving
+                    the browser but the other app is not listening — in Logic,
+                    select a software instrument track and arm it for recording.
+                  </p>
+                )}
+              </>
+            )}
+
+            <p
+              className="row"
+              style={{ marginTop: "0.9rem" }}
+              role="status"
+              aria-live="polite"
+            >
+              {/* Colour alone would leave this unreadable to anyone who cannot
+                  distinguish the two, so the dot is paired with a word. */}
+              <span className={`signal ${traffic > 0 ? "on" : "off"}`}>
+                <span className="signal-dot" aria-hidden="true" />
+                {traffic > 0 ? "Receiving" : "No signal"}
+              </span>
+              {traffic === 0 && (
+                <span className="sub" style={{ margin: 0 }}>
+                  {ports.some((p) => p.messages > 0 && p.id !== selected)
+                    ? `Notes are arriving on ${ports.find((p) => p.messages > 0 && p.id !== selected)?.name} — choose it above.`
+                    : "Play a note to check the connection."}
+                </span>
+              )}
+            </p>
+
+            {ports.length === 0 && (
+              <p className="sub">
+                Nothing found yet. Plug the ChordCat in over USB-C — it needs no
+                drivers — and it will appear here on its own.
+              </p>
             )}
           </>
         )}
+
+        {error && <p className="error">{error}</p>}
+
+        {next && <div className="card-nav">{next}</div>}
+      </div>
+    );
+  }
+
+  return (
+    <div className="panel">
+      <div className="row spread">
+        <h2 style={{ margin: 0 }}>Play your chords</h2>
+        <span className={`pill ${recording ? "ok" : ""}`}>
+          {recording ? "listening" : "not listening"}
+        </span>
       </div>
 
-      {connected && (
-        <div style={{ marginTop: 14 }}>
-          {/* Whether anything is arriving at all. Without this, a port that is
-              selected but silent -- a virtual bus with nothing routed to it --
-              is indistinguishable from one that is working. */}
-          <div className="row" style={{ gap: 8, marginBottom: 8 }}>
-            <span className={`pill ${traffic > 0 ? "ok" : ""}`}>
-              {traffic > 0
-                ? `${traffic} MIDI message${traffic === 1 ? "" : "s"} received`
-                : "no MIDI received yet on this port"}
-            </span>
-            {traffic > 0 && count === 0 && (
-              <span className="sub" style={{ margin: 0, fontSize: 12 }}>
-                Messages are arriving but none are notes — the port is working,
-                the notes are not routed to it.
-              </span>
-            )}
-            {traffic === 0 && (
-              <span className="sub" style={{ margin: 0, fontSize: 12 }}>
-                {ports.some((p) => p.messages > 0 && p.id !== selected)
-                  ? `Notes are arriving on ${ports.find((p) => p.messages > 0 && p.id !== selected)?.name} — switch to it above.`
-                  : "Play something. If this stays at zero, nothing is reaching the browser from any port."}
-              </span>
-            )}
-          </div>
-          <div className="live">
-            {held.length === 0 ? (
-              <span className="pill">
-                {recording ? "recording — play a progression" : "idle"}
-              </span>
-            ) : (
-              held.map((p) => <span key={p} className="note">{noteName(p)}</span>)
-            )}
-          </div>
-        </div>
-      )}
+      <p className="sub">
+        Four is plenty. Anything you like. Each chord is captured the moment you
+        play it, so there is no need to release before the next.
+      </p>
 
-      {error && <p className="error" style={{ marginBottom: 0 }}>{error}</p>}
-
-      {!recording && (
-        <div style={{ marginTop: 14 }}>
-          <p className="sub" style={{ margin: "0 0 8px" }}>
-            No ChordCat to hand? Load a progression to try the interface.
-          </p>
-          <div className="keys">
-            {DEMOS.map((d) => (
-              <button
-                key={d.id}
-                onClick={() => loadDemo(d.id)}
-                disabled={busy}
-                title={d.hint}
-                style={{ fontSize: 13 }}
-              >
-                {d.label}
+      <div className="row">
+        {!recording ? (
+          <>
+            {hasStoppedCapture && steps.length > 0 && (
+              <button className="primary" onClick={resume} disabled={!selected || busy}>
+                Add more chords
               </button>
-            ))}
-          </div>
-        </div>
-      )}
+            )}
+            <button
+              className={steps.length > 0 ? "" : "primary"}
+              onClick={steps.length > 0 ? startOver : start}
+              disabled={!selected || busy}
+            >
+              {steps.length > 0 ? "Start over" : "Start capturing"}
+            </button>
+          </>
+        ) : (
+          <button
+            className="danger"
+            onClick={() => {
+              flushChord();
+              setRecording(false);
+              setHasStoppedCapture(true);
+            }}
+          >
+            Stop capturing
+          </button>
+        )}
+      </div>
+
+      {/* Held notes while they sound, and a prompt while listening. Nothing at
+          all when idle: an "idle" badge is a label for the absence of activity,
+          which the Start button already communicates. */}
+      <div className="live" style={{ marginTop: "0.9rem" }} role="status" aria-live="polite">
+        {held.length > 0
+          ? held.map((p) => <span key={p} className="note">{noteName(p)}</span>)
+          : recording && (
+              <span className="pill">listening — play a chord</span>
+            )}
+      </div>
+
+      {error && <p className="error">{error}</p>}
 
       {(recording || steps.length > 0) && (
-        <div style={{ marginTop: 16, marginLeft: -18, marginRight: -18 }}>
+        <div style={{ marginTop: "1.25rem" }}>
           <ChordSteps
             steps={steps}
             pending={pending}
@@ -426,16 +535,10 @@ export default function MidiConnect({ onChords, onReset, busy }: Props) {
             canPlay={connected && outputs.length > 0}
             playing={playing}
             onAnalyse={() => {
-              // Analysing ends the take. Without this, anything played while
-              // the results load would quietly append to the progression that
-              // was just analysed.
               const inFlight = [...chordBuffer.current].sort((a, b) => a - b);
               flushChord();
               setRecording(false);
               setHasStoppedCapture(true);
-
-              // A chord still inside its onset window has not reached `steps`
-              // yet, so include it explicitly rather than losing it.
               const captured = steps.map((s) => ({
                 pitches: s.pitches,
                 duration_ms: 600,
@@ -449,36 +552,9 @@ export default function MidiConnect({ onChords, onReset, busy }: Props) {
         </div>
       )}
 
-
-      {connected && outputs.length > 1 && (
-        <div className="row" style={{ marginTop: 10, gap: 8 }}>
-          <span className="sub" style={{ margin: 0 }}>Play back to</span>
-          <select
-            value={outputId}
-            onChange={(e) => {
-              setOutputId(e.target.value);
-              captureRef.current!
-                .selectOutput(e.target.value)
-                .catch((err) =>
-                  setError(err instanceof Error ? err.message : String(err)),
-                );
-            }}
-          >
-            {outputs.map((o) => (
-              <option key={o.id} value={o.id}>
-                {o.name}{looksLikeChordcat(o) ? "  ✓ ChordCat" : ""}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
-
-      {connected && ports.length === 0 && (
-        <p className="sub" style={{ margin: "10px 0 0" }}>
-          No inputs detected. Connect the ChordCat over USB-C and it should appear
-          without drivers; the list refreshes automatically.
-        </p>
-      )}
+      {/* Search setup last: while a take is running the chords being captured
+          are what the player needs in front of them. */}
+      {children && <div className="setup">{children}</div>}
     </div>
   );
 }

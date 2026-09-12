@@ -25,8 +25,8 @@ export default function KeyPanel({ keyInfo, onOverride, busy }: Props) {
       {keyInfo.alternatives.length > 0 && (
         <>
           <p className="sub" style={{ margin: "8px 0 0" }}>
-            Relative keys share a pitch-class set, so this is genuinely ambiguous
-            from the notes alone. Override it if it looks wrong:
+            Several keys use exactly these notes, so this is our best guess.
+            Pick a different one if it sounds wrong to you:
           </p>
           <div className="keys">
             {keyInfo.alternatives.slice(0, 4).map((a) => (
@@ -44,7 +44,8 @@ export default function KeyPanel({ keyInfo, onOverride, busy }: Props) {
 
       {keyInfo.modulation_suspected && (
         <p className="sub" style={{ margin: "10px 0 0" }}>
-          A key change was detected. Search windows do not span it.
+          Your chords seem to change key partway through, so we searched each
+          part on its own.
         </p>
       )}
     </div>

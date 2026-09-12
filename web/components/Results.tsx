@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import {
-  matchedPositions, stripModifiers,
-  type AnalyzeResponse, type Profile, type Song,
+  matchedPositions, stripModifiers, toNumber, youtubeSearch,
+  type AnalyzeResponse, type Match, type Profile, type Song,
 } from "@/lib/api";
+import { BAND, CatFace, type Cat } from "./CatBand";
 
 function Bars({ data, alt = false, max = 6 }: {
   data: Record<string, number>; alt?: boolean; max?: number;
@@ -30,7 +31,9 @@ function Bars({ data, alt = false, max = 6 }: {
 }
 
 /** A song's own progression, with the part you played picked out. */
-function ChordString({ song, played }: { song: Song; played: string[] }) {
+function ChordString({
+  song, played, playedSymbols,
+}: { song: Song; played: string[]; playedSymbols: string[] }) {
   if (song.song_chords.length === 0) {
     return (
       <span className="mono" style={{ color: "var(--muted)", fontSize: 12 }}>
@@ -63,12 +66,12 @@ function ChordString({ song, played }: { song: Song; played: string[] }) {
           <span
             key={at}
             style={{
-              color: hits.has(at) ? "var(--accent)" : "var(--muted)",
+              color: hits.has(at) ? "var(--accent-3)" : "var(--muted)",
               fontWeight: hits.has(at) ? 700 : 400,
               marginRight: 5,
             }}
           >
-            {chord}
+            {toNumber(chord)}
           </span>
         );
       })}
@@ -81,7 +84,7 @@ function ChordString({ song, played }: { song: Song; played: string[] }) {
           shown above -- a `i` appearing where the take reads `vi`. */}
       {differsFromPlayed(song.matched_chords, played) && (
         <div style={{ color: "var(--muted)", fontSize: 11, marginTop: 3 }}>
-          your progression as {song.matched_chords.join(" ")}
+          your {playedSymbols.join(" ")} read as {song.matched_chords.join(" ")}
         </div>
       )}
     </span>
@@ -96,30 +99,43 @@ function differsFromPlayed(matched: string[], played: string[]): boolean {
   return a !== b;
 }
 
-export function SongMatches({ result }: { result: AnalyzeResponse }) {
+export function SongMatches({ result, filter }: {
+  result: AnalyzeResponse;
+  /** The genre filter, which lives with the songs it filters. */
+  filter?: React.ReactNode;
+}) {
   const [expanded, setExpanded] = useState(false);
-  if (result.songs.length === 0) return null;
+  // With a filter attached the panel must survive an empty result: otherwise
+  // choosing a genre that matches nothing takes away the control that undoes it.
+  if (result.songs.length === 0 && !filter) return null;
   const INITIAL = 20;
   const shown = expanded ? result.songs : result.songs.slice(0, INITIAL);
   return (
     <div className="panel">
-      <div className="row spread">
-        <h2 style={{ margin: 0 }}>Songs using this progression</h2>
-        <span className="row" style={{ gap: 8 }}>
-          <span className="pill">
-            best match first
-          </span>
-          <span className="pill">
-            {result.requests_spent} API request{result.requests_spent === 1 ? "" : "s"}
-          </span>
-        </span>
-      </div>
+      <h2 style={{ margin: 0 }}>Songs using this progression</h2>
+      {result.songs.some((s) =>
+        differsFromPlayed(s.matched_chords, result.romans),
+      ) && (
+        <p className="sub" style={{ margin: "8px 0 0" }}>
+          Some songs below are in a different key from yours. They still move
+          through the same pattern of chords — they just start from a different
+          note. Songs are filed under their own key, so we search both ways.
+        </p>
+      )}
+
+      {filter && <div className="setup">{filter}</div>}
+
+      {result.songs.length === 0 ? (
+        <p className="sub" style={{ margin: 0 }}>
+          No songs left with that genre chosen. Pick another, or clear it above.
+        </p>
+      ) : (
       <table style={{ marginTop: 12 }}>
         <thead>
           <tr>
             <th>Artist</th><th>Song · section</th><th>Key</th>
-            <th>Their chords · yours in green</th>
-            <th style={{ width: 62 }} title="How much of the song is the progression you played. Results are ordered by this.">
+            <th>Their chords · yours highlighted</th>
+            <th style={{ width: 62 }} title="How much of the song is the progression you played. Closest first.">
               Match ↓
             </th>
           </tr>
@@ -129,19 +145,22 @@ export function SongMatches({ result }: { result: AnalyzeResponse }) {
             <tr key={`${s.artist}-${s.song}`}>
               <td>{s.artist}</td>
               <td>
-                {/* Prefer the recording itself; fall back to the analysis page
-                    for results from the Trends API, which carries no video. */}
+                {/* Straight to the recording when the source knew which one
+                    it is; a search only when it did not. Either way the title
+                    is the link -- one destination, no second guess to make. */}
                 <a
-                  href={s.video_url || s.url}
+                  href={s.video_url || youtubeSearch(s.artist, s.song)}
                   target="_blank"
                   rel="noreferrer"
-                  title={s.video_url ? "Listen on YouTube" : "Open the TheoryTab analysis"}
+                  aria-label={`${s.song} on YouTube`}
+                  title={
+                    s.video_url
+                      ? "Watch on YouTube"
+                      : "Search YouTube for this song"
+                  }
                 >
                   {s.song}
                 </a>
-                {!s.video_url && (
-                  <span style={{ color: "var(--muted)", fontSize: 11 }}> ↗ theory</span>
-                )}
                 {s.section && (
                   <div style={{ color: "var(--muted)", fontSize: 11, marginTop: 2 }}>
                     {s.section}
@@ -160,10 +179,15 @@ export function SongMatches({ result }: { result: AnalyzeResponse }) {
               <td style={{ color: "var(--muted)", whiteSpace: "nowrap" }}>
                 {s.song_key || "—"}
               </td>
-              <td><ChordString song={s} played={result.romans} /></td>
+              <td>
+                <ChordString
+                  song={s}
+                  played={result.romans}
+                  playedSymbols={result.chords.map((c) => c.symbol)}
+                />
+              </td>
               <td
                 className="mono"
-                title={`relevance score ${s.score.toFixed(2)}`}
                 style={{ color: s.coverage >= 0.99 ? "var(--accent)" : undefined }}
               >
                 {s.coverage > 0 ? `${Math.round(s.coverage * 100)}%` : "—"}
@@ -172,6 +196,7 @@ export function SongMatches({ result }: { result: AnalyzeResponse }) {
           ))}
         </tbody>
       </table>
+      )}
       {result.songs.length > INITIAL && (
         <button
           onClick={() => setExpanded((v) => !v)}
@@ -187,62 +212,112 @@ export function SongMatches({ result }: { result: AnalyzeResponse }) {
 }
 
 export function TasteProfile({ profile }: { profile: Profile }) {
-  const h = profile.harmonic;
   return (
-    <div className="grid2">
-      <div className="panel">
-        <h2>Taste</h2>
-        <h3 style={{ fontSize: 13, color: "var(--muted)" }}>Genres</h3>
-        <Bars data={profile.genres} />
-        <h3 style={{ fontSize: 13, color: "var(--muted)", marginTop: 14 }}>Moods</h3>
-        <Bars data={profile.moods} alt max={4} />
-        <h3 style={{ fontSize: 13, color: "var(--muted)", marginTop: 14 }}>Eras</h3>
-        <Bars data={profile.eras} alt max={3} />
-      </div>
-      <div className="panel">
-        <h2>How you play</h2>
-        <p className="sub" style={{ marginTop: -4 }}>
-          Measured from your performance alone — no song match needed.
-        </p>
-        <Bars
-          data={{
-            "seventh chords": h.seventh_density,
-            "borrowed chords": h.borrowed_rate,
-            "harmonic variety": h.chord_variety,
-            "progression rarity": Math.min(h.mean_progression_rarity / 2, 1),
-            "pitch coverage": h.key_spread,
-            ...Object.fromEntries(
-              Object.entries(h.cadence_profile).map(([k, v]) => [`${k} cadences`, v]),
-            ),
-          }}
-        />
-      </div>
+    <div className="panel">
+      <h2>Taste</h2>
+      <h3 style={{ fontSize: 13, color: "var(--muted)" }}>Genres</h3>
+      <Bars data={profile.genres} />
+      <h3 style={{ fontSize: 13, color: "var(--muted)", marginTop: 14 }}>Moods</h3>
+      <Bars data={profile.moods} alt max={4} />
+      <h3 style={{ fontSize: 13, color: "var(--muted)", marginTop: 14 }}>Eras</h3>
+      <Bars data={profile.eras} alt max={3} />
     </div>
   );
 }
 
-export function MatchList({ result }: { result: AnalyzeResponse }) {
-  if (result.matches.length === 0) return null;
+function catFor(name: string): Cat {
+  let h = 0;
+  for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return BAND[h % BAND.length];
+}
+
+const COMPONENT_LABELS: Record<string, string> = {
+  genre: "genres", artist: "artists", harmonic: "harmony", mood: "mood", era: "era",
+};
+
+export function MatchList({
+  matches, roomSize,
+}: {
+  matches: Match[];
+  roomSize?: number;
+}) {
+  const others = roomSize !== undefined ? roomSize - 1 : undefined;
   return (
     <div className="panel">
       <h2>Musicians you&apos;d click with</h2>
-      {result.matches.map((m) => (
-        <div className="match" key={m.id}>
-          <div className="row spread">
-            <h3 style={{ margin: 0 }}>
-              {m.name}{" "}
-              <span className="meta">· {m.instrument} · {m.city}</span>
-            </h3>
-            <span className="pill ok">
-              closer than {Math.round(m.percentile * 100)}%
-            </span>
-          </div>
-          <p className="why">{m.rationale}</p>
-          <p className="meta" style={{ margin: "6px 0 0" }}>
-            {m.bio}
+      {matches.length === 0 ? (
+        <p className="sub" style={{ marginBottom: 0 }}>
+          You&apos;re the first one in the room. Leave this tab open — the next
+          person who plays something shows up here.
+        </p>
+      ) : (
+        <>
+          <p className="sub">
+            {others !== undefined
+              ? `${others} other musician${others === 1 ? " has" : "s have"} played their own progression into ChordCat Connect. `
+              : "Everyone here has played their own progression into ChordCat Connect. "}
+            We compared what you played to what they played — the chords you
+            reach for, the keys you sit in, the songs you both turn out to share
+            — and these are the closest. Find them and play something.
           </p>
-        </div>
-      ))}
+          {matches.map((m, i) => {
+            const cat = catFor(m.name);
+            const where = [m.instrument, m.city].filter(Boolean).join(" · ");
+            return (
+              <div className={`match${i === 0 ? " top" : ""}`} key={m.id}>
+                <div className="match-head">
+                  <span className="match-avatar" style={{ background: cat.belly }}>
+                    <CatFace cat={cat} size={44} decorative />
+                  </span>
+                  <div className="match-who">
+                    <h3 style={{ margin: 0 }}>{m.name}</h3>
+                    {where && <span className="meta">{where}</span>}
+                  </div>
+                  <div className="match-tags">
+                    {i === 0 && <span className="match-tag">closest to you</span>}
+                    <span className="pill ok">
+                      better match than {Math.round(m.percentile * 100)}% of the room
+                    </span>
+                  </div>
+                </div>
+
+                <div className="grid2 match-body">
+                  <div>
+                    <p className="why">{m.rationale}</p>
+                    {(m.shared_artists.length > 0 || m.shared_genres.length > 0 || m.signature_progression) && (
+                      <div className="chips">
+                        {m.shared_artists.slice(0, 4).map((a) => (
+                          <span className="chip artist" key={`a-${a}`}>{a}</span>
+                        ))}
+                        {m.shared_genres.slice(0, 3).map((g) => (
+                          <span className="chip genre" key={`g-${g}`}>{g}</span>
+                        ))}
+                        {m.signature_progression && (
+                          <span className="chip mono" title="Their signature progression">
+                            {m.signature_progression}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    {m.bio && (
+                      <p className="meta" style={{ margin: "0.6rem 0 0" }}>{m.bio}</p>
+                    )}
+                  </div>
+                  <div className="match-components">
+                    <Bars
+                      data={Object.fromEntries(
+                        Object.entries(m.components).map(([k, v]) => [COMPONENT_LABELS[k] ?? k, v]),
+                      )}
+                      alt={i !== 0}
+                      max={5}
+                    />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </>
+      )}
     </div>
   );
 }

@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from typing import Iterable, Mapping, Sequence
 
 from .events import ArtistHit, SongHit
-from .pitch import strip_modifiers
+from .pitch import matches_tonality, strip_modifiers
 from .ngrams import Ngram, rarity
 
 #: A window that opens the take is slightly better evidence of intent.
@@ -62,6 +62,19 @@ def _section_multiplier(n_sections: int) -> float:
     return min(MAX_SECTION_MULTIPLIER, 1.0 + 0.25 * (n_sections - 1))
 
 
+#: Favours songs written in the tonality the player asked for. Applied after
+#: coverage so it orders equally-good matches rather than overturning them.
+TONALITY_PREFERENCE = 0.35
+
+
+def tonality_bonus(song_key: str, tonality: str) -> float:
+    """Multiplier for a song whose key agrees with the stated preference."""
+    if tonality == "any" or not song_key:
+        return 1.0
+    mode = song_key.split(" ", 1)[-1].strip().casefold()
+    return 1.0 + TONALITY_PREFERENCE if matches_tonality(mode, tonality) else 1.0
+
+
 def progression_coverage(
     song_chords: Sequence[str], pattern: Sequence[str]
 ) -> float:
@@ -104,6 +117,7 @@ def score_songs(
     results: Sequence[NgramResult],
     transition_prob: Mapping[tuple[str, ...], float] | None = None,
     coverage: Mapping[tuple[str, str], float] | None = None,
+    tonality: str = "any",
 ) -> tuple[SongHit, ...]:
     """Rank songs by how strongly the take's windows point at them.
 
@@ -163,7 +177,8 @@ def score_songs(
             coverage=coverage.get(k, 0.0) if coverage else 0.0,
             score=v
             * _section_multiplier(len(sections[k]))
-            * _coverage_multiplier(coverage.get(k) if coverage else None),
+            * _coverage_multiplier(coverage.get(k) if coverage else None)
+            * tonality_bonus(display[k].song_key, tonality),
             matched_ngrams=tuple(sorted(matched[k])),
         )
         for k, v in scores.items()

@@ -168,6 +168,21 @@ export class MidiCapture {
     this.output = port;
   }
 
+  /**
+   * One short note on the chosen output, to prove the routing works.
+   *
+   * Playback failing has two very different causes -- we are not sending, or
+   * the receiving app is not listening -- and without a way to send a single
+   * note on demand there is no way to tell them apart.
+   */
+  testNote(pitch = 60, ms = 400, channel = 1): void {
+    if (!this.output) throw new Error("no MIDI output selected");
+    const status = (base: number) => base | ((channel - 1) & 0x0f);
+    const at = performance.now() + 20;
+    this.output.send([status(0x90), pitch, 96], at);
+    this.output.send([status(0x80), pitch, 0], at + ms);
+  }
+
   hasOutput(): boolean {
     return this.output !== null;
   }

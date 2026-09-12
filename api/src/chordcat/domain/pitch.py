@@ -53,6 +53,58 @@ def parent_major_tonic(tonic_pc: int, mode: Mode) -> int:
     return (tonic_pc - PARENT_MAJOR_OFFSET[mode]) % 12
 
 
+#: Natural pitch class of each letter name.
+_LETTERS: Final[str] = "CDEFGAB"
+_NATURAL_PC: Final[tuple[int, ...]] = (0, 2, 4, 5, 7, 9, 11)
+_ACCIDENTALS: Final[dict[int, str]] = {-2: "bb", -1: "b", 0: "", 1: "#", 2: "##"}
+
+
+#: How a chord root is written when no key is known. Convention is not
+#: symmetrical: Bb, Eb and Ab are overwhelmingly commoner than A#, D# and G#,
+#: while F# is commoner than Gb and C# than Db. Defaulting everything to sharps
+#: spells three of the five black keys the way almost nobody writes them.
+_CONTEXTLESS_NAMES: Final[tuple[str, ...]] = (
+    "C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B",
+)
+
+
+def chord_name(pitch_class: int) -> str:
+    """Name a chord root with no key to go on, following common practice."""
+    return _CONTEXTLESS_NAMES[pitch_class % 12]
+
+
+def spell_in_key(pitch_class: int, tonic_pc: int, mode: str) -> str:
+    """Name a pitch class as it would be written in a given key.
+
+    A scale uses each letter name once, so the seventh degree of F# major is
+    E#, not F -- the two sound alike but only one can be written without using
+    the letter F twice. A fixed twelve-name table cannot express that, which is
+    why the spelling is derived from the scale rather than looked up.
+
+    Pitches outside the key fall back to the key's own accidental preference.
+    """
+    pitch_class %= 12
+    scale = MODE_SCALES.get(mode, MODE_SCALES["major"])
+    flats = prefers_flats(tonic_pc, mode)
+
+    tonic_name = pc_name(tonic_pc, prefer_flats=flats)
+    tonic_letter = _LETTERS.index(tonic_name[0])
+
+    for degree, step in enumerate(scale):
+        if (tonic_pc + step) % 12 != pitch_class:
+            continue
+        letter_index = (tonic_letter + degree) % 7
+        letter = _LETTERS[letter_index]
+        offset = (pitch_class - _NATURAL_PC[letter_index]) % 12
+        if offset > 6:
+            offset -= 12
+        if offset in _ACCIDENTALS:
+            return f"{letter}{_ACCIDENTALS[offset]}"
+        break
+
+    return pc_name(pitch_class, prefer_flats=flats)
+
+
 #: Scale degree (0-indexed) whose alteration characterises each mode against the
 #: major scale. Used to bias the rotated Krumhansl profiles in key detection.
 MODE_CHARACTERISTIC_DEGREE: Final[dict[Mode, int]] = {
@@ -72,10 +124,146 @@ FLAT_NAMES: Final[tuple[str, ...]] = (
     "C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B",
 )
 
+Tonality = Literal["any", "major", "minor"]
+
+#: Which modes read as major and which as minor. A mode is minor-ish when its
+#: third is minor, which is what a player means by "I'm in a minor key" -- the
+#: distinction that matters here, not the precise mode.
+MINOR_MODES: Final[frozenset[str]] = frozenset(
+    {"minor", "dorian", "phrygian", "locrian"}
+)
+MAJOR_MODES: Final[frozenset[str]] = frozenset(
+    {"major", "lydian", "mixolydian"}
+)
+
+
+def matches_tonality(mode: str, tonality: str) -> bool:
+    """Whether a mode satisfies a stated major/minor preference."""
+    if tonality == "major":
+        return mode in MAJOR_MODES
+    if tonality == "minor":
+        return mode in MINOR_MODES
+    return True
+
+
 #: Modes whose tonal centre is minor-ish; used only to pick flat spellings.
 _FLAT_MODES: Final[frozenset[str]] = frozenset(
     {"minor", "dorian", "phrygian", "locrian"}
 )
+
+#: Natural pitch class of each letter name.
+_LETTERS: Final[str] = "CDEFGAB"
+_NATURAL_PC: Final[tuple[int, ...]] = (0, 2, 4, 5, 7, 9, 11)
+_ACCIDENTALS: Final[dict[int, str]] = {-2: "bb", -1: "b", 0: "", 1: "#", 2: "##"}
+
+
+#: How a chord root is written when no key is known. Convention is not
+#: symmetrical: Bb, Eb and Ab are overwhelmingly commoner than A#, D# and G#,
+#: while F# is commoner than Gb and C# than Db. Defaulting everything to sharps
+#: spells three of the five black keys the way almost nobody writes them.
+_CONTEXTLESS_NAMES: Final[tuple[str, ...]] = (
+    "C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B",
+)
+
+
+def chord_name(pitch_class: int) -> str:
+    """Name a chord root with no key to go on, following common practice."""
+    return _CONTEXTLESS_NAMES[pitch_class % 12]
+
+
+def spell_in_key(pitch_class: int, tonic_pc: int, mode: str) -> str:
+    """Name a pitch class as it would be written in a given key.
+
+    A scale uses each letter name once, so the seventh degree of F# major is
+    E#, not F -- the two sound alike but only one can be written without using
+    the letter F twice. A fixed twelve-name table cannot express that, which is
+    why the spelling is derived from the scale rather than looked up.
+
+    Pitches outside the key fall back to the key's own accidental preference.
+    """
+    pitch_class %= 12
+    scale = MODE_SCALES.get(mode, MODE_SCALES["major"])
+    flats = prefers_flats(tonic_pc, mode)
+
+    tonic_name = pc_name(tonic_pc, prefer_flats=flats)
+    tonic_letter = _LETTERS.index(tonic_name[0])
+
+    for degree, step in enumerate(scale):
+        if (tonic_pc + step) % 12 != pitch_class:
+            continue
+        letter_index = (tonic_letter + degree) % 7
+        letter = _LETTERS[letter_index]
+        offset = (pitch_class - _NATURAL_PC[letter_index]) % 12
+        if offset > 6:
+            offset -= 12
+        if offset in _ACCIDENTALS:
+            return f"{letter}{_ACCIDENTALS[offset]}"
+        break
+
+    return pc_name(pitch_class, prefer_flats=flats)
+
+
+#: Scale degree (0-indexed) whose alteration characterises each mode against the
+#: major scale. Used to bias the rotated Krumhansl profiles in key detection.
+MODE_CHARACTERISTIC_DEGREE: Final[dict[Mode, int]] = {
+    "major": 6,      # leading tone
+    "minor": 5,      # b6
+    "dorian": 5,     # natural 6
+    "phrygian": 1,   # b2
+    "lydian": 3,     # #4
+    "mixolydian": 6,  # b7
+    "locrian": 4,    # b5
+}
+
+SHARP_NAMES: Final[tuple[str, ...]] = (
+    "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B",
+)
+FLAT_NAMES: Final[tuple[str, ...]] = (
+    "C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B",
+)
+
+Tonality = Literal["any", "major", "minor"]
+
+#: Which modes read as major and which as minor. A mode is minor-ish when its
+#: third is minor, which is what a player means by "I'm in a minor key" -- the
+#: distinction that matters here, not the precise mode.
+MINOR_MODES: Final[frozenset[str]] = frozenset(
+    {"minor", "dorian", "phrygian", "locrian"}
+)
+MAJOR_MODES: Final[frozenset[str]] = frozenset(
+    {"major", "lydian", "mixolydian"}
+)
+
+
+def matches_tonality(mode: str, tonality: str) -> bool:
+    """Whether a mode satisfies a stated major/minor preference."""
+    if tonality == "major":
+        return mode in MAJOR_MODES
+    if tonality == "minor":
+        return mode in MINOR_MODES
+    return True
+
+
+#: Modes whose tonal centre is minor-ish; used only to pick flat spellings.
+_FLAT_MODES: Final[frozenset[str]] = frozenset(
+    {"minor", "dorian", "phrygian", "locrian"}
+)
+
+#: Major keys written with flats in their signature: F, Bb, Eb, Ab, Db.
+#: Pitch class 6 is left to sharps, since F# major is the commoner spelling
+#: than Gb major.
+_FLAT_KEY_TONICS: Final[frozenset[int]] = frozenset({5, 10, 3, 8, 1})
+
+
+def prefers_flats(tonic_pc: int, mode: str) -> bool:
+    """Whether a key is written with flats.
+
+    Decided by the parent major scale, because that is what carries the key
+    signature: D dorian belongs to C major and uses neither, while D minor
+    belongs to F major and therefore writes a B flat -- not an A sharp.
+    """
+    parent = (tonic_pc - PARENT_MAJOR_OFFSET.get(mode, 0)) % 12
+    return parent in _FLAT_KEY_TONICS
 
 
 def pc(midi_pitch: int) -> int:
@@ -90,8 +278,8 @@ def pc_name(pitch_class: int, *, prefer_flats: bool = False) -> str:
 
 
 def key_name(tonic_pc: int, mode: str) -> str:
-    """Display name for a key, e.g. ``"C major"`` or ``"Eb dorian"``."""
-    return f"{pc_name(tonic_pc, prefer_flats=mode in _FLAT_MODES)} {mode}"
+    """Display name for a key, e.g. ``"C major"`` or ``"Bb major"``."""
+    return f"{pc_name(tonic_pc, prefer_flats=prefers_flats(tonic_pc, mode))} {mode}"
 
 
 def scale_pcs(tonic_pc: int, mode: Mode) -> frozenset[int]:

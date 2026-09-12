@@ -96,3 +96,110 @@ def test_retry_keys_never_repeat_the_detected_key():
     keys = [(k.tonic_pc, k.mode) for k, _ in _retry_keys(estimate)]
     assert (0, "major") not in keys
     assert len(keys) == len(set(keys))
+
+
+def test_tonality_preference_settles_relative_ambiguity():
+    """Relative major and minor share a pitch-class set.
+
+    No amount of analysis separates them from the notes, so the player saying
+    which one they mean is better evidence than any tie-break we could invent.
+    """
+    chords = analyse_offline([(41, 53, 57, 60), (46, 58, 62, 65),
+                              (48, 60, 64, 67), (50, 62, 65, 69)])
+    as_major = detect_key(chords, tonality="major")
+    as_minor = detect_key(chords, tonality="minor")
+    assert key_name(as_major.key.tonic_pc, as_major.key.mode) == "F major"
+    assert key_name(as_minor.key.tonic_pc, as_minor.key.mode) == "D minor"
+
+
+def test_tonality_preference_does_not_invent_a_key():
+    """The bias settles close calls; it must not overturn a clear result."""
+    unambiguous = analyse_offline([(60, 64, 67), (55, 59, 62), (60, 64, 67)] * 2)
+    biased = detect_key(unambiguous, tonality="minor")
+    # C major is overwhelming here, so a minor reading must at least stay on a
+    # key that contains the notes rather than drifting somewhere unrelated.
+    from chordcat.domain.pitch import scale_pcs
+    played = {p for c in unambiguous for p, _ in c.event.pc_weights}
+    assert played <= scale_pcs(biased.key.tonic_pc, biased.key.mode) | played
+
+
+def test_relative_key_round_trips():
+    from chordcat.domain.events import Key
+    from chordcat.domain.pitch import scale_pcs
+    from chordcat.services.pipeline import _relative_key
+
+    for mode in ("major", "minor", "dorian", "mixolydian", "lydian"):
+        for tonic in range(12):
+            key = Key(tonic, mode)
+            other = _relative_key(key)
+            assert scale_pcs(key.tonic_pc, key.mode) == scale_pcs(
+                other.tonic_pc, other.mode
+            ), f"{mode} on {tonic} -> {other}"
+
+
+class TestSpelling:
+    """Accidentals follow the key signature, not a fixed preference.
+
+    Showing A# where a score would write Bb makes a correct analysis look wrong
+    to anyone who reads music.
+    """
+
+    def test_flat_keys_are_spelled_with_flats(self):
+        from chordcat.domain.pitch import key_name
+
+        assert key_name(10, "major") == "Bb major"
+        assert key_name(3, "major") == "Eb major"
+        assert key_name(1, "major") == "Db major"
+
+    def test_sharp_keys_are_spelled_with_sharps(self):
+        from chordcat.domain.pitch import key_name
+
+        assert key_name(7, "major") == "G major"
+        assert key_name(6, "major") == "F# major"
+
+    def test_the_parent_scale_carries_the_signature(self):
+        """D minor belongs to F major and writes Bb; D dorian belongs to C and
+        writes neither."""
+        from chordcat.domain.pitch import prefers_flats
+
+        assert prefers_flats(2, "minor") is True
+        assert prefers_flats(2, "dorian") is False
+
+    def test_every_major_scale_uses_each_letter_once(self):
+        """The defining property of scale spelling, across all twelve keys.
+
+        F# major needs E# for this to hold; a twelve-name lookup table gives F
+        and uses the letter twice.
+        """
+        from chordcat.domain.pitch import MODE_SCALES, spell_in_key
+
+        for tonic in range(12):
+            letters = [
+                spell_in_key((tonic + step) % 12, tonic, "major")[0]
+                for step in MODE_SCALES["major"]
+            ]
+            assert len(set(letters)) == 7, f"tonic {tonic}: {letters}"
+
+    def test_contextless_chord_names_follow_common_practice(self):
+        """With no key to go on, convention is not symmetrical.
+
+        Bb, Eb and Ab are overwhelmingly commoner than A#, D# and G#, so
+        defaulting everything to sharps spells three of the five black keys the
+        way almost nobody writes them.
+        """
+        from chordcat.domain.pitch import chord_name
+
+        assert chord_name(10) == "Bb"
+        assert chord_name(3) == "Eb"
+        assert chord_name(8) == "Ab"
+        assert chord_name(6) == "F#"
+        assert chord_name(1) == "C#"
+        assert chord_name(0) == "C"
+
+    def test_known_spellings(self):
+        from chordcat.domain.pitch import spell_in_key
+
+        assert spell_in_key(10, 5, "major") == "Bb"    # 4th of F major
+        assert spell_in_key(10, 0, "major") == "A#"    # outside C major
+        assert spell_in_key(5, 6, "major") == "E#"     # 7th of F# major
+        assert spell_in_key(10, 2, "minor") == "Bb"    # 6th of D minor

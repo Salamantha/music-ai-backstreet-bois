@@ -1,152 +1,557 @@
 :root {
-  --bg: #0f1115;
-  --panel: #171a21;
-  --panel-2: #1e222b;
-  --line: #2a2f3a;
-  --text: #e8eaf0;
-  --muted: #9aa3b2;
-  --accent: #6ee7b7;
-  --accent-2: #7dd3fc;
-  --warn: #fbbf24;
-  --danger: #f87171;
-  --radius: 10px;
+  /* Bright, but every value checked against the background rather than eyeballed.
+     Contrast on --bg: text 16.1:1, muted 9.5:1, pink 9.4:1, blue 10.8:1,
+     mint 13.4:1 -- all clear of WCAG AA for body text, not just large text.
+     The base is a deep indigo rather than near-black, which keeps the bright
+     accents from vibrating against it. */
+  --bg: #181233;
+  --panel: #221a45;
+  --panel-2: #2d2357;
+  --line: #3f3470;
+  --text: #f6f0ff;
+  --muted: #c3b6e6;
+
+  --accent: #ff9ed2;        /* pink: primary actions */
+  --accent-2: #8ed0ff;      /* blue: analysis, roman numerals */
+  --accent-3: #8df3c4;      /* mint: matches, success */
+  --warn: #ffd382;
+  --danger: #ff97a8;
+
+  /* Text on a bright fill. Dark, so the fill can stay saturated. */
+  --on-bright: #2a1240;
+
+  --focus: #ffd382;
+  --radius: 16px;
+  --radius-sm: 11px;
+  --shadow: 0 6px 20px rgba(10, 4, 28, 0.45);
 }
 
 * { box-sizing: border-box; }
+
+html { font-size: 17px; }
 
 body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font: 15px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
 }
 
-main { max-width: 1080px; margin: 0 auto; padding: 28px 20px 80px; }
+/* Every interactive element gets a visible, high-contrast focus ring. The
+   browser default disappears against a dark panel. */
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
 
-h1 { font-size: 22px; margin: 0 0 2px; letter-spacing: -0.01em; }
-h2 { font-size: 15px; margin: 0 0 12px; color: var(--muted); font-weight: 600;
-     text-transform: uppercase; letter-spacing: 0.06em; }
-h3 { font-size: 15px; margin: 0 0 6px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
 
-.sub { color: var(--muted); margin: 0 0 22px; font-size: 14px; }
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: var(--accent);
+  color: var(--on-bright);
+  padding: 10px 16px;
+  font-weight: 700;
+  z-index: 100;
+}
+.skip-link:focus { left: 8px; top: 8px; }
+
+main { max-width: 60rem; margin: 0 auto; padding: 2rem 1.25rem 6rem; }
+
+h1 { font-size: 1.6rem; font-weight: 700; margin: 0 0 0.25rem; letter-spacing: -0.01em; }
+h2 { font-size: 1.25rem; font-weight: 700; margin: 0 0 0.5rem; }
+h3 { font-size: 1rem; font-weight: 700; margin: 0 0 0.35rem; }
+
+.lede { color: var(--muted); margin: 0 0 1.75rem; font-size: 1rem; }
+.sub { color: var(--muted); margin: 0 0 1rem; font-size: 0.95rem; }
 
 .panel {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  padding: 18px;
-  margin-bottom: 18px;
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+  box-shadow: var(--shadow);
 }
 
-.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.row { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
 .spread { justify-content: space-between; }
+
+/* ---- Stepper -------------------------------------------------------- */
+
+/* On a narrow viewport the status pill wraps onto its own line and lands
+   flush against the first step. Space the header off the stepper so the two
+   read as separate things. */
+main > header { margin-bottom: 1.75rem; }
+main > header > .pill { margin-top: 0.15rem; }
+
+.steps {
+  display: flex;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0 0 1.5rem;
+  padding: 0;
+  flex-wrap: wrap;
+}
+.steps li { flex: 1 1 11rem; }
+
+.steps button {
+  border-radius: var(--radius);
+  width: 100%;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.8rem 1rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--muted);
+  font: inherit;
+  cursor: pointer;
+}
+.steps button:hover:not(:disabled) { border-color: var(--accent); }
+.steps button:disabled { cursor: not-allowed; opacity: 0.55; }
+
+.steps [aria-current="step"] {
+  border-color: var(--accent);
+  background: linear-gradient(135deg, rgba(255,158,210,0.16), rgba(142,208,255,0.12));
+  color: var(--text);
+}
+
+.step-number {
+  flex: 0 0 auto;
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+.steps [aria-current="step"] .step-number {
+  background: linear-gradient(135deg, var(--accent), #ffc2e4);
+  color: var(--on-bright);
+  border-color: transparent;
+}
+.steps .done .step-number {
+  background: var(--accent-3);
+  color: var(--on-bright);
+  border-color: transparent;
+}
+
+.step-label { font-weight: 700; font-size: 0.95rem; line-height: 1.25; }
+.step-hint { font-size: 0.8rem; color: var(--muted); font-weight: 400; }
+
+.step-nav {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: space-between;
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--line);
+}
+
+/* ---- Controls -------------------------------------------------------- */
 
 button {
   font: inherit;
-  font-weight: 600;
+  font-weight: 700;
   background: var(--panel-2);
   color: var(--text);
   border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 9px 15px;
+  border-radius: 999px;
+  padding: 0.65rem 1.1rem;
   cursor: pointer;
+  min-height: 2.75rem;
 }
 button:hover:not(:disabled) { border-color: var(--accent); }
 button:disabled { opacity: 0.45; cursor: not-allowed; }
-button.primary { background: var(--accent); color: #0b1220; border-color: var(--accent); }
-button.danger { background: var(--danger); color: #2a0b0b; border-color: var(--danger); }
+button.primary {
+  background: linear-gradient(135deg, var(--accent), #ffc2e4);
+  color: var(--on-bright);
+  border-color: transparent;
+  box-shadow: 0 3px 0 #d96fae;
+}
+button.primary:hover:not(:disabled) { filter: brightness(1.06); }
+button.primary:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 1px 0 #d96fae; }
+button.danger { background: var(--danger); color: var(--on-bright); border-color: transparent; }
+button.quiet { font-weight: 400; padding: 0.45rem 0.8rem; min-height: 2.25rem; font-size: 0.9rem; }
 
+/* The native dropdown arrow is anchored to the border box and ignores
+   padding, so against a pill radius it sits almost on the curve. Draw our own
+   instead, which can be positioned, and reserve room for it on the right. */
 select {
   font: inherit; background: var(--panel-2); color: var(--text);
-  border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px;
+  border: 1px solid var(--line); border-radius: 999px;
+  padding: 0.6rem 2.6rem 0.6rem 0.95rem; min-height: 2.75rem;
+  appearance: none; -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%23c3b6e6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1.1rem center;
 }
+/* Forced-colours users get the platform control back; our drawn chevron would
+   not survive the colour override. */
+@media (forced-colors: active) {
+  select { appearance: auto; -webkit-appearance: auto; background-image: none; }
+}
+
+label { font-weight: 700; font-size: 0.9rem; }
 
 .pill {
-  display: inline-block; padding: 2px 9px; border-radius: 999px;
+  display: inline-block; padding: 0.2rem 0.7rem; border-radius: 999px;
   background: var(--panel-2); border: 1px solid var(--line);
-  font-size: 12px; color: var(--muted);
+  font-size: 0.85rem; color: var(--muted);
 }
-.pill.ok { color: var(--accent); border-color: #2f5d4c; }
-.pill.bad { color: var(--danger); border-color: #5d2f2f; }
+.pill.ok { color: var(--accent-3); border-color: #2f6b55; }
+.pill.bad { color: var(--danger); border-color: #6b3448; }
 
-.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.mono { font-family: var(--font-mono), ui-monospace, Menlo, monospace; }
 
-.chords { display: flex; gap: 8px; flex-wrap: wrap; position: relative; }
+/* Connection status. The dot carries the colour, the word carries the meaning,
+   so neither has to be understood alone. */
+.signal {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.2rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.signal-dot { width: 0.6rem; height: 0.6rem; border-radius: 999px; background: currentColor; }
+.signal.on { color: var(--accent-3); border-color: #2f6b55; }
+.signal.off { color: var(--danger); border-color: #6b3448; }
+
+/* ---- Chords ---------------------------------------------------------- */
+
+.chords { display: flex; gap: 0.55rem; flex-wrap: wrap; position: relative; }
+
 .chord {
   background: var(--panel-2); border: 1px solid var(--line);
-  border-radius: 8px; padding: 9px 13px; min-width: 74px; text-align: center;
+  border-radius: var(--radius-sm); padding: 0.7rem 0.9rem; min-width: 5.5rem;
+  text-align: center;
 }
-.chord .sym { font-size: 17px; font-weight: 700; }
-.chord .rom { font-size: 12px; color: var(--accent-2); font-family: ui-monospace, monospace; }
-.chord .cp  { font-size: 11px; color: var(--muted); font-family: ui-monospace, monospace; }
+.chord .sym { font-size: 1.25rem; font-weight: 700; }
+.chord .rom { font-size: 0.85rem; color: var(--accent-2); font-family: var(--font-mono), monospace; }
+.chord .rom.alt { color: var(--muted); }
+.chord .cp { font-size: 0.75rem; color: var(--muted); font-family: var(--font-mono), monospace; }
 .chord.hole { border-style: dashed; border-color: var(--warn); }
 
-/* Draggable chord blocks. `touch-action: none` stops a touch drag from
-   scrolling the page instead of picking the block up. */
-.chord.step {
-  padding-top: 20px;
-  touch-action: none;
-  user-select: none;
-  will-change: transform;
-}
-.chord.step.held {
-  border-color: var(--accent);
-  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.55);
-  background: var(--panel);
-}
+.chord.step { padding-top: 1.4rem; touch-action: none; user-select: none; will-change: transform; }
+.chord.step.held { border-color: var(--accent); box-shadow: 0 10px 22px rgba(0,0,0,0.55); background: var(--panel); }
 
-.step-move {
-  position: absolute; top: 2px; left: 4px; right: 4px;
-  display: flex; justify-content: space-between; gap: 4px;
-}
-.step-move button,
-.step-remove {
-  padding: 0; width: 18px; height: 18px; line-height: 16px;
-  font-size: 13px; font-weight: 700; border-radius: 4px;
+.step-move { position: absolute; top: 0.2rem; left: 0.3rem; right: 0.3rem;
+             display: flex; justify-content: space-between; gap: 0.25rem; }
+.step-move button, .step-remove {
+  padding: 0; width: 1.5rem; height: 1.5rem; min-height: 0; line-height: 1.35rem;
+  font-size: 0.9rem; font-weight: 700; border-radius: 5px;
   background: var(--panel); color: var(--muted); border: 1px solid var(--line);
 }
 .step-move button:hover:not(:disabled) { color: var(--accent); border-color: var(--accent); }
-.step-move button:disabled { opacity: 0.25; }
-.step-remove {
-  position: absolute; top: -8px; right: -8px;
-  border-radius: 999px; width: 20px; height: 20px; line-height: 18px;
-}
+.step-move button:disabled { opacity: 0.3; }
+.step-remove { position: absolute; top: -0.6rem; right: -0.6rem; border-radius: 999px;
+               width: 1.6rem; height: 1.6rem; line-height: 1.45rem; }
 .step-remove:hover:not(:disabled) { color: var(--danger); border-color: var(--danger); }
 
-.keys { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
-.keys button { padding: 5px 11px; font-size: 13px; font-weight: 500; }
+.live { display: flex; gap: 0.4rem; min-height: 2.4rem; align-items: center; flex-wrap: wrap; }
+.note { background: var(--accent-3); color: var(--on-bright); border-radius: 8px;
+        padding: 0.25rem 0.6rem; font-family: var(--font-mono), monospace;
+        font-size: 0.9rem; font-weight: 700; }
 
-.live { display: flex; gap: 6px; min-height: 34px; align-items: center; flex-wrap: wrap; }
-.note {
-  background: var(--accent); color: #0b1220; border-radius: 6px;
-  padding: 4px 9px; font-family: ui-monospace, monospace; font-size: 13px; font-weight: 700;
+/* ---- Tables and bars -------------------------------------------------- */
+
+.table-scroll { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+caption { text-align: left; color: var(--muted); font-size: 0.9rem; padding-bottom: 0.6rem; }
+th { text-align: left; color: var(--muted); font-weight: 700; font-size: 0.8rem;
+     text-transform: uppercase; letter-spacing: 0.06em; padding: 0.55rem 0.6rem;
+     border-bottom: 1px solid var(--line); }
+td { padding: 0.65rem 0.6rem; border-bottom: 1px solid var(--panel-2); vertical-align: top; }
+td a { color: var(--accent-2); }
+td a:hover { text-decoration: none; }
+
+.bars { display: grid; grid-template-columns: 9rem 1fr 3rem; gap: 0.6rem;
+        align-items: center; font-size: 0.9rem; margin-bottom: 0.4rem; }
+.bar { height: 0.55rem; background: var(--panel-2); border-radius: 4px; overflow: hidden; }
+.bar { border-radius: 999px; }
+.bar > span { display: block; height: 100%; border-radius: 999px;
+              background: linear-gradient(90deg, var(--accent), #ffc2e4); }
+.bar.alt > span { background: linear-gradient(90deg, var(--accent-2), #b9e4ff); }
+
+.match { border: 1px solid var(--line); border-radius: var(--radius-sm);
+         padding: 1rem; margin-bottom: 0.75rem; background: var(--panel-2); }
+.match .why { color: var(--text); font-size: 0.95rem; margin: 0.4rem 0 0; }
+.match .meta { color: var(--muted); font-size: 0.85rem; }
+.match.top {
+  border-color: var(--accent);
+  background: linear-gradient(135deg, rgba(255,158,210,0.16), rgba(142,208,255,0.12)), var(--panel-2);
 }
 
-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-th { text-align: left; color: var(--muted); font-weight: 600; font-size: 12px;
-     text-transform: uppercase; letter-spacing: 0.05em; padding: 6px 8px;
-     border-bottom: 1px solid var(--line); }
-td { padding: 7px 8px; border-bottom: 1px solid var(--panel-2); }
-td a { color: var(--accent-2); text-decoration: none; }
-td a:hover { text-decoration: underline; }
+.match-head { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+.match-avatar {
+  flex: none; width: 52px; height: 52px; border-radius: 50%;
+  display: grid; place-items: center; border: 2px solid var(--line);
+}
+.match-avatar svg { display: block; }
+.match-who { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; flex: 1; }
+.match-tags { display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; margin-left: auto; }
+.match-tag {
+  display: inline-block; padding: 0.2rem 0.7rem; border-radius: 999px;
+  background: linear-gradient(135deg, var(--accent), #ffc2e4);
+  color: var(--on-bright); font-size: 0.8rem; font-weight: 700;
+}
 
-.bars { display: grid; grid-template-columns: 128px 1fr 44px; gap: 8px;
-        align-items: center; font-size: 13px; margin-bottom: 5px; }
-.bar { height: 7px; background: var(--panel-2); border-radius: 4px; overflow: hidden; }
-.bar > span { display: block; height: 100%; background: var(--accent); }
-.bar.alt > span { background: var(--accent-2); }
+.match-body { margin-top: 0.75rem; gap: 1rem; }
+@media (min-width: 48rem) { .match-body { grid-template-columns: 3fr 2fr; } }
+.match-components .bars { grid-template-columns: 4.5rem 1fr 2.5rem; font-size: 0.8rem; margin-bottom: 0.3rem; }
+.match-components .bar { height: 0.45rem; }
 
-.match { border: 1px solid var(--line); border-radius: var(--radius);
-         padding: 14px; margin-bottom: 10px; background: var(--panel-2); }
-.match .why { color: var(--muted); font-size: 14px; margin: 6px 0 0; }
-.match .meta { color: var(--muted); font-size: 12px; }
+.chips { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.6rem; }
+.chip {
+  display: inline-block; padding: 0.15rem 0.6rem; border-radius: 999px;
+  font-size: 0.8rem; border: 1px solid var(--line); color: var(--muted);
+  background: var(--panel);
+}
+.chip.artist { color: var(--accent-3); border-color: #2f6b55; }
+.chip.genre { color: var(--accent-2); border-color: #33587a; }
 
-.note-list { margin: 0; padding-left: 18px; color: var(--warn); font-size: 13px; }
-.note-list li { margin-bottom: 4px; }
+.join-form { display: grid; grid-template-columns: 1fr 1fr auto auto; gap: 0.75rem; align-items: end; }
+@media (max-width: 48rem) { .join-form { grid-template-columns: 1fr; } }
+.join-field { display: flex; flex-direction: column; gap: 0.35rem; }
+.join-input {
+  font: inherit; background: var(--panel-2); color: var(--text);
+  border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px;
+  width: 100%; box-sizing: border-box;
+}
+.join-form select { border-radius: 8px; min-height: 0; padding: 9px 11px; }
+.join-actions { display: flex; align-items: end; }
+
+.note-list { margin: 0; padding-left: 1.2rem; color: var(--warn); font-size: 0.9rem; }
+.note-list li { margin-bottom: 0.35rem; }
 
 .error { color: var(--danger); }
-.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-@media (max-width: 760px) { .grid2 { grid-template-columns: 1fr; } }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+@media (max-width: 48rem) { .grid2 { grid-template-columns: 1fr; } }
+
+.keys { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.keys button { padding: 0.45rem 0.85rem; font-size: 0.9rem; font-weight: 400; min-height: 2.4rem; }
+
+/* ---- Wallpaper ------------------------------------------------------ */
+
+/* Behind everything, ignoring the pointer, hidden from assistive tech. Fixed
+   so it does not lengthen the page or move under a scroll. */
+.wallpaper {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.wallpaper > span {
+  position: absolute;
+  opacity: 0.10;
+  filter: saturate(1.2);
+}
+
+/* Content rides above the wallpaper; panels are opaque, so text never sits on
+   a cat. */
+main { position: relative; z-index: 1; }
+
+.logo {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  padding: 0.3rem;
+  box-shadow: var(--shadow);
+}
+
+.mascot-panel {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+.mascot-panel > div { flex: 1 1 15rem; }
+
+/* ---- The band ------------------------------------------------------- */
+
+.band { margin: 0; }
+.band-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(6.5rem, 1fr));
+  gap: 0.75rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.band-member {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.15rem;
+  padding: 0.9rem 0.4rem;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  transition: transform 140ms ease;
+}
+.band-member:hover { transform: translateY(-3px); }
+.band-name { font-weight: 700; font-size: 0.95rem; }
+.band-role { font-size: 0.8rem; color: var(--muted); }
+
+.band-mini { display: flex; align-items: center; }
+.band-mini svg { margin-right: -0.7rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
+.band-mini svg:last-child { margin-right: 0; }
+
+/* Screen-reader-only, for labels that would be redundant visually. */
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* The one-line summary on step one. */
+.how { margin: 0.6rem 0 0; line-height: 1.6; font-size: 1.02rem; }
+
+/* ---- Progression readings ------------------------------------------- */
+
+/* The major and minor hearings of the same notes, as siblings rather than
+   stacked rows -- neither is more correct, so neither is subordinate. */
+.reading { border-top: 1px solid var(--line); padding: 0.9rem 0 0.2rem; }
+.reading:first-of-type { border-top: 0; padding-top: 0.4rem; }
+.reading > summary {
+  cursor: pointer; list-style: none; padding: 0.35rem 0;
+  border-radius: 8px;
+}
+.reading > summary::-webkit-details-marker { display: none; }
+.reading > summary::before {
+  content: "▸"; display: inline-block; width: 1.1em;
+  color: var(--accent-2); transition: transform 0.15s ease;
+}
+.reading[open] > summary::before { transform: rotate(90deg); }
+.reading > summary:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.reading-title { font-weight: 700; }
+.reading-body { padding: 0.5rem 0 0.6rem 1.1em; }
+
+@media (prefers-reduced-motion: reduce) {
+  .reading > summary::before { transition: none; }
+}
+
+/* Search setup inside the capture panel: part of playing, but distinct enough
+   from the transport controls to read as its own step. */
+.setup {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(141, 208, 255, 0.06);
+  padding: 1rem 1.1rem 0.9rem;
+  margin: 1.1rem 0;
+}
+.setup h3 { font-size: 1rem; margin: 0; }
+
+/* A step's forward action, inside the card that completes it. */
+.card-nav { display: flex; justify-content: flex-end; margin-top: 1.25rem; }
+
+/* ---- Analysing curtain ---------------------------------------------- */
+
+.curtain {
+  position: fixed; inset: 0; z-index: 50;
+  display: grid; place-items: center;
+  padding: 1.5rem;
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+  backdrop-filter: blur(6px);
+  animation: curtain-in 0.22s ease-out both;
+}
+.curtain-card {
+  display: grid; justify-items: center; gap: 0.4rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.6rem 2.2rem 1.9rem;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+  max-width: min(28rem, 100%);
+  text-align: center;
+}
+.curtain-beat { margin: 0.2rem 0 0; font-weight: 700; font-size: 1.05rem; }
+.curtain-bar {
+  width: 100%; height: 6px; border-radius: 999px;
+  background: var(--panel-2); overflow: hidden; margin-top: 0.9rem;
+}
+/* Indeterminate: we cannot know how far through we are, so the bar must not
+   pretend to. It sweeps rather than fills. */
+.curtain-bar span {
+  display: block; width: 40%; height: 100%; border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent-2), var(--accent));
+  animation: curtain-sweep 1.5s ease-in-out infinite;
+}
+
+@keyframes curtain-in { from { opacity: 0 } to { opacity: 1 } }
+@keyframes curtain-sweep {
+  0% { transform: translateX(-110%) }
+  100% { transform: translateX(360%) }
+}
+
+/* ---- Domino at work -------------------------------------------------- */
+
+/* Paws alternate, so he reads as playing rather than pouncing. */
+.pc-paw { transform-box: fill-box; transform-origin: center; }
+.pc-paw-l.pc-on { animation: pc-bang 0.44s ease-in-out infinite; }
+.pc-paw-r.pc-on { animation: pc-bang 0.44s ease-in-out infinite 0.22s; }
+.pc-hit-l.pc-on { animation: pc-flash 0.44s ease-in-out infinite; }
+.pc-hit-r.pc-on { animation: pc-flash 0.44s ease-in-out infinite 0.22s; }
+.pc-head { transform-box: fill-box; transform-origin: 50% 90%; }
+.pc-head.pc-on { animation: pc-bob 0.88s ease-in-out infinite; }
+.pc-note { transform-box: fill-box; transform-origin: center; }
+.pc-note-1.pc-on { animation: pc-rise 2.1s ease-out infinite; }
+.pc-note-2.pc-on { animation: pc-rise 2.1s ease-out infinite 0.7s; }
+.pc-note-3.pc-on { animation: pc-rise 2.1s ease-out infinite 1.4s; }
+.pc-sparkles.pc-on { animation: pc-twinkle 1.6s ease-in-out infinite; }
+
+@keyframes pc-bang {
+  0%, 100% { transform: translateY(-7px) }
+  45%, 60% { transform: translateY(1px) }
+}
+@keyframes pc-flash { 0%, 100% { opacity: 0 } 50% { opacity: 0.85 } }
+@keyframes pc-bob {
+  0%, 100% { transform: translateY(0) rotate(-1.5deg) }
+  50%      { transform: translateY(-2.5px) rotate(1.5deg) }
+}
+@keyframes pc-rise {
+  0%   { opacity: 0; transform: translateY(6px) }
+  25%  { opacity: 0.9 }
+  100% { opacity: 0; transform: translateY(-26px) }
+}
+@keyframes pc-twinkle { 0%, 100% { opacity: 0.35 } 50% { opacity: 1 } }
+
+/* A spinning, banging, sweeping screen is exactly what this setting is for.
+   The curtain still blocks and still says what is happening; it just holds
+   still while it does. */
+@media (prefers-reduced-motion: reduce) {
+  .curtain, .curtain-bar span,
+  .pc-paw-l.pc-on, .pc-paw-r.pc-on, .pc-hit-l.pc-on, .pc-hit-r.pc-on,
+  .pc-head.pc-on, .pc-note-1.pc-on, .pc-note-2.pc-on, .pc-note-3.pc-on,
+  .pc-sparkles.pc-on {
+    animation: none;
+  }
+  .curtain-bar span { width: 100%; }
+}
 
 /* Helper page: the teaching path. Shares the tokens above, nothing else. */
 .helper { max-width: 640px; }

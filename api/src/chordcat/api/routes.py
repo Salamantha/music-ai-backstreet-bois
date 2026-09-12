@@ -13,8 +13,25 @@ from ..adapters.hooktheory import AuthError, HooktheoryError
 from ..deps import get_services
 from ..domain.chords import identify_chord
 from ..domain.cp import to_cp
-from ..domain.events import ChordEvent, Hole, IdentifiedChord, Key, RawEvent
-from ..domain.pitch import MODES, key_name, pc_name, roman_for
+from ..domain.events import (
+    ChordEvent,
+    HarmonicFeatures,
+    Hole,
+    IdentifiedChord,
+    Key,
+    RawEvent,
+)
+from ..domain.pitch import (
+    MODES,
+    chord_name,
+    key_name,
+    pc_name,
+    prefers_flats,
+    roman_for,
+    spell_in_key,
+)
+from ..domain.profile import TasteProfile
+from ..services.matching import Match, PersonaPool, persona_from_dict, profile_to_dict
 from ..helper.analysis import run_all
 from ..helper.concepts.graph import choose
 from ..helper.concepts.schema import APPROVED, load_nodes
@@ -34,6 +51,8 @@ from .schemas import (
     HelperTurnResponse,
     IdentifyRequest,
     IdentifyResponse,
+    JoinRoomRequest,
+    JoinRoomResponse,
     KeyOut,
     MatchOut,
     ProfileOut,
@@ -60,11 +79,96 @@ async def health() -> dict:
         "genre_labels": getattr(getattr(s.genres, "static", s.genres), "size", 0),
         "personas": len(s.pool.personas),
         "offline": s.settings.chordcat_offline,
+        "room": s.room is not None,
     }
 
 
-def _symbol(root_pc: int, quality: str) -> str:
-    return pc_name(root_pc) + _QUALITY_SYMBOL.get(quality, "")
+def _match_out(m: Match) -> MatchOut:
+    return MatchOut(
+        id=m.persona.id,
+        name=m.persona.name,
+        instrument=m.persona.instrument,
+        city=m.persona.city,
+        bio=m.persona.bio,
+        score=m.breakdown.total,
+        percentile=m.percentile,
+        components={
+            "genre": m.breakdown.genre,
+            "artist": m.breakdown.artist,
+            "harmonic": m.breakdown.harmonic,
+            "mood": m.breakdown.mood,
+            "era": m.breakdown.era,
+        },
+        shared_artists=list(m.breakdown.shared_artists),
+        shared_genres=list(m.breakdown.shared_genres),
+        shared_harmonic=list(m.breakdown.shared_harmonic),
+        rationale=m.rationale,
+        signature_progression=m.persona.signature_progression,
+    )
+
+
+@router.post("/room/join", response_model=JoinRoomResponse)
+async def join_room(req: JoinRoomRequest) -> JoinRoomResponse:
+    """Store the caller's profile and rank them against everyone else."""
+    services = get_services()
+    if services.room is None:
+        raise HTTPException(status_code=503, detail="The room is not configured.")
+
+    h = req.profile.harmonic
+    profile = TasteProfile(
+        genre_weights=dict(req.profile.genres),
+        artist_weights=dict(req.profile.artists),
+        era_weights=dict(req.profile.eras),
+        mood_weights=dict(req.profile.moods),
+        harmonic=HarmonicFeatures(
+            modal_usage={h.mode: 1.0},
+            seventh_density=h.seventh_density,
+            borrowed_rate=h.borrowed_rate,
+            mean_progression_rarity=h.mean_progression_rarity,
+            cadence_profile=dict(h.cadence_profile),
+            key_spread=h.key_spread,
+            chord_variety=h.chord_variety,
+            mean_chord_duration_s=h.mean_chord_duration_s,
+        ),
+    )
+
+    try:
+        await services.room.upsert_member(
+            {
+                "client_id": req.client_id,
+                "name": req.name.strip(),
+                "city": req.city.strip(),
+                "instrument": req.instrument.strip(),
+                "signature_progression": req.signature_progression,
+                "mode": req.mode,
+                "profile": profile_to_dict(profile),
+            }
+        )
+        rows = await services.room.list_members()
+    except Exception as exc:  # noqa: BLE001 - surface any store failure as 502
+        log.exception("room store failed")
+        raise HTTPException(status_code=502, detail="Could not reach the room.") from exc
+
+    others = tuple(persona_from_dict(r) for r in rows if r.get("client_id") != req.client_id)
+    pool = PersonaPool(personas=others, calibration=services.pool.calibration)
+    return JoinRoomResponse(
+        room_size=len(rows),
+        matches=[_match_out(m) for m in pool.rank(profile, limit=8)],
+    )
+
+
+def _symbol(root_pc: int, quality: str, key: Key | None = None) -> str:
+    """Chord symbol, spelled as it would be written in the key.
+
+    In F major the fourth degree is a B flat, not an A sharp. Showing the wrong
+    accidental makes a correct analysis look wrong to anyone who reads music.
+    """
+    root = (
+        spell_in_key(root_pc, key.tonic_pc, key.mode)
+        if key is not None
+        else chord_name(root_pc)
+    )
+    return root + _QUALITY_SYMBOL.get(quality, "")
 
 
 def _chord_event(pitches: list[int], duration_ms: float = 600.0) -> ChordEvent:
@@ -146,6 +250,12 @@ async def identify(req: IdentifyRequest) -> IdentifyResponse:
     if req.key_tonic_pc is not None and req.key_mode in MODES:
         key = Key(req.key_tonic_pc, req.key_mode)  # type: ignore[arg-type]
 
+    flats = prefers_flats(key.tonic_pc, key.mode) if key else False
+    spell = (
+        (lambda pc: spell_in_key(pc, key.tonic_pc, key.mode))
+        if key is not None
+        else chord_name
+    )
     event = _chord_event(pitches)
     candidates = identify_chord(event, key=key)
     if not candidates:
@@ -159,21 +269,21 @@ async def identify(req: IdentifyRequest) -> IdentifyResponse:
         roman = roman_for((best.root_pc - key.tonic_pc) % 12, best.quality, key.mode)
 
     return IdentifyResponse(
-        symbol=_symbol(best.root_pc, best.quality)
+        symbol=_symbol(best.root_pc, best.quality, key)
         + ("(" + ",".join(best.extensions) + ")" if best.extensions else ""),
-        root=pc_name(best.root_pc),
+        root=spell(best.root_pc),
         quality=best.quality,
         inversion=best.inversion,
         extensions=list(best.extensions),
-        bass=pc_name(event.bass_pc),
+        bass=spell(event.bass_pc),
         roman=roman,
         cp=cp_token,
-        pitch_classes=[pc_name(p) for p in sorted(event.pcs)],
+        pitch_classes=[spell(p) for p in sorted(event.pcs)],
         candidates=[
             CandidateOut(
-                root=pc_name(c.root_pc),
+                root=spell(c.root_pc),
                 quality=c.quality,
-                symbol=_symbol(c.root_pc, c.quality),
+                symbol=_symbol(c.root_pc, c.quality, key),
                 inversion=c.inversion,
                 extensions=list(c.extensions),
                 score=c.score,
@@ -222,10 +332,18 @@ async def analyze(req: AnalyzeRequest) -> AnalyzeResponse:
         theorytab=services.theorytab,
         key_override=override,
         wanted_genres=req.genres,
+        tonality=req.tonality,
         session_end_ms=req.session_end_ms,
         budget=req.budget or services.settings.song_request_budget,
         artist_document_frequency=services.cache.artist_frequencies(),
         corpus_size=services.cache.corpus_size(),
+    )
+
+    analysed_key = result.key_estimate.key if result.key_estimate else None
+    spell_flats = (
+        prefers_flats(analysed_key.tonic_pc, analysed_key.mode)
+        if analysed_key
+        else False
     )
 
     romans: list[str] = []
@@ -243,10 +361,14 @@ async def analyze(req: AnalyzeRequest) -> AnalyzeResponse:
             index=i,
             start_ms=c.event.start_ms,
             end_ms=c.event.end_ms,
-            root=pc_name(c.best.root_pc),
+            root=(
+                spell_in_key(c.best.root_pc, analysed_key.tonic_pc, analysed_key.mode)
+                if analysed_key
+                else chord_name(c.best.root_pc)
+            ),
             quality=c.best.quality,
             inversion=c.best.inversion,
-            symbol=pc_name(c.best.root_pc) + _QUALITY_SYMBOL.get(c.best.quality, ""),
+            symbol=_symbol(c.best.root_pc, c.best.quality, analysed_key),
             roman=romans[i] if i < len(romans) else None,
             cp=cp_by_index.get(i),
             pitches=list(c.event.pitches),
@@ -297,91 +419,77 @@ async def analyze(req: AnalyzeRequest) -> AnalyzeResponse:
             ),
             taste_document=p.taste_document(),
         )
-        matches = [
-            MatchOut(
-                id=m.persona.id,
-                name=m.persona.name,
-                instrument=m.persona.instrument,
-                city=m.persona.city,
-                bio=m.persona.bio,
-                score=m.breakdown.total,
-                percentile=m.percentile,
-                components={
-                    "genre": m.breakdown.genre,
-                    "artist": m.breakdown.artist,
-                    "harmonic": m.breakdown.harmonic,
-                    "mood": m.breakdown.mood,
-                    "era": m.breakdown.era,
-                },
-                shared_artists=list(m.breakdown.shared_artists),
-                shared_genres=list(m.breakdown.shared_genres),
-                shared_harmonic=list(m.breakdown.shared_harmonic),
-                rationale=m.rationale,
-                signature_progression=m.persona.signature_progression,
-            )
-            for m in services.pool.rank(p, limit=8)
-        ]
+        matches = [_match_out(m) for m in services.pool.rank(p, limit=8)]
 
     notes: list[str] = []
 
     if req.genres and not result.search.songs:
         notes.append(
-            "No matched song is in the selected genre"
-            f"{'s' if len(req.genres) > 1 else ''}. Clearing the filter will "
-            "show everything the progression matched."
+            "None of the songs we found are in the genre"
+            f"{'s' if len(req.genres) > 1 else ''} you picked. Clear the genre "
+            "to see everything your chords matched."
         )
 
     if not result.chords:
         d = result.diagnostics
         notes.append(
-            f"No chords were identified from {d.get('raw_events', 0)} MIDI events."
+            f"We heard {d.get('raw_events', 0)} messages from your device but "
+            "could not make chords out of them."
         )
         if d.get("max_simultaneous", 0) < d.get("min_notes_for_chord", 3):
             notes.append(
-                f"At most {d.get('max_simultaneous', 0)} note(s) ever sounded at "
-                "once, so nothing formed a chord. If the ChordCat is streaming a "
-                "sequencer track, make sure a harmony channel is selected rather "
-                "than a bass or lead line."
+                f"Only {d.get('max_simultaneous', 0)} note(s) ever sounded at "
+                "the same time, so nothing added up to a chord. If your device is "
+                "playing a sequence, pick the track with the chords on it rather "
+                "than the bassline or the melody."
             )
         elif d.get("dropped_too_few_notes", 0):
             notes.append(
                 f"{d['dropped_too_few_notes']} of {d.get('clusters_found', 0)} "
-                "candidate segments had fewer than "
-                f"{d.get('min_notes_for_chord', 3)} notes sounding together. This "
-                "usually means several tracks are interleaved, or the notes are "
-                "arriving one at a time."
+                "moments had too few notes sounding together to count as a chord "
+                f"(we need {d.get('min_notes_for_chord', 3)}). That usually means "
+                "the notes arrived one at a time, or several parts are mixed "
+                "together."
             )
         elif not d.get("notes_paired"):
             notes.append(
-                "No note-on/note-off pairs were found. The stream may be clock "
-                "or control messages only."
+                "We saw messages from your device but no actual notes — it may "
+                "only be sending timing or control data."
             )
 
     if services.client is None:
         notes.append(
-            "Hooktheory is not configured, so no song matches were attempted. "
-            "Chords, key and harmonic features are still real."
+            "Song matching is switched off right now, so we only looked at "
+            "your playing. The chords and the key are still real."
         )
     elif not result.search.songs:
         notes.append(
-            "No song in the Hooktheory database uses this exact progression. "
-            "Matching fell back to harmonic features, which is expected for "
-            "anything unusual -- it only matches exact contiguous progressions."
+            "No song in our database uses this exact run of chords, so we "
+            "matched you on the way you play instead. That is normal for "
+            "anything unusual -- songs only count as a match when the chords "
+            "line up exactly, in order."
         )
     if result.segmentation_mode == "grid":
         notes.append(
-            "The input looked arpeggiated or sequenced, so chords were pooled "
-            "into fixed time windows instead of by note onset."
+            "Your playing sounded like an arpeggio or a sequence -- notes one "
+            "after another rather than together -- so we grouped them into even "
+            "chunks of time instead."
         )
     if result.stuck_notes:
-        notes.append(f"{result.stuck_notes} note(s) never received a note-off.")
+        notes.append(
+            f"{result.stuck_notes} note(s) never stopped, so we treated them as "
+            "held to the end."
+        )
     if result.key_estimate and result.key_estimate.source == "matched":
         notes.append(
-            f"The key was settled as {key_out.name if key_out else ''} because "
-            "that reading is the one Hooktheory actually has songs for."
+            f"We settled on {key_out.name if key_out else ''} because that is "
+            "the version real songs turned out to be written in."
         )
     if result.key_estimate and result.key_estimate.modulation_suspected:
-        notes.append("A key change was detected; windows do not span it.")
+        notes.append(
+            "Your chords seem to change key partway through, so we searched each "
+            "part on its own."
+        )
 
     return AnalyzeResponse(
         session_id=str(uuid.uuid4()),
@@ -415,6 +523,24 @@ async def analyze(req: AnalyzeRequest) -> AnalyzeResponse:
         diagnostics=result.diagnostics,
         available_genres=result.available_genres,
         applied_genres=list(req.genres),
+        applied_tonality=req.tonality,
+        alternate_key_name=(
+            key_name(result.alternate_key.tonic_pc, result.alternate_key.mode)
+            if result.alternate_key
+            else ""
+        ),
+        alternate_key_mode=(
+            result.alternate_key.mode if result.alternate_key else ""
+        ),
+        alternate_romans=[
+            t.roman for t in result.alternate_sequence if not isinstance(t, Hole)
+        ],
+        prefer_flats=spell_flats,
+        alternate_cp=",".join(
+            t.root_position_token
+            for t in result.alternate_sequence
+            if not isinstance(t, Hole)
+        ),
         notes=notes,
     )
 

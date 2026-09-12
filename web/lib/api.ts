@@ -48,9 +48,17 @@ export interface AnalyzeResponse {
   songs: Song[]; artists: Artist[]; profile: Profile | null; matches: Match[];
   requests_spent: number; queried: string[];
   segmentation_mode: string; stuck_notes: number; notes: string[];
+  prefer_flats: boolean;
   available_genres: Record<string, number>;
   applied_genres: string[];
+  applied_tonality: string;
+  alternate_key_name: string;
+  alternate_key_mode: string;
+  alternate_romans: string[];
+  alternate_cp: string;
 }
+
+export type Tonality = "any" | "major" | "minor";
 
 export async function analyze(
   events: MidiEvent[],
@@ -117,7 +125,12 @@ export interface ChordStep {
 /** Analyse a progression the player already separated into chords. */
 export async function analyzeChords(
   chords: ChordStep[],
-  opts: { keyTonicPc?: number; keyMode?: string; genres?: string[] } = {},
+  opts: {
+    keyTonicPc?: number;
+    keyMode?: string;
+    genres?: string[];
+    tonality?: Tonality;
+  } = {},
 ): Promise<AnalyzeResponse> {
   const res = await fetch(`${BASE}/api/analyze`, {
     method: "POST",
@@ -127,11 +140,41 @@ export async function analyzeChords(
       key_tonic_pc: opts.keyTonicPc,
       key_mode: opts.keyMode,
       genres: opts.genres ?? [],
+      tonality: opts.tonality ?? "any",
     }),
   });
   if (!res.ok) {
     const detail = await res.text();
     throw new Error(`Analysis failed (${res.status}): ${detail.slice(0, 300)}`);
+  }
+  return res.json();
+}
+
+export interface JoinRoomRequest {
+  client_id: string;
+  name: string;
+  city: string;
+  instrument: string;
+  signature_progression: string;
+  mode: string;
+  profile: Profile;
+}
+
+export interface JoinRoomResponse {
+  room_size: number;
+  matches: Match[];
+}
+
+/** Store the player's profile in the room and rank them against everyone else. */
+export async function joinRoom(req: JoinRoomRequest): Promise<JoinRoomResponse> {
+  const res = await fetch(`${BASE}/api/room/join`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(req),
+  });
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`Could not join the room (${res.status}): ${detail.slice(0, 300)}`);
   }
   return res.json();
 }
@@ -150,6 +193,55 @@ export async function selectableGenres(): Promise<string[]> {
  * song written `i7 ii7`. The highlighting has to compare the same way, or the
  * matched chords in such a song would appear unmatched.
  */
+const _ROMAN_DEGREE: Record<string, number> = {
+  i: 1, ii: 2, iii: 3, iv: 4, v: 5, vi: 6, vii: 7,
+};
+
+/** Suffixes that begin with a digit, which would fuse with the degree number. */
+const _SUPERSCRIPT: Record<string, string> = {
+  "7": "\u2077", "6": "\u2076", "maj7": "maj\u2077",
+  "\u00b07": "\u00b0\u2077", "7sus4": "\u2077sus4",
+};
+
+/**
+ * A roman numeral as a plain number, Nashville style: `vi` -> `6m`,
+ * `bVII` -> `b7`, `V7` -> `5⁷`, `viiø` -> `7ø`.
+ *
+ * Display only -- every comparison still runs on the roman form, which is what
+ * both our analysis and Hooktheory's song data are written in.
+ *
+ * Sevenths and sixths become superscripts because `5` + `7` would otherwise
+ * read as fifty-seven. Lowercase means minor, so it earns an `m` -- except
+ * where the suffix already names the quality (`°`, `ø`), which would make the
+ * `m` redundant.
+ */
+export function toNumber(roman: string | null | undefined): string {
+  if (!roman) return "\u2014";
+  const m = /^([b#\u266d\u266f]*)([ivxIVX]+)(.*)$/.exec(roman.trim());
+  if (!m) return roman;
+  const [, accidental, numeral, rawSuffix] = m;
+  const degree = _ROMAN_DEGREE[numeral.toLowerCase()];
+  if (!degree) return roman;
+
+  // Applied chords name a second degree after the slash: V/vi -> 5/6m.
+  const applied = rawSuffix.indexOf("/");
+  if (applied !== -1) {
+    const head = toNumber(`${accidental}${numeral}${rawSuffix.slice(0, applied)}`);
+    return `${head}/${toNumber(rawSuffix.slice(applied + 1))}`;
+  }
+
+  const suffix = _SUPERSCRIPT[rawSuffix] ?? rawSuffix;
+  const namesQuality = /^[\u00b0o0\u00f8+]/.test(rawSuffix);
+  const minor = numeral === numeral.toLowerCase() && !namesQuality;
+  const quality = minor ? "m" : "";
+
+  // minmaj7 would otherwise run together as 6mmaj7.
+  if (minor && rawSuffix.startsWith("maj")) {
+    return `${accidental}${degree}m(${suffix})`;
+  }
+  return `${accidental}${degree}${quality}${suffix}`;
+}
+
 export function stripModifiers(roman: string): string {
   const m = /^([b#]*)([ivxIVX]+)(o|0|ø|\+)?/.exec(roman.trim());
   return m ? `${m[1]}${m[2]}${m[3] ?? ""}` : roman.trim();
@@ -168,6 +260,18 @@ export function matchedPositions(chords: string[], pattern: string[]): Set<numbe
     }
   }
   return hits;
+}
+
+/**
+ * A YouTube search for a song, rather than a specific video.
+ *
+ * The video id embedded in a TheoryTab is whatever its contributor linked --
+ * often a cover, a lyric video, or something since taken down. A search always
+ * resolves to the actual song.
+ */
+export function youtubeSearch(artist: string, song: string): string {
+  const q = encodeURIComponent(`${artist} ${song}`.replace(/\s+/g, " ").trim());
+  return `https://www.youtube.com/results?search_query=${q}`;
 }
 
 export interface HelperFact {
