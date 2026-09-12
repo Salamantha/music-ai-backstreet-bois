@@ -117,7 +117,7 @@ export default function ChordSteps({
   return (
     <div className="panel">
       <div className="row spread">
-        <h3 style={{ margin: 0 }}>Progression</h3>
+        <h3 style={{ margin: 0 }}>Chord progression</h3>
         <span className="row" style={{ gap: 8 }}>
           <span className="pill">{steps.length} chord{steps.length === 1 ? "" : "s"}</span>
           {steps.length > 0 && (

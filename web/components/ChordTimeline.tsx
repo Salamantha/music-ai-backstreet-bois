@@ -81,7 +81,7 @@ export default function ChordTimeline({ result }: { result: AnalyzeResponse }) {
   if (!alternate) {
     return (
       <div className="panel">
-        <h2 style={{ marginTop: 0 }}>Progression</h2>
+        <h2 style={{ marginTop: 0 }}>Chord progression</h2>
         <ReadingBlock reading={primary} symbols={symbols} holes={holes} />
         <Caveats result={result} />
       </div>
@@ -101,15 +101,13 @@ export default function ChordTimeline({ result }: { result: AnalyzeResponse }) {
     { title: "As a major progression", reading: major, open: tonality !== "minor" },
     { title: "As a minor progression", reading: minor, open: tonality !== "major" },
   ];
+  // The reading you asked for leads. Without a preference the major one does,
+  // which is only a tie-break -- neither is more correct than the other.
+  if (tonality === "minor") sections.reverse();
 
   return (
     <div className="panel">
-      <h2 style={{ marginTop: 0 }}>Progression</h2>
-      <p className="sub" style={{ marginTop: 0 }}>
-        {tonality === "any"
-          ? "The same chords can be heard two ways, and the notes alone cannot settle which. So here are both."
-          : `You chose ${tonality}, so that version is open. The same chords heard the other way are below.`}
-      </p>
+      <h2 style={{ marginTop: 0 }}>Chord progression</h2>
 
       {sections.map((s) => (
         <details key={s.title} className="reading" open={s.open}>
