@@ -192,6 +192,18 @@ export default function MidiConnect({ onEvents, onChords, busy }: Props) {
     setRecording(true);
   }
 
+  /** Move a captured chord to a different position in the progression. */
+  function reorderStep(from: number, to: number) {
+    setSteps((prev) => {
+      if (from === to || from < 0 || from >= prev.length) return prev;
+      if (to < 0 || to >= prev.length) return prev;
+      const next = [...prev];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      return next;
+    });
+  }
+
   function toggleChannel(channel: number) {
     setTouchedChannels(true);
     setChannels((prev) => {
@@ -369,6 +381,7 @@ export default function MidiConnect({ onEvents, onChords, busy }: Props) {
             live={live}
             busy={busy}
             onRemove={(id) => setSteps((prev) => prev.filter((s) => s.id !== id))}
+            onReorder={reorderStep}
             onClear={resetSteps}
             onAnalyse={() =>
               onChords(steps.map((s) => ({ pitches: s.pitches, duration_ms: 600 })))

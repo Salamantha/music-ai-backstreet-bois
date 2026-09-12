@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { noteName } from "@/lib/webmidi";
 import type { Identified } from "@/lib/api";
 
@@ -14,14 +15,25 @@ interface Props {
   pending: number[];
   live: Identified | null;
   onRemove: (id: number) => void;
+  onReorder: (from: number, to: number) => void;
   onClear: () => void;
   onAnalyse: () => void;
   busy: boolean;
 }
 
 export default function ChordSteps({
-  steps, pending, live, onRemove, onClear, onAnalyse, busy,
+  steps, pending, live, onRemove, onReorder, onClear, onAnalyse, busy,
 }: Props) {
+  // Index of the card being dragged, and the slot it would land in.
+  const [dragging, setDragging] = useState<number | null>(null);
+  const [over, setOver] = useState<number | null>(null);
+
+  function drop(to: number) {
+    if (dragging !== null && dragging !== to) onReorder(dragging, to);
+    setDragging(null);
+    setOver(null);
+  }
+
   return (
     <div className="panel">
       <div className="row spread">
@@ -45,24 +57,49 @@ export default function ChordSteps({
       </div>
 
       <p className="sub" style={{ margin: "8px 0 12px" }}>
-        Play one chord at a time. Each chord is captured when you release it, so
-        hold it as long as you like and change your mind freely.
+        Play one chord at a time — each is captured when you release it. Drag a
+        chord, or use its arrows, to change the order.
       </p>
 
       <div className="chords">
         {steps.map((s, i) => (
-          <div className="chord" key={s.id} style={{ position: "relative" }}>
+          <div
+            className={`chord${over === i && dragging !== i ? " drop-target" : ""}`}
+            key={s.id}
+            style={{ position: "relative", opacity: dragging === i ? 0.4 : 1 }}
+            draggable={!busy}
+            onDragStart={() => setDragging(i)}
+            onDragEnd={() => { setDragging(null); setOver(null); }}
+            onDragOver={(e) => { e.preventDefault(); setOver(i); }}
+            onDrop={(e) => { e.preventDefault(); drop(i); }}
+          >
+            <div className="step-move">
+              <button
+                onClick={() => onReorder(i, i - 1)}
+                disabled={busy || i === 0}
+                aria-label={`move ${s.chord?.symbol ?? "chord"} earlier`}
+                title="move earlier"
+              >
+                ‹
+              </button>
+              <button
+                onClick={() => onReorder(i, i + 1)}
+                disabled={busy || i === steps.length - 1}
+                aria-label={`move ${s.chord?.symbol ?? "chord"} later`}
+                title="move later"
+              >
+                ›
+              </button>
+            </div>
             <div className="sym">{s.chord?.symbol ?? "?"}</div>
             <div className="rom">{s.chord?.roman ?? `${i + 1}`}</div>
             <div className="cp">{s.pitches.map((p) => noteName(p)).join(" ")}</div>
             <button
+              className="step-remove"
               onClick={() => onRemove(s.id)}
               disabled={busy}
+              aria-label={`remove ${s.chord?.symbol ?? "chord"}`}
               title="remove this chord"
-              style={{
-                position: "absolute", top: -8, right: -8, padding: "0 6px",
-                lineHeight: "18px", fontSize: 12, borderRadius: 999,
-              }}
             >
               ×
             </button>
