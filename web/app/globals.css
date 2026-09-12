@@ -180,6 +180,23 @@ label { font-weight: 700; font-size: 0.9rem; }
 
 .mono { font-family: var(--font-mono), ui-monospace, Menlo, monospace; }
 
+/* Connection status. The dot carries the colour, the word carries the meaning,
+   so neither has to be understood alone. */
+.signal {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.2rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.signal-dot { width: 0.6rem; height: 0.6rem; border-radius: 999px; background: currentColor; }
+.signal.on { color: var(--accent); border-color: #2f5d4c; }
+.signal.off { color: var(--danger); border-color: #5d2f2f; }
+
 /* ---- Chords ---------------------------------------------------------- */
 
 .chords { display: flex; gap: 0.55rem; flex-wrap: wrap; position: relative; }

@@ -326,7 +326,7 @@ export default function MidiConnect({
                     {p.name}{p.manufacturer ? ` — ${p.manufacturer}` : ""}
                     {looksLikeChordcat(p) ? "  ✓ ChordCat" : ""}
                     {p.state !== "connected" ? `  (${p.state})` : ""}
-                    {p.messages > 0 ? `  ● ${p.messages}` : ""}
+                    {p.messages > 0 ? "  ● receiving" : ""}
                   </option>
                 ))}
               </select>
@@ -362,10 +362,11 @@ export default function MidiConnect({
               role="status"
               aria-live="polite"
             >
-              <span className={`pill ${traffic > 0 ? "ok" : ""}`}>
-                {traffic > 0
-                  ? `${traffic} MIDI message${traffic === 1 ? "" : "s"} received`
-                  : "no MIDI received yet"}
+              {/* Colour alone would leave this unreadable to anyone who cannot
+                  distinguish the two, so the dot is paired with a word. */}
+              <span className={`signal ${traffic > 0 ? "on" : "off"}`}>
+                <span className="signal-dot" aria-hidden="true" />
+                {traffic > 0 ? "Receiving" : "No signal"}
               </span>
               {traffic === 0 && (
                 <span className="sub" style={{ margin: 0 }}>
