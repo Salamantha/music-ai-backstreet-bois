@@ -1,6 +1,10 @@
 "use client";
 
+import type { Tonality } from "@/lib/api";
+
 interface Props {
+  tonality: Tonality;
+  onTonality: (t: Tonality) => void;
   /** Every genre that can be chosen, whether or not anything matched yet. */
   options: string[];
   /** Genre -> how many matched songs carry it. Empty before the first analysis. */
@@ -12,8 +16,14 @@ interface Props {
   busy: boolean;
 }
 
+const TONALITIES: { value: Tonality; label: string; hint: string }[] = [
+  { value: "any", label: "Any", hint: "Let the analysis decide" },
+  { value: "major", label: "Major", hint: "Read ambiguous keys as major" },
+  { value: "minor", label: "Minor", hint: "Read ambiguous keys as minor" },
+];
+
 export default function GenreFilter({
-  options, counts, selected, onChange, hasResults, busy,
+  options, counts, selected, onChange, hasResults, busy, tonality, onTonality,
 }: Props) {
   const active = new Set(selected);
   if (options.length === 0) return null;
@@ -33,6 +43,34 @@ export default function GenreFilter({
 
   return (
     <div className="panel">
+      <div className="row spread" style={{ marginBottom: 12 }}>
+        <h2 style={{ margin: 0 }}>Tonality</h2>
+        <span className="row" style={{ gap: 4 }}>
+          {TONALITIES.map((t) => (
+            <button
+              key={t.value}
+              onClick={() => onTonality(t.value)}
+              disabled={busy}
+              aria-pressed={tonality === t.value}
+              title={t.hint}
+              style={{
+                fontSize: 13,
+                padding: "6px 13px",
+                fontWeight: tonality === t.value ? 700 : 500,
+                borderColor: tonality === t.value ? "var(--accent)" : undefined,
+                color: tonality === t.value ? "var(--accent)" : undefined,
+              }}
+            >
+              {t.label}
+            </button>
+          ))}
+        </span>
+      </div>
+      <p className="sub" style={{ margin: "0 0 16px" }}>
+        Relative major and minor share the same notes, so the reading is
+        genuinely ambiguous — say which one you mean and matches will favour it.
+      </p>
+
       <div className="row spread">
         <h2 style={{ margin: 0 }}>Genres</h2>
         {selected.length > 0 && (

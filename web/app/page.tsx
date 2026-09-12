@@ -8,7 +8,7 @@ import KeyPanel from "@/components/KeyPanel";
 import { MatchList, SongMatches, TasteProfile } from "@/components/Results";
 import {
   analyzeChords, health, selectableGenres,
-  type AnalyzeResponse, type ChordStep,
+  type AnalyzeResponse, type ChordStep, type Tonality,
 } from "@/lib/api";
 
 export default function Page() {
@@ -22,6 +22,7 @@ export default function Page() {
   // narrowing to one genre does not collapse the chooser to that single option.
   const [genrePalette, setGenrePalette] = useState<Record<string, number>>({});
   const [genreOptions, setGenreOptions] = useState<string[]>([]);
+  const [tonality, setTonality] = useState<Tonality>("any");
 
   useEffect(() => {
     health().then(setBackend).catch(() => setBackend(null));
@@ -32,6 +33,7 @@ export default function Page() {
     chords: ChordStep[],
     key?: { pc: number; mode: string },
     wanted: string[] = genres,
+    wantedTonality: Tonality = tonality,
   ) {
     setBusy(true);
     setError("");
@@ -41,6 +43,7 @@ export default function Page() {
         keyTonicPc: key?.pc,
         keyMode: key?.mode,
         genres: wanted,
+        tonality: wantedTonality,
       });
       setResult(res);
       if (wanted.length === 0) setGenrePalette(res.available_genres);
@@ -56,6 +59,11 @@ export default function Page() {
     setError("");
     setLastChords(null);
     setGenrePalette({});
+  }
+
+  function applyTonality(next: Tonality) {
+    setTonality(next);
+    if (lastChords) void onChords(lastChords, undefined, genres, next);
   }
 
   function applyGenres(next: string[]) {
@@ -94,6 +102,8 @@ export default function Page() {
         }
         selected={genres}
         onChange={applyGenres}
+        tonality={tonality}
+        onTonality={applyTonality}
         hasResults={result !== null}
         busy={busy}
       />

@@ -174,6 +174,7 @@ async def analyze(req: AnalyzeRequest) -> AnalyzeResponse:
         theorytab=services.theorytab,
         key_override=override,
         wanted_genres=req.genres,
+        tonality=req.tonality,
         session_end_ms=req.session_end_ms,
         budget=req.budget or services.settings.song_request_budget,
         artist_document_frequency=services.cache.artist_frequencies(),
@@ -367,5 +368,19 @@ async def analyze(req: AnalyzeRequest) -> AnalyzeResponse:
         diagnostics=result.diagnostics,
         available_genres=result.available_genres,
         applied_genres=list(req.genres),
+        applied_tonality=req.tonality,
+        alternate_key_name=(
+            key_name(result.alternate_key.tonic_pc, result.alternate_key.mode)
+            if result.alternate_key
+            else ""
+        ),
+        alternate_romans=[
+            t.roman for t in result.alternate_sequence if not isinstance(t, Hole)
+        ],
+        alternate_cp=",".join(
+            t.root_position_token
+            for t in result.alternate_sequence
+            if not isinstance(t, Hole)
+        ),
         notes=notes,
     )

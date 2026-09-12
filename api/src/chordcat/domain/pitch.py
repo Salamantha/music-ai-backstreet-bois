@@ -72,6 +72,28 @@ FLAT_NAMES: Final[tuple[str, ...]] = (
     "C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B",
 )
 
+Tonality = Literal["any", "major", "minor"]
+
+#: Which modes read as major and which as minor. A mode is minor-ish when its
+#: third is minor, which is what a player means by "I'm in a minor key" -- the
+#: distinction that matters here, not the precise mode.
+MINOR_MODES: Final[frozenset[str]] = frozenset(
+    {"minor", "dorian", "phrygian", "locrian"}
+)
+MAJOR_MODES: Final[frozenset[str]] = frozenset(
+    {"major", "lydian", "mixolydian"}
+)
+
+
+def matches_tonality(mode: str, tonality: str) -> bool:
+    """Whether a mode satisfies a stated major/minor preference."""
+    if tonality == "major":
+        return mode in MAJOR_MODES
+    if tonality == "minor":
+        return mode in MINOR_MODES
+    return True
+
+
 #: Modes whose tonal centre is minor-ish; used only to pick flat spellings.
 _FLAT_MODES: Final[frozenset[str]] = frozenset(
     {"minor", "dorian", "phrygian", "locrian"}

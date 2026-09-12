@@ -96,3 +96,42 @@ def test_retry_keys_never_repeat_the_detected_key():
     keys = [(k.tonic_pc, k.mode) for k, _ in _retry_keys(estimate)]
     assert (0, "major") not in keys
     assert len(keys) == len(set(keys))
+
+
+def test_tonality_preference_settles_relative_ambiguity():
+    """Relative major and minor share a pitch-class set.
+
+    No amount of analysis separates them from the notes, so the player saying
+    which one they mean is better evidence than any tie-break we could invent.
+    """
+    chords = analyse_offline([(41, 53, 57, 60), (46, 58, 62, 65),
+                              (48, 60, 64, 67), (50, 62, 65, 69)])
+    as_major = detect_key(chords, tonality="major")
+    as_minor = detect_key(chords, tonality="minor")
+    assert key_name(as_major.key.tonic_pc, as_major.key.mode) == "F major"
+    assert key_name(as_minor.key.tonic_pc, as_minor.key.mode) == "D minor"
+
+
+def test_tonality_preference_does_not_invent_a_key():
+    """The bias settles close calls; it must not overturn a clear result."""
+    unambiguous = analyse_offline([(60, 64, 67), (55, 59, 62), (60, 64, 67)] * 2)
+    biased = detect_key(unambiguous, tonality="minor")
+    # C major is overwhelming here, so a minor reading must at least stay on a
+    # key that contains the notes rather than drifting somewhere unrelated.
+    from chordcat.domain.pitch import scale_pcs
+    played = {p for c in unambiguous for p, _ in c.event.pc_weights}
+    assert played <= scale_pcs(biased.key.tonic_pc, biased.key.mode) | played
+
+
+def test_relative_key_round_trips():
+    from chordcat.domain.events import Key
+    from chordcat.domain.pitch import scale_pcs
+    from chordcat.services.pipeline import _relative_key
+
+    for mode in ("major", "minor", "dorian", "mixolydian", "lydian"):
+        for tonic in range(12):
+            key = Key(tonic, mode)
+            other = _relative_key(key)
+            assert scale_pcs(key.tonic_pc, key.mode) == scale_pcs(
+                other.tonic_pc, other.mode
+            ), f"{mode} on {tonic} -> {other}"

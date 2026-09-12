@@ -32,7 +32,7 @@ from ..domain.events import (
     SongHit,
 )
 from ..domain.key import detect_key
-from ..domain.pitch import parent_major_tonic
+from ..domain.pitch import MAJOR_MODES, matches_tonality, parent_major_tonic
 from ..domain.ngrams import NgramConfig
 from ..domain.profile import TasteProfile, build_profile, harmonic_features
 from ..domain.ranking import (
@@ -66,6 +66,11 @@ class AnalysisResult:
     #: Genre -> song count across the matches *before* any filter, so the client
     #: can offer a filter over what is genuinely there rather than a fixed list.
     available_genres: dict[str, int] = field(default_factory=dict)
+    #: The same chords read in the relative key. Relative major and minor share
+    #: a pitch-class set, so both readings are always available and a player
+    #: often thinks in the one we did not pick.
+    alternate_key: Key | None = None
+    alternate_sequence: CpSequence = ()
 
     @property
     def cp_string(self) -> str:
@@ -82,6 +87,7 @@ async def analyse(
     theorytab: TheoryTabClient | None = None,
     key_override: Key | None = None,
     wanted_genres: Sequence[str] = (),
+    tonality: str = "any",
     session_end_ms: float | None = None,
     budget: int = 12,
     segment_cfg: SegmentConfig = SegmentConfig(),
@@ -117,7 +123,7 @@ async def analyse(
         identify_all(segmented.events), segment_cfg.min_chord_dur_ms,
         segment_cfg.jaccard_same,
     )
-    estimate = detect_key(first_pass)
+    estimate = detect_key(first_pass, tonality=tonality)
     if key_override is not None:
         estimate = KeyEstimate(
             key=key_override,
@@ -156,6 +162,7 @@ async def analyse(
             chords=chords,
             sequence=sequence,
             key_override=key_override,
+            tonality=tonality,
             budget=budget,
             segment_cfg=segment_cfg,
             cp_cfg=cp_cfg,
@@ -216,6 +223,7 @@ async def analyse(
             outcome = _merge_theorytab(
                 outcome, collected, transitions,
                 artist_document_frequency, corpus_size, queried_strings,
+                tonality,
             )
             for hit, _ in collected:
                 mapped = map_hooktheory_genres(list(hit.genres))
@@ -236,6 +244,16 @@ async def analyse(
             for g in song.genres:
                 available.setdefault(g, 0)
 
+    # The relative reading, always. Which of the two a player calls home is not
+    # decidable from the notes, so show both rather than asserting one.
+    relative = _relative_key(estimate.key)
+    alternate_chords = merge_identified(
+        identify_all(tuple(c.event for c in first_pass), key=relative),
+        segment_cfg.min_chord_dur_ms,
+        segment_cfg.jaccard_same,
+    )
+    alternate_sequence = progression_to_cp(alternate_chords, relative, cp_cfg)
+
     harmonic = harmonic_features(chords, estimate.key, outcome.ngrams, transitions)
     profile = await build_taste_profile(
         outcome.songs, harmonic, genres, source_genres=source_genres
@@ -253,6 +271,8 @@ async def analyse(
         diagnostics={**diagnostics, "chords_identified": len(chords)},
         source_genres=source_genres,
         available_genres=dict(available.most_common()),
+        alternate_key=relative,
+        alternate_sequence=alternate_sequence,
     )
 
 
@@ -299,6 +319,7 @@ def _merge_theorytab(
     artist_document_frequency,
     corpus_size: int,
     queried_strings: Sequence[str],
+    tonality: str = "any",
 ) -> SearchOutcome:
     """Fold TheoryTab results into the Trends results and rescore together."""
     from ..domain.ngrams import Ngram
@@ -412,6 +433,7 @@ async def _search_with_key_retry(
     chords: tuple[IdentifiedChord, ...],
     sequence: CpSequence,
     key_override: Key | None,
+    tonality: str,
     budget: int,
     segment_cfg: SegmentConfig,
     cp_cfg: CpConfig,
@@ -474,7 +496,7 @@ async def _search_with_key_retry(
     spent = outcome.requests_spent
     queried = list(outcome.queried)
 
-    for alt_key, alt_confidence in _retry_keys(estimate)[:MAX_KEY_RETRIES]:
+    for alt_key, alt_confidence in _retry_keys(estimate, tonality)[:MAX_KEY_RETRIES]:
         alt_chords = merge_identified(
             identify_all(tuple(c.event for c in first_pass), key=alt_key),
             segment_cfg.min_chord_dur_ms,
@@ -495,6 +517,13 @@ async def _search_with_key_retry(
         # Report whichever reading the database actually knows best. Hooktheory
         # having songs for one spelling and not another is real evidence about
         # the key -- usually better evidence than pitch-class analysis alone.
+        # A stated tonality settles the reported key: the player has told us
+        # which reading they mean, and song counts are not better evidence than
+        # that. The respellings are still searched -- they are a recall
+        # strategy, and forcing the search to one tonality found fewer songs
+        # and reported a worse key (F dorian for a plainly F major take).
+        if tonality != "any" and not matches_tonality(alt_key.mode, tonality):
+            continue
         if len(alt_outcome.songs) > len(best.songs):
             best = alt_outcome
             best_chords, best_sequence = alt_chords, alt_sequence
@@ -544,7 +573,21 @@ async def _search_with_key_retry(
     return outcome, estimate, chords, sequence, transitions
 
 
-def _retry_keys(estimate: KeyEstimate) -> list[tuple[Key, float]]:
+def _relative_key(key: Key) -> Key:
+    """The other name for the same set of notes.
+
+    A major key's relative minor, or a minor-ish mode's parent major. These
+    always share a pitch-class set, which is exactly why the reading is
+    ambiguous and worth showing both ways.
+    """
+    if key.mode in MAJOR_MODES:
+        return Key((parent_major_tonic(key.tonic_pc, key.mode) + 9) % 12, "minor")
+    return Key(parent_major_tonic(key.tonic_pc, key.mode), "major")
+
+
+def _retry_keys(
+    estimate: KeyEstimate, tonality: str = "any"
+) -> list[tuple[Key, float]]:
     """Order the alternative keys worth re-querying.
 
     The parent major scale goes first: it shares a pitch-class set with the
@@ -580,4 +623,5 @@ def _retry_keys(estimate: KeyEstimate) -> list[tuple[Key, float]]:
     for k, c in estimate.alternatives:
         add(k)
         preferred[-1] = (k, c) if preferred and preferred[-1][0] is k else preferred[-1]
+
     return preferred

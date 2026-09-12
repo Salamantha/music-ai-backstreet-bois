@@ -68,6 +68,9 @@ class AnalyzeRequest(BaseModel):
     budget: int | None = Field(default=None, ge=1, le=24)
     #: Keep only songs in these genres. Empty means no filtering.
     genres: list[str] = Field(default_factory=list, max_length=40)
+    #: What the player says they are playing. Relative major and minor share a
+    #: pitch-class set, so their intent settles what analysis cannot.
+    tonality: Literal["any", "major", "minor"] = "any"
 
 
 class ChordOut(BaseModel):
@@ -174,6 +177,12 @@ class AnalyzeResponse(BaseModel):
     #: Lets the client offer a filter over what is actually there.
     available_genres: dict[str, int] = Field(default_factory=dict)
     applied_genres: list[str] = Field(default_factory=list)
+    applied_tonality: str = "any"
+    #: The same chords read in the relative key, since which one is home cannot
+    #: be decided from the notes alone.
+    alternate_key_name: str = ""
+    alternate_romans: list[str] = Field(default_factory=list)
+    alternate_cp: str = ""
     notes: list[str] = Field(
         default_factory=list,
         description="Human-readable caveats about this analysis.",

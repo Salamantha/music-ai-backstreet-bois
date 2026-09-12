@@ -50,7 +50,13 @@ export interface AnalyzeResponse {
   segmentation_mode: string; stuck_notes: number; notes: string[];
   available_genres: Record<string, number>;
   applied_genres: string[];
+  applied_tonality: string;
+  alternate_key_name: string;
+  alternate_romans: string[];
+  alternate_cp: string;
 }
+
+export type Tonality = "any" | "major" | "minor";
 
 export async function analyze(
   events: MidiEvent[],
@@ -117,7 +123,12 @@ export interface ChordStep {
 /** Analyse a progression the player already separated into chords. */
 export async function analyzeChords(
   chords: ChordStep[],
-  opts: { keyTonicPc?: number; keyMode?: string; genres?: string[] } = {},
+  opts: {
+    keyTonicPc?: number;
+    keyMode?: string;
+    genres?: string[];
+    tonality?: Tonality;
+  } = {},
 ): Promise<AnalyzeResponse> {
   const res = await fetch(`${BASE}/api/analyze`, {
     method: "POST",
@@ -127,6 +138,7 @@ export async function analyzeChords(
       key_tonic_pc: opts.keyTonicPc,
       key_mode: opts.keyMode,
       genres: opts.genres ?? [],
+      tonality: opts.tonality ?? "any",
     }),
   });
   if (!res.ok) {
