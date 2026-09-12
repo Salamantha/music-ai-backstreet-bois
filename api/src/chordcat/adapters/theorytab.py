@@ -40,6 +40,8 @@ log = logging.getLogger(__name__)
 
 SEARCH_URL = "https://www.hooktheory.com/theorytab/advanced-search"
 VIEW_BASE = "https://www.hooktheory.com"
+#: Result thumbnails are YouTube stills, so the video id comes free.
+_YOUTUBE_THUMB = re.compile(r"img\.youtube\.com/vi/([A-Za-z0-9_-]{6,})/")
 USER_AGENT = (
     "ChordCat-Connect/0.1 (musician matching; contact via project repository)"
 )
@@ -51,6 +53,9 @@ RESULTS_PER_PAGE = 50
 #: on page 7 of `i ii`. Results are cached, so the paging cost is paid once per
 #: progression, not once per analysis.
 DEFAULT_MAX_PAGES = 8
+#: Part of the cache key. Bump when the parsed shape changes, so entries written
+#: by an older parser are ignored rather than deserialised into missing fields.
+PARSE_VERSION = 2
 
 
 @dataclass(frozen=True, slots=True)
@@ -67,6 +72,12 @@ class TheoryTabHit:
     #: The leading chords the search highlighted as the match.
     matched: tuple[str, ...] = ()
     genres: tuple[str, ...] = ()
+    #: Taken from the result's thumbnail, which is a YouTube still.
+    youtube_id: str = ""
+
+    @property
+    def youtube_url(self) -> str:
+        return f"https://www.youtube.com/watch?v={self.youtube_id}" if self.youtube_id else ""
 
     @property
     def key_name(self) -> str:
@@ -137,6 +148,10 @@ class _ResultParser(HTMLParser):
                 self._cell, self._buffer = "chords", []
             elif self._cell == "scale":
                 self._buffer = []
+        elif tag == "img":
+            found = _YOUTUBE_THUMB.search(attrs.get("src", ""))
+            if found:
+                self._row.setdefault("youtube_id", found.group(1))
         elif tag == "a" and self._cell == "song":
             href = attrs.get("href", "")
             if href.startswith("/"):
@@ -203,6 +218,7 @@ class _ResultParser(HTMLParser):
                 genres=tuple(
                     g.strip() for g in str(row.get("genre", "")).split(",") if g.strip()
                 ),
+                youtube_id=str(row.get("youtube_id", "")),
             )
         )
 
@@ -249,11 +265,21 @@ class HttpTheoryTabClient:
         if not chord_string:
             return []
 
-        key = f"tt|{chord_string}|{page}|{int(ignore_modifiers)}"
+        key = f"tt|v{PARSE_VERSION}|{chord_string}|{page}|{int(ignore_modifiers)}"
         if self.cache is not None:
             cached = self.cache.get_theorytab(key)  # type: ignore[attr-defined]
             if cached is not None:
-                return [TheoryTabHit(**row) for row in cached]
+                return [
+                    TheoryTabHit(
+                        **{
+                            **row,
+                            "chords": tuple(row.get("chords") or ()),
+                            "matched": tuple(row.get("matched") or ()),
+                            "genres": tuple(row.get("genres") or ()),
+                        }
+                    )
+                    for row in cached
+                ]
 
         params = {
             "chordString": chord_string,
@@ -321,7 +347,7 @@ def _as_dict(hit: TheoryTabHit) -> dict:
         "song": hit.song, "artist": hit.artist, "section": hit.section,
         "url": hit.url, "key_tonic": hit.key_tonic, "scale": hit.scale,
         "tempo": hit.tempo, "chords": list(hit.chords), "matched": list(hit.matched),
-        "genres": list(hit.genres),
+        "genres": list(hit.genres), "youtube_id": hit.youtube_id,
     }
 
 

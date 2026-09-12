@@ -330,6 +330,7 @@ async def analyze(req: AnalyzeRequest) -> AnalyzeResponse:
             SongOut(
                 artist=s.artist, song=s.song, section=s.section, url=s.url,
                 score=s.score, matched_ngrams=list(s.matched_ngrams),
+                video_url=s.video_url,
             )
             for s in result.search.songs[:40]
         ],

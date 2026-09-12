@@ -15,6 +15,8 @@ export interface KeyInfo {
 export interface Song {
   artist: string; song: string; section: string; url: string;
   score: number; matched_ngrams: string[];
+  /** The recording on YouTube, when the source knew one. */
+  video_url: string;
 }
 export interface Artist { artist: string; score: number; songs: string[] }
 export interface Harmonic {

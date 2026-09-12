@@ -278,17 +278,20 @@ export default function MidiConnect({ onChords, busy }: Props) {
             </select>
             {!recording ? (
               <>
-                {hasStoppedCapture && (
+                {/* Only offer to resume when there is something to resume. A
+                    capture that was stopped without producing a chord has
+                    nothing to add to, so it reads as a fresh start. */}
+                {hasStoppedCapture && steps.length > 0 && (
                   <button className="primary" onClick={resume} disabled={!selected || busy}>
                     Add more chords ({steps.length} so far)
                   </button>
                 )}
                 <button
-                  className={hasStoppedCapture ? "" : "primary"}
+                  className={steps.length > 0 ? "" : "primary"}
                   onClick={start}
                   disabled={!selected || busy}
                 >
-                  {hasStoppedCapture ? "Start over" : "Start capturing"}
+                  {steps.length > 0 ? "Start over" : "Start capturing"}
                 </button>
               </>
             ) : (

@@ -98,6 +98,8 @@ class SongOut(BaseModel):
     url: str
     score: float
     matched_ngrams: list[str] = Field(default_factory=list)
+    #: The recording on YouTube, when the source provided one.
+    video_url: str = ""
 
 
 class ArtistOut(BaseModel):

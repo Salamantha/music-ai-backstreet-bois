@@ -41,13 +41,30 @@ export function SongMatches({ result }: { result: AnalyzeResponse }) {
       </div>
       <table style={{ marginTop: 12 }}>
         <thead>
-          <tr><th>Artist</th><th>Song</th><th>Section</th><th style={{ width: 64 }}>Score</th></tr>
+          <tr>
+            <th>Artist</th><th>Song</th><th>Section</th>
+            <th style={{ width: 64 }}>Score</th>
+          </tr>
         </thead>
         <tbody>
           {shown.map((s) => (
             <tr key={`${s.artist}-${s.song}`}>
               <td>{s.artist}</td>
-              <td><a href={s.url} target="_blank" rel="noreferrer">{s.song}</a></td>
+              <td>
+                {/* Prefer the recording itself; fall back to the analysis page
+                    for results from the Trends API, which carries no video. */}
+                <a
+                  href={s.video_url || s.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  title={s.video_url ? "Listen on YouTube" : "Open the TheoryTab analysis"}
+                >
+                  {s.song}
+                </a>
+                {!s.video_url && (
+                  <span style={{ color: "var(--muted)", fontSize: 11 }}> ↗ theory</span>
+                )}
+              </td>
               <td style={{ color: "var(--muted)" }}>{s.section}</td>
               <td className="mono">{s.score.toFixed(2)}</td>
             </tr>

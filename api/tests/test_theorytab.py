@@ -54,6 +54,18 @@ def test_highlighted_chords_are_the_matched_prefix(hits):
     assert hits[0].matched == ("i", "ii")
 
 
+def test_youtube_id_comes_from_the_result_thumbnail(hits):
+    """The thumbnail is a YouTube still, so the recording is one hop away."""
+    assert hits[0].youtube_id == "qU9mHegkTc4"
+    assert hits[0].youtube_url == "https://www.youtube.com/watch?v=qU9mHegkTc4"
+
+
+def test_missing_thumbnail_leaves_no_video_link():
+    from chordcat.adapters.theorytab import TheoryTabHit
+
+    assert TheoryTabHit(song="X", artist="Y", section="", url="u").youtube_url == ""
+
+
 def test_malformed_markup_degrades_to_no_results():
     """A markup change must not raise into a user's analysis."""
     assert parse_results("<html><body><table><tr><td>junk") == []

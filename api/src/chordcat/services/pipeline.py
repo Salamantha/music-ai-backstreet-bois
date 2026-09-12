@@ -254,6 +254,7 @@ def _merge_theorytab(
                 song=hit.song,
                 section=hit.section or "",
                 url=hit.url,
+                video_url=hit.youtube_url,
             )
         )
         key = (normalize_name(hit.artist), normalize_name(hit.song))

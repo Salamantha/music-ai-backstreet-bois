@@ -166,6 +166,8 @@ class SongHit:
     url: str
     score: float = 0.0
     matched_ngrams: tuple[str, ...] = ()
+    #: Link to the recording itself, when the source knows one.
+    video_url: str = ""
 
 
 @dataclass(frozen=True, slots=True)

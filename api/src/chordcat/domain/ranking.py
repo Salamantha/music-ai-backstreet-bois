@@ -142,6 +142,7 @@ def score_songs(
             song=display[k].song,
             section=", ".join(sorted(sections[k])),
             url=display[k].url,
+            video_url=display[k].video_url,
             score=v
             * _section_multiplier(len(sections[k]))
             * _coverage_multiplier(coverage.get(k) if coverage else None),
