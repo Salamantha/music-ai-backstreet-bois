@@ -1,0 +1,49 @@
+[project]
+name = "chordcat-connect"
+version = "0.1.0"
+description = "Match musicians by the chord progressions they play on an AlphaTheta ChordCat."
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.118",
+    "uvicorn[standard]>=0.37",
+    "pydantic>=2.11",
+    "pydantic-settings>=2.7",
+    "httpx>=0.28",
+    "anthropic>=1.5",
+    "numpy>=2.1",
+    "scikit-learn>=1.6",
+    "sse-starlette>=2.1",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.3", "pytest-asyncio>=0.25", "ruff>=0.8"]
+embeddings = ["sentence-transformers>=3.3"]
+
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+chordcat = ["data/*.json", "seed/*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["tests"]
+asyncio_mode = "auto"
+filterwarnings = [
+    # Keep our own deprecations fatal, but don't fail on third-party ones we
+    # cannot fix (starlette's TestClient imports a deprecated anyio alias).
+    "error::DeprecationWarning",
+    "default::DeprecationWarning:anyio.*",
+    "default::DeprecationWarning:starlette.*",
+]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]

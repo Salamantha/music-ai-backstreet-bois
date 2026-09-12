@@ -1,0 +1,31 @@
+# Secrets
+.env
+.env.local
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Data / caches
+*.db
+*.db-journal
+*.sqlite3
+api/var/
+
+# Node
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+
+# OS
+.DS_Store
+
+# Next.js generated agent files
+web/AGENTS.md
+web/CLAUDE.md
