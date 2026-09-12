@@ -104,7 +104,9 @@ export default function GenreFilter({
         </p>
       )}
 
-      <div className="keys">
+      {/* Without the blurb above them the pills would butt up against the
+          heading, so the space it used to provide comes back explicitly. */}
+      <div className="keys" style={bare ? { marginTop: "0.8rem" } : undefined}>
         {entries.map((genre) => {
           const on = active.has(genre);
           const count = counts[genre] ?? 0;
