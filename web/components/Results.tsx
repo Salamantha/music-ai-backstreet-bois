@@ -30,7 +30,9 @@ function Bars({ data, alt = false, max = 6 }: {
 }
 
 /** A song's own progression, with the part you played picked out. */
-function ChordString({ song, played }: { song: Song; played: string[] }) {
+function ChordString({
+  song, played, playedSymbols,
+}: { song: Song; played: string[]; playedSymbols: string[] }) {
   if (song.song_chords.length === 0) {
     return (
       <span className="mono" style={{ color: "var(--muted)", fontSize: 12 }}>
@@ -81,7 +83,7 @@ function ChordString({ song, played }: { song: Song; played: string[] }) {
           shown above -- a `i` appearing where the take reads `vi`. */}
       {differsFromPlayed(song.matched_chords, played) && (
         <div style={{ color: "var(--muted)", fontSize: 11, marginTop: 3 }}>
-          your progression as {song.matched_chords.join(" ")}
+          your {playedSymbols.join(" ")} read as {song.matched_chords.join(" ")}
         </div>
       )}
     </span>
@@ -114,6 +116,18 @@ export function SongMatches({ result }: { result: AnalyzeResponse }) {
           </span>
         </span>
       </div>
+      {result.songs.some((s) =>
+        differsFromPlayed(s.matched_chords, result.romans),
+      ) && (
+        <p className="sub" style={{ margin: "8px 0 0" }}>
+          Some rows read your chords in a different key. Relative keys share a
+          pitch-class set, so {result.chords.map((c) => c.symbol).join(" ")} is{" "}
+          {result.romans.join(" ")} in {result.key?.name} and something else
+          elsewhere — the same four chords either way. Hooktheory files songs
+          under their own key, so both readings are searched.
+        </p>
+      )}
+
       <table style={{ marginTop: 12 }}>
         <thead>
           <tr>
@@ -160,7 +174,13 @@ export function SongMatches({ result }: { result: AnalyzeResponse }) {
               <td style={{ color: "var(--muted)", whiteSpace: "nowrap" }}>
                 {s.song_key || "—"}
               </td>
-              <td><ChordString song={s} played={result.romans} /></td>
+              <td>
+                <ChordString
+                  song={s}
+                  played={result.romans}
+                  playedSymbols={result.chords.map((c) => c.symbol)}
+                />
+              </td>
               <td
                 className="mono"
                 title={`relevance score ${s.score.toFixed(2)}`}
