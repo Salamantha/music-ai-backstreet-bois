@@ -217,7 +217,7 @@ export default function Page() {
           <h2>How it works</h2>
           <p className="how">
             We learn how your music sounds, find songs with similar vibes as
-            yours, and match you with like-minded musicians who want to jam!
+            yours, and match you with like-minded musicians who are ready to jam!
           </p>
         </div>
       )}
