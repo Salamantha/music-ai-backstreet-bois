@@ -37,7 +37,7 @@ function ReadingBlock({
     <>
       <div className="row spread" style={{ marginBottom: 10 }}>
         <p className="sub" style={{ margin: 0 }}>
-          Hearing <strong>{reading.keyName}</strong> as home.
+          Built around <strong>{reading.keyName}</strong>.
         </p>
         <span className="pill mono">{reading.cp || "no cp tokens"}</span>
       </div>
@@ -107,8 +107,8 @@ export default function ChordTimeline({ result }: { result: AnalyzeResponse }) {
       <h2 style={{ marginTop: 0 }}>Progression</h2>
       <p className="sub" style={{ marginTop: 0 }}>
         {tonality === "any"
-          ? "These are the same notes heard two ways. Which one is home cannot be decided from the notes alone, so here are both."
-          : `You asked for ${tonality} keys, so that reading is open. The same notes read the other way are below.`}
+          ? "The same chords can be heard two ways, and the notes alone cannot settle which. So here are both."
+          : `You chose ${tonality}, so that version is open. The same chords heard the other way are below.`}
       </p>
 
       {sections.map((s) => (
@@ -132,8 +132,8 @@ function Caveats({ result }: { result: AnalyzeResponse }) {
   if (result.unmapped.length === 0) return null;
   return (
     <p className="sub" style={{ margin: "12px 0 0" }}>
-      {result.unmapped.length} chord(s) have no Hooktheory representation, so the
-      progression was searched in segments rather than across them.
+      We could not look up {result.unmapped.length} of your chords, so we
+      searched the rest in pieces rather than all in one go.
     </p>
   );
 }

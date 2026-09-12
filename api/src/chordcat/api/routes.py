@@ -314,62 +314,71 @@ async def analyze(req: AnalyzeRequest) -> AnalyzeResponse:
 
     if req.genres and not result.search.songs:
         notes.append(
-            "No matched song is in the selected genre"
-            f"{'s' if len(req.genres) > 1 else ''}. Clearing the filter will "
-            "show everything the progression matched."
+            "None of the songs we found are in the genre"
+            f"{'s' if len(req.genres) > 1 else ''} you picked. Clear the genre "
+            "to see everything your chords matched."
         )
 
     if not result.chords:
         d = result.diagnostics
         notes.append(
-            f"No chords were identified from {d.get('raw_events', 0)} MIDI events."
+            f"We heard {d.get('raw_events', 0)} messages from your device but "
+            "could not make chords out of them."
         )
         if d.get("max_simultaneous", 0) < d.get("min_notes_for_chord", 3):
             notes.append(
-                f"At most {d.get('max_simultaneous', 0)} note(s) ever sounded at "
-                "once, so nothing formed a chord. If the ChordCat is streaming a "
-                "sequencer track, make sure a harmony channel is selected rather "
-                "than a bass or lead line."
+                f"Only {d.get('max_simultaneous', 0)} note(s) ever sounded at "
+                "the same time, so nothing added up to a chord. If your device is "
+                "playing a sequence, pick the track with the chords on it rather "
+                "than the bassline or the melody."
             )
         elif d.get("dropped_too_few_notes", 0):
             notes.append(
                 f"{d['dropped_too_few_notes']} of {d.get('clusters_found', 0)} "
-                "candidate segments had fewer than "
-                f"{d.get('min_notes_for_chord', 3)} notes sounding together. This "
-                "usually means several tracks are interleaved, or the notes are "
-                "arriving one at a time."
+                "moments had too few notes sounding together to count as a chord "
+                f"(we need {d.get('min_notes_for_chord', 3)}). That usually means "
+                "the notes arrived one at a time, or several parts are mixed "
+                "together."
             )
         elif not d.get("notes_paired"):
             notes.append(
-                "No note-on/note-off pairs were found. The stream may be clock "
-                "or control messages only."
+                "We saw messages from your device but no actual notes — it may "
+                "only be sending timing or control data."
             )
 
     if services.client is None:
         notes.append(
-            "Hooktheory is not configured, so no song matches were attempted. "
-            "Chords, key and harmonic features are still real."
+            "Song matching is switched off right now, so we only looked at "
+            "your playing. The chords and the key are still real."
         )
     elif not result.search.songs:
         notes.append(
-            "No song in the Hooktheory database uses this exact progression. "
-            "Matching fell back to harmonic features, which is expected for "
-            "anything unusual -- it only matches exact contiguous progressions."
+            "No song in our database uses this exact run of chords, so we "
+            "matched you on the way you play instead. That is normal for "
+            "anything unusual -- songs only count as a match when the chords "
+            "line up exactly, in order."
         )
     if result.segmentation_mode == "grid":
         notes.append(
-            "The input looked arpeggiated or sequenced, so chords were pooled "
-            "into fixed time windows instead of by note onset."
+            "Your playing sounded like an arpeggio or a sequence -- notes one "
+            "after another rather than together -- so we grouped them into even "
+            "chunks of time instead."
         )
     if result.stuck_notes:
-        notes.append(f"{result.stuck_notes} note(s) never received a note-off.")
+        notes.append(
+            f"{result.stuck_notes} note(s) never stopped, so we treated them as "
+            "held to the end."
+        )
     if result.key_estimate and result.key_estimate.source == "matched":
         notes.append(
-            f"The key was settled as {key_out.name if key_out else ''} because "
-            "that reading is the one Hooktheory actually has songs for."
+            f"We settled on {key_out.name if key_out else ''} because that is "
+            "the version real songs turned out to be written in."
         )
     if result.key_estimate and result.key_estimate.modulation_suspected:
-        notes.append("A key change was detected; windows do not span it.")
+        notes.append(
+            "Your chords seem to change key partway through, so we searched each "
+            "part on its own."
+        )
 
     return AnalyzeResponse(
         session_id=str(uuid.uuid4()),

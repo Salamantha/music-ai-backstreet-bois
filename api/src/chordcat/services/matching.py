@@ -94,6 +94,34 @@ class PersonaPool:
         ]
 
 
+#: Mode prefixes a cp token can carry. The letter is a key-flavour marker, not
+#: part of the number, so it is stripped for display and reported once.
+_CP_PREFIXES = ("b", "B", "D", "Y", "L", "M", "C")
+
+
+def spell_progression(cp: str) -> str:
+    """A cp string as something a beginner can read aloud.
+
+    ``1,5,6,4`` becomes "1-5-6-4"; ``B1,B6,B3,B7`` becomes "minor 1-6-3-7".
+    The raw tokens are Hooktheory's internal spelling and mean nothing to
+    someone who has not read its docs.
+    """
+    degrees: list[str] = []
+    minorish = False
+    for token in cp.split(","):
+        token = token.strip()
+        if not token:
+            continue
+        if token[0] in _CP_PREFIXES:
+            minorish = True
+            token = token[1:]
+        degrees.append(token)
+    if not degrees:
+        return ""
+    shape = "\u2013".join(degrees)
+    return f"minor {shape}" if minorish else shape
+
+
 def explain(b: SimilarityBreakdown, persona: Persona) -> str:
     """Compose the "why you two should jam" line from what actually overlaps.
 
@@ -114,14 +142,17 @@ def explain(b: SimilarityBreakdown, persona: Persona) -> str:
 
     if not clauses:
         return (
-            f"{persona.name} writes around {persona.signature_progression}, which sits "
-            f"a long way from yours -- that might be the interesting part."
+            f"{persona.name} writes around a {spell_progression(persona.signature_progression)} "
+            f"progression, a long way from yours -- that might be the interesting part."
         )
 
     lead = clauses[0][0].upper() + clauses[0][1:]
     rest = clauses[1:]
     body = lead if not rest else lead + ", and " + " and ".join(rest)
-    return f"{body}. {persona.name} builds most things off {persona.signature_progression}."
+    return (
+        f"{body}. {persona.name} builds most things off a "
+        f"{spell_progression(persona.signature_progression)} progression."
+    )
 
 
 def _join(items: Sequence[str]) -> str:

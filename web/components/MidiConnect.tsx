@@ -286,7 +286,7 @@ export default function MidiConnect({
     return (
       <div className="panel">
         <h2>MIDI input</h2>
-        <p className="sub" style={{ margin: 0 }}>Checking for Web MIDI support…</p>
+        <p className="sub" style={{ margin: 0 }}>Checking whether this browser can hear your instrument…</p>
       </div>
     );
   }
@@ -320,8 +320,8 @@ export default function MidiConnect({
         {!connected ? (
           <>
             <p className="sub">
-              Your browser needs permission to read MIDI. Nothing is recorded
-              until you choose to start.
+              Your browser needs your permission to hear the instrument.
+              Nothing is recorded until you press start.
             </p>
             <button className="primary" onClick={connect}>
               Connect MIDI
@@ -341,7 +341,7 @@ export default function MidiConnect({
                 value={selected}
                 onChange={(e) => void choose(e.target.value)}
               >
-                {ports.length === 0 && <option value="">No MIDI inputs found</option>}
+                {ports.length === 0 && <option value="">No instruments found</option>}
                 {ports.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.name}{p.manufacturer ? ` — ${p.manufacturer}` : ""}

@@ -227,7 +227,7 @@ export default function ChordSteps({
 
       {live && pending.length > 0 && live.candidates.length > 1 && (
         <p className="sub" style={{ margin: "12px 0 0" }}>
-          Also reads as {live.candidates.slice(1, 3).map((c) => c.symbol).join(" or ")}
+          Could also be {live.candidates.slice(1, 3).map((c) => c.symbol).join(" or ")}
           {live.bass !== live.root ? ` · bass ${live.bass}` : ""}
         </p>
       )}

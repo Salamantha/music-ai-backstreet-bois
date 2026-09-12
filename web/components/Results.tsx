@@ -116,11 +116,9 @@ export function SongMatches({ result, filter }: {
         differsFromPlayed(s.matched_chords, result.romans),
       ) && (
         <p className="sub" style={{ margin: "8px 0 0" }}>
-          Some rows read your chords in a different key. Relative keys share a
-          pitch-class set, so {result.chords.map((c) => c.symbol).join(" ")} is{" "}
-          {result.romans.join(" ")} in {result.key?.name} and something else
-          elsewhere — the same four chords either way. Hooktheory files songs
-          under their own key, so both readings are searched.
+          Some songs below are in a different key from yours. They still move
+          through the same pattern of chords — they just start from a different
+          note. Songs are filed under their own key, so we search both ways.
         </p>
       )}
 
@@ -136,7 +134,7 @@ export function SongMatches({ result, filter }: {
           <tr>
             <th>Artist</th><th>Song · section</th><th>Key</th>
             <th>Their chords · yours highlighted</th>
-            <th style={{ width: 62 }} title="How much of the song is the progression you played. Results are ordered by this.">
+            <th style={{ width: 62 }} title="How much of the song is the progression you played. Closest first.">
               Match ↓
             </th>
           </tr>
@@ -189,7 +187,6 @@ export function SongMatches({ result, filter }: {
               </td>
               <td
                 className="mono"
-                title={`relevance score ${s.score.toFixed(2)}`}
                 style={{ color: s.coverage >= 0.99 ? "var(--accent)" : undefined }}
               >
                 {s.coverage > 0 ? `${Math.round(s.coverage * 100)}%` : "—"}
