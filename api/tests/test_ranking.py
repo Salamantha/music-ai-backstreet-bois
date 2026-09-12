@@ -59,6 +59,37 @@ def test_artist_volume_is_damped():
     assert artists["Prolific"] < 8 * artists["Focused"]
 
 
+def test_songs_are_ranked_by_how_much_of_them_you_played():
+    """The Match column has to explain the order, or it reads as arbitrary.
+
+    A blended relevance score alone put a 36% match above a 100% one.
+    """
+    from chordcat.domain.events import SongHit
+
+    g = Ngram(("i", "ii"), 1, 1.0)
+    partial = SongHit("A", "Partial", "Verse", "u", song_chords=("i", "ii", "V", "IV"))
+    whole = SongHit("B", "Whole", "Verse", "u", song_chords=("i", "ii"))
+    songs = score_songs(
+        [NgramResult(g, (partial, whole), total_hits=2)],
+        coverage={("a", "partial"): 0.5, ("b", "whole"): 1.0},
+    )
+    assert [s.song for s in songs] == ["Whole", "Partial"]
+
+
+def test_songs_without_chord_data_sort_after_measurable_ones():
+    """Trends results carry no chords, so there is nothing to measure."""
+    from chordcat.domain.events import SongHit
+
+    g = Ngram(("i", "ii"), 1, 1.0)
+    measured = SongHit("A", "Measured", "Verse", "u", song_chords=("i", "ii"))
+    unmeasured = SongHit("B", "Unmeasured", "Verse", "u")
+    songs = score_songs(
+        [NgramResult(g, (measured, unmeasured), total_hits=2)],
+        coverage={("a", "measured"): 1.0},
+    )
+    assert [s.song for s in songs] == ["Measured", "Unmeasured"]
+
+
 def test_empty_results_are_safe():
     assert score_songs([]) == ()
     assert rollup_artists([]) == ()

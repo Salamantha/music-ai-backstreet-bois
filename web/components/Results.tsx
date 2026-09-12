@@ -85,8 +85,13 @@ export function SongMatches({ result }: { result: AnalyzeResponse }) {
     <div className="panel">
       <div className="row spread">
         <h2 style={{ margin: 0 }}>Songs using this progression</h2>
-        <span className="pill">
-          {result.requests_spent} API request{result.requests_spent === 1 ? "" : "s"}
+        <span className="row" style={{ gap: 8 }}>
+          <span className="pill">
+            best match first
+          </span>
+          <span className="pill">
+            {result.requests_spent} API request{result.requests_spent === 1 ? "" : "s"}
+          </span>
         </span>
       </div>
       <table style={{ marginTop: 12 }}>
@@ -94,7 +99,9 @@ export function SongMatches({ result }: { result: AnalyzeResponse }) {
           <tr>
             <th>Artist</th><th>Song</th><th>Key</th>
             <th>Their chords · yours in green</th>
-            <th style={{ width: 52 }}>Match</th>
+            <th style={{ width: 62 }} title="How much of the song is the progression you played. Results are ordered by this.">
+              Match ↓
+            </th>
           </tr>
         </thead>
         <tbody>

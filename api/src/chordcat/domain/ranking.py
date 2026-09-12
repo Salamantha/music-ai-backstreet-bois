@@ -158,7 +158,21 @@ def score_songs(
         )
         for k, v in scores.items()
     ]
-    out.sort(key=lambda s: (-s.score, normalize_name(s.artist), normalize_name(s.song)))
+    # Rank by how much of the song is the progression that was played, then by
+    # relevance. Sorting on the blended score alone put a 36% match above a
+    # 100% one, which makes the visible Match column look arbitrary.
+    #
+    # Songs with no coverage are those from the Trends API, which returns no
+    # chord data, so there is nothing to measure. They sort after everything
+    # measurable, by relevance among themselves.
+    out.sort(
+        key=lambda s: (
+            -s.coverage,
+            -s.score,
+            normalize_name(s.artist),
+            normalize_name(s.song),
+        )
+    )
     return tuple(out)
 
 
