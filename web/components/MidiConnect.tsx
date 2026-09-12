@@ -47,7 +47,10 @@ export default function MidiConnect({ onEvents, onChords, busy }: Props) {
   const [steps, setSteps] = useState<Step[]>([]);
   const [pending, setPending] = useState<number[]>([]);
   const [live, setLive] = useState<Identified | null>(null);
-  const [hasCapture, setHasCapture] = useState(false);
+  // True only once a capture has been started and then stopped. MIDI can arrive
+  // before the user presses Start -- the device streams whenever it is playing --
+  // so "has any events" is not the same thing as "has a capture to add to".
+  const [hasStoppedCapture, setHasStoppedCapture] = useState(false);
 
   // The MIDI subscription is registered once, so its closure would capture
   // stale state. Everything the handler reads lives in a ref.
@@ -67,7 +70,6 @@ export default function MidiConnect({ onEvents, onChords, busy }: Props) {
     setPending([]);
     setLive(null);
     if (pitches.length < MIN_NOTES_PER_STEP) return;
-    setHasCapture(true);
     // Identify asynchronously; the step appears immediately either way, so a
     // slow or failed lookup never costs the player their chord.
     const id = nextId.current++;
@@ -137,7 +139,6 @@ export default function MidiConnect({ onEvents, onChords, busy }: Props) {
         const currentlyHeld = heldNotes(all);
         setHeld(currentlyHeld);
         setCount(all.length);
-        if (all.length > 0) setHasCapture(true);
         onHeldChange(currentlyHeld);
         const next = channelStats(all);
         setStats(next);
@@ -169,13 +170,13 @@ export default function MidiConnect({ onEvents, onChords, busy }: Props) {
     setPending([]);
     setLive(null);
     pendingRef.current = [];
-    setHasCapture(false);
   }
 
   /** Begin a new take, discarding anything captured before. */
   function start() {
     captureRef.current!.start();
     resetSteps();
+    setHasStoppedCapture(false);
     setCount(0);
     setHeld([]);
     setStats([]);
@@ -225,6 +226,7 @@ export default function MidiConnect({ onEvents, onChords, busy }: Props) {
   function stop() {
     const capture = captureRef.current!;
     setRecording(false);
+    setHasStoppedCapture(true);
     const all = capture.snapshot();
     if (!all.length) {
       setError("No MIDI came through. Check the ChordCat is on the selected port and try playing again.");
@@ -281,7 +283,7 @@ export default function MidiConnect({ onEvents, onChords, busy }: Props) {
             </select>
             {!recording ? (
               <>
-                {hasCapture && (
+                {hasStoppedCapture && (
                   <button className="primary" onClick={resume} disabled={!selected || busy}>
                     {mode === "steps"
                       ? `Add more chords (${steps.length} so far)`
@@ -289,11 +291,11 @@ export default function MidiConnect({ onEvents, onChords, busy }: Props) {
                   </button>
                 )}
                 <button
-                  className={hasCapture ? "" : "primary"}
+                  className={hasStoppedCapture ? "" : "primary"}
                   onClick={start}
                   disabled={!selected || busy}
                 >
-                  {hasCapture
+                  {hasStoppedCapture
                     ? "Start over"
                     : mode === "steps" ? "Start capturing" : "Start recording"}
                 </button>
@@ -305,6 +307,7 @@ export default function MidiConnect({ onEvents, onChords, busy }: Props) {
                   // Flush a chord still being held, so the last one is not lost.
                   if (pendingRef.current.length >= MIN_NOTES_PER_STEP) commitPending();
                   setRecording(false);
+                  setHasStoppedCapture(true);
                 }}
               >
                 Stop capturing
