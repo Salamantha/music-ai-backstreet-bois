@@ -1,0 +1,830 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chordprint — test bench</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#F1F2F4; --panel:#fff; --panel2:#E7E9ED; --rule:#D2D6DD; --rule2:#E4E7EC;
+  --ink:#171A20; --ink2:#4A505C; --ink3:#767D8B;
+  --amber:#B0620A; --amberBg:#F6E8D5; --teal:#0B6A73; --tealBg:#DCEBED;
+  --go:#3C6832; --danger:#9E3826;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#111317; --panel:#181B21; --panel2:#21252C; --rule:#2C313A; --rule2:#232830;
+  --ink:#E9EBEF; --ink2:#A7AEBA; --ink3:#79808E;
+  --amber:#E39C41; --amberBg:#39280F; --teal:#63C0C8; --tealBg:#0F2E32;
+  --go:#93C081; --danger:#E28C7A;
+}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+  font:15px/1.55 "IBM Plex Sans",-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:22px 22px 70px}
+h1{font-family:Archivo,sans-serif;font-size:1.5rem;letter-spacing:-.02em;margin:0}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:.68rem;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--amber);font-weight:600}
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;
+  flex-wrap:wrap;border-bottom:1px solid var(--rule);padding-bottom:16px;margin-bottom:22px}
+.meta{font-family:"IBM Plex Mono",monospace;font-size:.72rem;color:var(--ink3);text-align:right;line-height:1.75}
+h2{font-family:Archivo,sans-serif;font-size:.82rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink3);margin:0 0 10px;font-weight:600}
+.grid{display:grid;grid-template-columns:1fr 400px;gap:20px;align-items:start}
+@media (max-width:940px){.grid{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:16px 18px;margin-bottom:18px}
+
+/* chord palette */
+.palrow{margin-bottom:12px}
+.palrow .lbl{font-family:"IBM Plex Mono",monospace;font-size:.66rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink3);margin-bottom:6px;font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+button.chord{font-family:"IBM Plex Mono",monospace;font-size:.86rem;font-weight:500;
+  background:var(--panel2);color:var(--ink);border:1px solid var(--rule);border-radius:4px;
+  padding:7px 11px;cursor:pointer;min-width:44px;min-height:36px;transition:background .12s,border-color .12s}
+button.chord:hover{background:var(--amberBg);border-color:var(--amber)}
+button.chord:active{transform:translateY(1px)}
+button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+
+/* progression strip */
+.strip{display:flex;flex-wrap:wrap;gap:6px;min-height:52px;align-items:center;
+  background:var(--panel2);border:1px dashed var(--rule);border-radius:5px;padding:9px;margin:4px 0 12px}
+.strip .empty{color:var(--ink3);font-size:.85rem;padding:0 6px}
+.seqchip{font-family:"IBM Plex Mono",monospace;font-size:.9rem;font-weight:600;
+  background:var(--amberBg);color:var(--amber);border:1px solid var(--amber);border-radius:4px;
+  padding:6px 9px;cursor:pointer}
+.seqchip:hover{text-decoration:line-through;opacity:.65}
+.arrow{color:var(--ink3);font-family:"IBM Plex Mono",monospace;align-self:center}
+
+.controls{display:flex;flex-wrap:wrap;gap:16px;align-items:center;margin-top:6px}
+label.ctl{font-size:.82rem;color:var(--ink2);display:flex;align-items:center;gap:8px}
+input[type=range]{accent-color:var(--amber);width:150px}
+.val{font-family:"IBM Plex Mono",monospace;font-weight:600;color:var(--ink);
+  font-variant-numeric:tabular-nums;min-width:58px}
+.gchip{font-size:.78rem;padding:5px 10px;border-radius:20px;border:1px solid var(--rule);
+  background:var(--panel2);color:var(--ink2);cursor:pointer;user-select:none}
+.gchip[aria-pressed="true"]{background:var(--tealBg);border-color:var(--teal);color:var(--teal);font-weight:600}
+
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center}
+button.primary{font-family:Archivo,sans-serif;font-weight:600;font-size:.92rem;
+  background:var(--amber);color:#fff;border:none;border-radius:5px;padding:11px 20px;cursor:pointer;min-height:44px}
+button.primary:hover{filter:brightness(1.08)}
+button.ghost{font-size:.85rem;background:transparent;color:var(--ink2);
+  border:1px solid var(--rule);border-radius:5px;padding:10px 14px;cursor:pointer;min-height:44px}
+button.ghost:hover{border-color:var(--amber);color:var(--amber)}
+.status{font-family:"IBM Plex Mono",monospace;font-size:.74rem;color:var(--ink3)}
+.status.bad{color:var(--danger)}
+.status.ok{color:var(--go)}
+
+/* results */
+.match{border:1px solid var(--rule);border-radius:5px;padding:12px 14px;margin-bottom:10px;background:var(--panel)}
+.match .top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.match .nm{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:.92rem}
+.match .sc{font-family:"IBM Plex Mono",monospace;font-weight:600;color:var(--amber);
+  font-variant-numeric:tabular-nums}
+.bar{height:5px;background:var(--panel2);border-radius:3px;margin:8px 0 9px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--amber);border-radius:3px}
+.why{font-size:.85rem;color:var(--ink2);line-height:1.5}
+
+/* profile stats */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:9px}
+.stat{background:var(--panel2);border-radius:5px;padding:9px 11px}
+.stat .k{font-family:"IBM Plex Mono",monospace;font-size:.62rem;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--ink3);font-weight:600}
+.stat .v{font-family:"IBM Plex Mono",monospace;font-size:1.06rem;font-weight:600;
+  font-variant-numeric:tabular-nums;margin-top:2px}
+table.sh{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:4px}
+table.sh td{padding:5px 0;border-bottom:1px solid var(--rule2)}
+table.sh td:first-child{font-family:"IBM Plex Mono",monospace;color:var(--ink)}
+table.sh td:last-child{text-align:right;font-family:"IBM Plex Mono",monospace;
+  color:var(--amber);font-variant-numeric:tabular-nums;white-space:nowrap}
+.legend{display:flex;flex-wrap:wrap;gap:11px;margin-top:9px;font-size:.74rem;color:var(--ink2)}
+.legend span{display:flex;align-items:center;gap:5px}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.hint{font-size:.8rem;color:var(--ink3);margin:8px 0 0}
+canvas{width:100%;height:auto;display:block;border-radius:5px}
+
+/* tabs */
+nav.tabs{display:flex;gap:4px;margin:0 0 20px;border-bottom:1px solid var(--rule)}
+button.tab{font-family:Archivo,sans-serif;font-weight:600;font-size:.9rem;background:none;
+  border:none;border-bottom:2px solid transparent;color:var(--ink3);padding:10px 16px;
+  cursor:pointer;margin-bottom:-1px;min-height:44px}
+button.tab[aria-selected="true"]{color:var(--amber);border-bottom-color:var(--amber)}
+button.tab:hover{color:var(--ink)}
+
+/* upload */
+.drop{border:2px dashed var(--rule);border-radius:8px;padding:26px 20px;text-align:center;
+  background:var(--panel2);cursor:pointer;transition:border-color .15s,background .15s}
+.drop:hover,.drop.over{border-color:var(--amber);background:var(--amberBg)}
+.drop .big{font-family:Archivo,sans-serif;font-weight:600;font-size:1.02rem;margin-bottom:4px}
+.drop .sub{font-size:.82rem;color:var(--ink3)}
+input[type=file]{display:none}
+input[type=text]{font-family:"IBM Plex Mono",monospace;font-size:.85rem;background:var(--panel2);
+  color:var(--ink);border:1px solid var(--rule);border-radius:4px;padding:9px 11px;min-height:40px}
+
+/* pipeline stages */
+.stages{display:flex;flex-wrap:wrap;gap:5px;margin:16px 0 4px}
+.stage{flex:1 1 96px;min-width:0;background:var(--panel2);border:1px solid var(--rule);
+  border-radius:5px;padding:8px 9px;opacity:.45;transition:opacity .2s,border-color .2s}
+.stage.on{opacity:1;border-color:var(--amber)}
+.stage.done{opacity:1}
+.stage .n{font-family:"IBM Plex Mono",monospace;font-size:.58rem;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--ink3);font-weight:600}
+.stage .t{font-size:.8rem;margin-top:2px;line-height:1.3}
+.stage.done .n{color:var(--go)}
+
+table.rows{width:100%;border-collapse:collapse;font-size:.84rem}
+table.rows th{font-family:"IBM Plex Mono",monospace;font-size:.62rem;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--ink3);text-align:left;padding:6px 8px;
+  border-bottom:1px solid var(--rule)}
+table.rows td{padding:7px 8px;border-bottom:1px solid var(--rule2);vertical-align:top}
+table.rows tr:last-child td{border-bottom:none}
+td.rk{font-family:"IBM Plex Mono",monospace;color:var(--ink3);width:26px}
+td.sim{font-family:"IBM Plex Mono",monospace;font-weight:600;color:var(--amber);
+  text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+code.vec{font-family:"IBM Plex Mono",monospace;font-size:.74rem;color:var(--teal);
+  word-break:break-all;line-height:1.6}
+.pill{display:inline-block;font-family:"IBM Plex Mono",monospace;font-size:.64rem;
+  font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:3px 7px;border-radius:3px}
+.pill.ok{background:var(--tealBg);color:var(--teal)}
+.pill.warn{background:var(--amberBg);color:var(--amber)}
+.pill.bad{background:#f6e2de;color:var(--danger)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .pill.bad{background:#3a1e18}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div>
+    <span class="eyebrow">Challenge 06 · local test bench</span>
+    <h1>Chordprint</h1>
+  </div>
+  <div class="meta" id="meta">loading population…</div>
+</header>
+
+<nav class="tabs" role="tablist">
+  <button class="tab" id="t-chords" role="tab" aria-selected="true" type="button">Chord progressions</button>
+  <button class="tab" id="t-audio" role="tab" aria-selected="false" type="button">Upload a song</button>
+</nav>
+
+<section id="tab-chords" role="tabpanel" aria-labelledby="t-chords">
+<div class="grid">
+  <div>
+    <div class="card">
+      <h2>1 · Play a progression</h2>
+      <div class="strip" id="strip"><span class="empty">Click chords below — they land here in order. Click one to remove it.</span></div>
+
+      <div class="palrow">
+        <div class="lbl">Diatonic</div>
+        <div class="chips" id="pal-diatonic"></div>
+      </div>
+      <div class="palrow">
+        <div class="lbl">Sevenths &amp; extensions</div>
+        <div class="chips" id="pal-seventh"></div>
+      </div>
+      <div class="palrow">
+        <div class="lbl">Minor &amp; borrowed</div>
+        <div class="chips" id="pal-borrowed"></div>
+      </div>
+      <div class="palrow">
+        <div class="lbl">Secondary</div>
+        <div class="chips" id="pal-secondary"></div>
+      </div>
+
+      <div class="controls">
+        <label class="ctl">Tempo <input type="range" id="tempo" min="60" max="185" value="100">
+          <span class="val" id="tempoV">100 bpm</span></label>
+        <button class="ghost" id="midiBtn" type="button">Connect MIDI / ChordCat</button>
+      </div>
+
+      <div style="margin-top:14px">
+        <div class="lbl" style="font-family:'IBM Plex Mono',monospace;font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:6px;font-weight:600">Genres you'd claim (optional)</div>
+        <div class="chips" id="genres"></div>
+      </div>
+
+      <div class="actions">
+        <button class="primary" id="go" type="button">Find my people</button>
+        <button class="ghost" id="clear" type="button">Clear</button>
+        <button class="ghost" id="try" type="button">Try a neo-soul loop</button>
+        <span class="status" id="status"></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>3 · Taste map <span style="text-transform:none;letter-spacing:0;font-weight:400">(PCA — PC1 × PC2)</span></h2>
+      <canvas id="map" width="1200" height="620" role="img"
+              aria-label="Scatter plot of 30 users positioned by musical taste"></canvas>
+      <div class="legend" id="legend"></div>
+      <p class="hint">Every dot is one of the 30 synthetic users. The ring is you.</p>
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <h2>2 · Your matches</h2>
+      <div id="matches"><p class="hint">Pick at least two chords, then hit <b>Find my people</b>.</p></div>
+    </div>
+
+    <div class="card">
+      <h2>Your profile</h2>
+      <div class="stats" id="stats"><p class="hint" style="margin:0">Nothing yet.</p></div>
+    </div>
+
+    <div class="card">
+      <h2>Progressions you share</h2>
+      <div id="shared"><p class="hint" style="margin:0">Higher bits = rarer = counts for more.</p></div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section id="tab-audio" role="tabpanel" aria-labelledby="t-audio" hidden>
+
+<div class="card" id="filterCard">
+  <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap">
+    <h2 style="margin:0">Filter by genre</h2>
+    <span class="status" id="filterStatus"></span>
+  </div>
+  <div class="chips" id="genreFilter" style="margin-top:10px"></div>
+  <div class="actions" style="margin-top:12px">
+    <button class="ghost" id="clearFilter" type="button">Show all</button>
+    <button class="ghost" id="retagBtn" type="button">Re-tag library</button>
+    <span class="hint" style="margin:0" id="taggerNote"></span>
+  </div>
+</div>
+
+<div class="grid">
+  <div>
+    <div class="card">
+      <h2>1 · Upload a song</h2>
+      <div class="drop" id="drop" tabindex="0" role="button"
+           aria-label="Choose an audio file to upload">
+        <div class="big">Drop audio files, or click to choose</div>
+        <div class="sub">MP3 · WAV · FLAC · OGG · M4A — several at once is fine · first 5 min, max 60 MB each</div>
+      </div>
+      <input type="file" id="file" multiple accept="audio/*,.mp3,.wav,.flac,.ogg,.m4a">
+
+      <div class="controls" style="margin-top:14px">
+        <label class="ctl">Upload as
+          <input type="text" id="uploader" value="you" size="12" aria-label="User name"></label>
+        <label class="ctl">Tag as (optional)
+          <input type="text" id="manualGenres" placeholder="jazz, lo-fi" size="16"
+                 aria-label="Manual genre tags, comma separated"></label>
+        <span class="status" id="upStatus"></span>
+      </div>
+
+      <div class="stages" id="stages">
+        <div class="stage" data-s="0"><div class="n">1 · decode</div><div class="t">mono, resample</div></div>
+        <div class="stage" data-s="1"><div class="n">2 · window</div><div class="t">overlapping slices</div></div>
+        <div class="stage" data-s="2"><div class="n">3 · embed</div><div class="t">pretrained model</div></div>
+        <div class="stage" data-s="3"><div class="n">4 · pool</div><div class="t">mean → 1 vector</div></div>
+        <div class="stage" data-s="4"><div class="n">5 · store</div><div class="t">vector database</div></div>
+        <div class="stage" data-s="5"><div class="n">6 · match</div><div class="t">cosine + KNN</div></div>
+      </div>
+      <p class="hint" id="embedInfo">No song embedded yet.</p>
+    </div>
+
+    <div class="card">
+      <h2>4 · Embedding map <span style="text-transform:none;letter-spacing:0;font-weight:400">(PCA of the learned vectors)</span></h2>
+      <canvas id="emap" width="1200" height="600" role="img"
+              aria-label="Scatter plot of song embeddings reduced to two dimensions"></canvas>
+      <div class="legend" id="emapLegend"></div>
+      <p class="hint" id="emapNote">Upload songs to populate the map. Dots are songs, coloured by K-Means cluster; rings are users.</p>
+    </div>
+
+    <div class="card">
+      <h2>Library</h2>
+      <div id="library"><p class="hint" style="margin:0">Nothing stored yet.</p></div>
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <h2>Detected genre <span style="text-transform:none;letter-spacing:0;font-weight:400">(zero-shot, no training)</span></h2>
+      <div id="genreResult"><p class="hint" style="margin:0">Upload a song — CLAP scores it against a sentence describing each genre.</p></div>
+    </div>
+
+    <div class="card">
+      <h2>2 · Nearest songs</h2>
+      <div id="nearSongs"><p class="hint" style="margin:0">Cosine similarity over song embeddings.</p></div>
+    </div>
+
+    <div class="card">
+      <h2>3 · Users with similar taste</h2>
+      <div id="nearUsers"><p class="hint" style="margin:0">Each user vector is the mean of their song vectors.</p></div>
+    </div>
+
+    <div class="card">
+      <h2>Embedding model</h2>
+      <div id="modelBox"><p class="hint" style="margin:0">checking…</p></div>
+    </div>
+  </div>
+</div>
+</section>
+</div>
+
+<script src="chordprint.js"></script>
+<script>
+const PAL = {
+  "pal-diatonic":  ["I","ii","iii","IV","V","vi","viio"],
+  "pal-seventh":   ["IM7","ii7","iii7","IVM7","V7","vi7","I6","V9"],
+  "pal-borrowed":  ["i","iv","v","bIII","bVI","bVII","iio","IVm"],
+  "pal-secondary": ["V/V","V/vi","V/ii","V/IV"]
+};
+const COLORS = ["#E2894A","#4FA3A9","#8E7BD1","#69A85C","#D46A8B","#C9A227","#5B8FD4","#B2705A"];
+
+let seq = [], pop = null, chosenGenres = new Set(), lastYou = null;
+
+const $ = id => document.getElementById(id);
+
+for (const [id, list] of Object.entries(PAL)) {
+  const host = $(id);
+  list.forEach(c => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "chord"; b.textContent = c;
+    b.addEventListener("click", () => { seq.push(c); drawStrip(); });
+    host.appendChild(b);
+  });
+}
+
+function drawStrip(){
+  const s = $("strip");
+  s.innerHTML = "";
+  if (!seq.length){
+    s.innerHTML = '<span class="empty">Click chords below — they land here in order. Click one to remove it.</span>';
+    return;
+  }
+  seq.forEach((c, i) => {
+    if (i) { const a = document.createElement("span"); a.className = "arrow"; a.textContent = "→"; s.appendChild(a); }
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "seqchip"; b.textContent = c;
+    b.title = "Remove";
+    b.addEventListener("click", () => { seq.splice(i,1); drawStrip(); });
+    s.appendChild(b);
+  });
+}
+
+$("tempo").addEventListener("input", e => $("tempoV").textContent = e.target.value + " bpm");
+$("clear").addEventListener("click", () => { seq = []; drawStrip(); setStatus(""); });
+$("try").addEventListener("click", () => {
+  seq = ["ii7","V7","IM7","vi7","ii7","V7","IM7"];
+  $("tempo").value = 84; $("tempoV").textContent = "84 bpm";
+  drawStrip(); run();
+});
+
+function setStatus(t, cls){ const s = $("status"); s.textContent = t; s.className = "status " + (cls||""); }
+
+// ---------- population ----------
+fetch("/api/population").then(r => r.json()).then(p => {
+  pop = p;
+  $("meta").innerHTML =
+    `${p.users.length} users &middot; ${p.n_features} features<br>` +
+    `${p.vocab_size} progressions in vocab<br>` +
+    `weights ` + Object.entries(p.weights).map(([k,v]) => `${k[0]}${v}`).join(" ");
+  const host = $("genres");
+  p.all_genres.forEach(g => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "gchip"; b.textContent = g;
+    b.setAttribute("aria-pressed","false");
+    b.addEventListener("click", () => {
+      const on = b.getAttribute("aria-pressed") === "true";
+      b.setAttribute("aria-pressed", String(!on));
+      on ? chosenGenres.delete(g) : chosenGenres.add(g);
+    });
+    host.appendChild(b);
+  });
+  const lg = $("legend");
+  p.archetypes.forEach((a,i) => {
+    const s = document.createElement("span");
+    s.innerHTML = `<i class="dot" style="background:${COLORS[i%COLORS.length]}"></i>${a}`;
+    lg.appendChild(s);
+  });
+  drawMap();
+});
+
+// ---------- match ----------
+$("go").addEventListener("click", run);
+
+function run(){
+  if (seq.length < 2) return setStatus("Pick at least 2 chords.", "bad");
+  setStatus("computing…");
+  fetch("/api/match", {
+    method: "POST", headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({ progression: seq, tempo: +$("tempo").value,
+                           genres: [...chosenGenres], artists: [] })
+  }).then(r => r.json()).then(render).catch(e => setStatus(String(e), "bad"));
+}
+
+function render(d){
+  if (d.error) return setStatus(d.error, "bad");
+  setStatus("matched on " + d.roman.join(" "), "ok");
+  lastYou = { pc1: d.pc1, pc2: d.pc2 };
+
+  $("matches").innerHTML = d.matches.map(m => `
+    <div class="match">
+      <div class="top"><span class="nm">${m.id}</span><span class="sc">${(m.score*100).toFixed(0)}%</span></div>
+      <div class="bar"><i style="width:${Math.max(2, m.score*100).toFixed(1)}%"></i></div>
+      <div class="why">${esc(m.why)}</div>
+    </div>`).join("");
+
+  const p = d.profile, S = [
+    ["extensions", p.extension_rate], ["chromatic", p.chromaticism],
+    ["minor", p.minor_ratio], ["repertoire", p.repertoire],
+    ["complexity", p.harmonic_complexity == null ? "—" : p.harmonic_complexity + " bits"],
+    ["tempo", p.tempo_bpm == null ? "—" : p.tempo_bpm]
+  ];
+  $("stats").innerHTML = S.map(([k,v]) =>
+    `<div class="stat"><div class="k">${k}</div><div class="v">${v}</div></div>`).join("");
+
+  $("shared").innerHTML = d.shared.length
+    ? `<table class="sh">${d.shared.map(s =>
+        `<tr><td>${esc(s.ngram)}</td><td>${s.bits} bits</td></tr>`).join("")}</table>`
+    : `<p class="hint" style="margin:0">Nothing you played appears in the population vocabulary — you are off the map, which is its own kind of result.</p>`;
+
+  drawMap();
+}
+
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+// ---------- taste map ----------
+function drawMap(){
+  if (!pop) return;
+  const cv = $("map"), ctx = cv.getContext("2d");
+  const cs = getComputedStyle(document.body);
+  const ink3 = cs.getPropertyValue("--ink3").trim() || "#888";
+  const rule = cs.getPropertyValue("--rule").trim() || "#ccc";
+  const amber = cs.getPropertyValue("--amber").trim() || "#c70";
+
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const pts = pop.users.map(u => [u.pc1, u.pc2]);
+  if (lastYou) pts.push([lastYou.pc1, lastYou.pc2]);
+  const xs = pts.map(p=>p[0]), ys = pts.map(p=>p[1]);
+  const pad = 46;
+  const x0 = Math.min(...xs), x1 = Math.max(...xs);
+  const y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const sx = v => pad + (v - x0) / ((x1-x0)||1) * (cv.width  - 2*pad);
+  const sy = v => cv.height - pad - (v - y0) / ((y1-y0)||1) * (cv.height - 2*pad);
+
+  ctx.strokeStyle = rule; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(pad*0.5, sy(0)); ctx.lineTo(cv.width-pad*0.5, sy(0));
+  ctx.moveTo(sx(0), pad*0.5); ctx.lineTo(sx(0), cv.height-pad*0.5); ctx.stroke();
+
+  ctx.font = "500 17px 'IBM Plex Mono', monospace";
+  ctx.fillStyle = ink3;
+  ctx.fillText("PC1", cv.width - pad - 34, sy(0) - 10);
+  ctx.fillText("PC2", sx(0) + 10, pad*0.5 + 16);
+
+  const ai = {}; pop.archetypes.forEach((a,i) => ai[a] = i);
+  pop.users.forEach(u => {
+    ctx.beginPath();
+    ctx.arc(sx(u.pc1), sy(u.pc2), 8, 0, Math.PI*2);
+    ctx.fillStyle = COLORS[ai[u.archetype] % COLORS.length];
+    ctx.fill();
+  });
+
+  if (lastYou){
+    const x = sx(lastYou.pc1), y = sy(lastYou.pc2);
+    ctx.beginPath(); ctx.arc(x, y, 15, 0, Math.PI*2);
+    ctx.strokeStyle = amber; ctx.lineWidth = 4; ctx.stroke();
+    ctx.beginPath(); ctx.arc(x, y, 5, 0, Math.PI*2);
+    ctx.fillStyle = amber; ctx.fill();
+    ctx.font = "600 18px 'IBM Plex Mono', monospace";
+    ctx.fillText("you", x + 21, y + 6);
+  }
+}
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", drawMap);
+
+// ---------- Web MIDI: the ChordCat path ----------
+$("midiBtn").addEventListener("click", async () => {
+  if (!navigator.requestMIDIAccess) return setStatus("Web MIDI needs Chrome or Edge.", "bad");
+  try {
+    const access = await navigator.requestMIDIAccess();
+    const names = [];
+    let held = [], timer = null;
+    access.inputs.forEach(inp => {
+      names.push(inp.name);
+      inp.onmidimessage = e => {
+        const [st, note, vel] = e.data;
+        if ((st & 0xf0) === 0x90 && vel > 0) {
+          held.push(note);
+          clearTimeout(timer);
+          timer = setTimeout(() => {
+            // chordprint.js does capture only; Python does all the matching
+            const r = window.Chordprint &&
+                      window.Chordprint.chordFromNotes(held.slice(), 0);
+            if (r) { seq.push(r); drawStrip(); }
+            held = [];
+          }, 120);
+        }
+      };
+    });
+    setStatus(names.length ? "MIDI: " + names.join(", ") + " — play a chord"
+                           : "No MIDI inputs found.", names.length ? "ok" : "bad");
+  } catch (err) { setStatus("MIDI blocked: " + err.message, "bad"); }
+});
+
+drawStrip();
+
+// ======================= AUDIO EMBEDDING TAB =============================
+const tabs = {chords: [$("t-chords"), $("tab-chords")], audio: [$("t-audio"), $("tab-audio")]};
+function showTab(which){
+  for (const [k,[btn,sec]] of Object.entries(tabs)){
+    const on = k === which;
+    btn.setAttribute("aria-selected", String(on));
+    sec.hidden = !on;
+  }
+  if (which === "audio"){ loadModelBox(); loadGenres().then(loadLibrary); loadEmap(); }
+  else drawMap();
+}
+$("t-chords").addEventListener("click", () => showTab("chords"));
+$("t-audio").addEventListener("click", () => showTab("audio"));
+
+function stage(i, state){
+  document.querySelectorAll("#stages .stage").forEach(el => {
+    const n = +el.dataset.s;
+    el.classList.toggle("on", n === i && state !== "done");
+    el.classList.toggle("done", n < i || (n === i && state === "done"));
+  });
+}
+function resetStages(){ document.querySelectorAll("#stages .stage")
+  .forEach(el => el.classList.remove("on","done")); }
+
+function upStatus(t, cls){ const s = $("upStatus"); s.textContent = t; s.className = "status " + (cls||""); }
+
+// ---------- genre filter ----------
+// The filter is applied SERVER-SIDE, before similarity is computed. Filtering
+// a global top-5 afterwards would leave you with "whatever jazz happened to
+// survive"; filtering first gives you the actual best five jazz songs.
+let genreFilter = new Set(), genreIndex = {taxonomy:[], counts:[]};
+
+function filterList(){ return [...genreFilter]; }
+function filterQS(){ return genreFilter.size ? "?genres=" + encodeURIComponent(filterList().join(",")) : ""; }
+
+function loadGenres(){
+  return fetch("/api/genres").then(r => r.json()).then(g => {
+    genreIndex = g;
+    const counted = new Map(g.counts.map(c => [c.genre, c.n]));
+    // show tagged genres first, then the rest of the taxonomy as greyed-out
+    const inUse = g.counts.map(c => c.genre);
+    const rest = g.taxonomy.filter(x => !counted.has(x));
+    const host = $("genreFilter");
+    host.innerHTML = "";
+    if (!inUse.length){
+      host.innerHTML = `<span class="hint" style="margin:0">No genres yet — upload a song, or type tags in “Tag as”.</span>`;
+    }
+    [...inUse, ...rest].forEach(name => {
+      const n = counted.get(name) || 0;
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "gchip";
+      b.textContent = n ? `${name} ${n}` : name;
+      if (!n) b.style.opacity = ".45";
+      b.setAttribute("aria-pressed", String(genreFilter.has(name)));
+      b.addEventListener("click", () => {
+        genreFilter.has(name) ? genreFilter.delete(name) : genreFilter.add(name);
+        b.setAttribute("aria-pressed", String(genreFilter.has(name)));
+        applyFilter();
+      });
+      host.appendChild(b);
+    });
+    $("taggerNote").textContent = g.tagger_ready
+      ? "auto-tagging on (CLAP zero-shot)"
+      : "auto-tagging unavailable — " + (g.tagger_error || "needs a text-capable model like CLAP");
+    updateFilterStatus();
+  });
+}
+function updateFilterStatus(){
+  $("filterStatus").textContent = genreFilter.size
+    ? `showing only: ${filterList().join(", ")}`
+    : "showing everything";
+}
+function applyFilter(){ updateFilterStatus(); loadLibrary(); loadEmap(); }
+$("clearFilter").addEventListener("click", () => {
+  genreFilter.clear();
+  document.querySelectorAll("#genreFilter .gchip").forEach(b => b.setAttribute("aria-pressed","false"));
+  applyFilter();
+});
+$("retagBtn").addEventListener("click", () => {
+  upStatus("re-tagging library…");
+  fetch("/api/retag", {method:"POST"}).then(r=>r.json()).then(d => {
+    upStatus(d.error ? d.error : `re-tagged ${d.retagged} songs (${d.skipped} skipped)`,
+             d.error ? "bad" : "ok");
+    loadGenres().then(() => { loadLibrary(); loadEmap(); });
+  });
+});
+
+const genreBadges = gs => (gs||[]).length
+  ? (gs).map(g => `<span class="pill ok" style="margin-right:3px">${esc(g)}</span>`).join("")
+  : `<span class="pill warn">untagged</span>`;
+
+// --- model availability ---
+function loadModelBox(){
+  fetch("/api/embed_status").then(r => r.json()).then(s => {
+    const rows = (s.available||[]).map(a => {
+      const pill = a.ok ? '<span class="pill ok">ready</span>'
+                        : '<span class="pill bad">unavailable</span>';
+      return `<tr><td><b>${esc(a.name||a.class)}</b>${a.dim?` · ${a.dim}d`:""}<br>
+              <span class="hint" style="margin:0">${esc(a.note||"")}</span></td>
+              <td style="text-align:right">${pill}</td></tr>`;
+    }).join("");
+    const loaded = s.loaded
+      ? `<p class="hint" style="margin:0 0 8px"><b>In use:</b> ${esc(s.loaded.name)} · ${s.loaded.dim}d · ${s.loaded.sample_rate/1000}kHz · ${s.loaded.window_s}s windows</p>`
+      : `<p class="hint" style="margin:0 0 8px">Model loads on your first upload.</p>`;
+    $("modelBox").innerHTML = loaded + `<table class="rows">${rows}</table>` +
+      (s.error ? `<p class="hint" style="color:var(--danger)">${esc(s.error)}</p>` : "");
+  });
+}
+
+// --- upload ---
+const drop = $("drop"), fileInput = $("file");
+drop.addEventListener("click", () => fileInput.click());
+drop.addEventListener("keydown", e => { if(e.key==="Enter"||e.key===" "){e.preventDefault();fileInput.click();} });
+["dragenter","dragover"].forEach(ev => drop.addEventListener(ev, e => {
+  e.preventDefault(); drop.classList.add("over"); }));
+["dragleave","drop"].forEach(ev => drop.addEventListener(ev, e => {
+  e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", e => {
+  if (e.dataTransfer.files && e.dataTransfer.files.length) uploadMany(e.dataTransfer.files);
+});
+fileInput.addEventListener("change", e => {
+  if (e.target.files.length) uploadMany(e.target.files);
+  e.target.value = "";                      // so re-picking the same file fires
+});
+
+/* Sequential, not parallel: the embedder is one model on one CPU, and four
+   concurrent requests would just queue inside it while making the progress
+   display lie about what is happening. */
+async function uploadMany(fileList){
+  const files = [...fileList];
+  if (files.length === 1) return uploadFile(files[0]);
+  let done = 0, failed = [];
+  for (const f of files){
+    upStatus(`(${done + 1}/${files.length}) ${f.name}…`);
+    const ok = await uploadFile(f, true);
+    ok ? done++ : failed.push(f.name);
+  }
+  upStatus(`${done}/${files.length} embedded` +
+           (failed.length ? ` — failed: ${failed.join(", ")}` : ""),
+           failed.length ? "bad" : "ok");
+  loadLibrary(); loadEmap();
+}
+
+async function uploadFile(file, quiet){
+  resetStages();
+  const mb = (file.size/1048576).toFixed(1);
+  if (!quiet) upStatus(`reading ${file.name} (${mb} MB)…`);
+  stage(0, "on");
+  const buf = await file.arrayBuffer();
+  stage(2, "on");
+  if (!quiet) upStatus("embedding — first run downloads the model, this can take a while…");
+  try {
+    const r = await fetch("/api/upload", {
+      method: "POST",
+      headers: {"Content-Type": "application/octet-stream",
+                "X-Filename": file.name,
+                "X-User": ($("uploader").value || "you").trim(),
+                "X-Genres": ($("manualGenres").value || "").split(",")
+                              .map(s=>s.trim()).filter(Boolean).join(","),
+                "X-Filter": filterList().join(",")},
+      body: buf
+    });
+    const d = await r.json();
+    if (d.error){ resetStages(); upStatus(`${file.name}: ${d.error}`, "bad"); return false; }
+    stage(5, "done");
+    renderUpload(d, quiet);
+    return true;
+  } catch (err){ resetStages(); upStatus(String(err), "bad"); return false; }
+}
+
+function renderUpload(d, quiet){
+  if (!quiet) upStatus(`embedded "${d.title}" — ${d.n_windows} windows pooled into ${d.dim} dims`, "ok");
+  $("embedInfo").innerHTML =
+    `<b>${esc(d.title)}</b> · ${d.duration_s}s · model <b>${esc(d.model)}</b> · ` +
+    `${d.n_windows} windows → one ${d.dim}-d vector<br>` +
+    (d.vector_head && d.vector_head.length
+      ? `<code class="vec">[${d.vector_head.join(", ")}, …]</code><br>` : "") +
+    `${genreBadges(d.genres)} <span class="hint" style="margin:0">${esc(d.genre_source||"")}</span>`;
+
+  // the zero-shot ranking, shown as evidence rather than a bare label
+  if (d.genre_ranked && d.genre_ranked.length){
+    $("genreResult").innerHTML =
+      `<table class="rows">${d.genre_ranked.map(r => `<tr>
+         <td style="width:96px">${esc(r.genre)}</td>
+         <td><div class="bar" style="margin:5px 0"><i style="width:${Math.max(2,r.p*100).toFixed(1)}%"></i></div></td>
+         <td class="sim">${(r.p*100).toFixed(1)}%</td>
+         <td class="sim" style="color:var(--ink3)">cos ${r.cosine.toFixed(3)}</td></tr>`).join("")}</table>
+       <p class="hint">Cosine between the song vector and a sentence describing each genre. No classifier was trained.</p>`;
+  } else if (d.genre_error){
+    $("genreResult").innerHTML = `<p class="hint" style="margin:0">Zero-shot tagging unavailable — ${esc(d.genre_error)}<br>Type tags in “Tag as” instead; filtering works either way.</p>`;
+  }
+
+  const flt = (d.filter && d.filter.length) ? ` <span class="pill warn">filtered: ${d.filter.map(esc).join(", ")}</span>` : "";
+
+  $("nearSongs").innerHTML = d.nearest_songs.length
+    ? `<table class="rows"><tr><th></th><th>Song</th><th>User</th><th style="text-align:right">Cosine</th></tr>` +
+      d.nearest_songs.map(s => `<tr><td class="rk">${s.rank}</td>
+        <td>${esc(s.title)}<br>${genreBadges(s.genres)}</td><td>${esc(s.user_id)}</td>
+        <td class="sim">${s.similarity.toFixed(3)}</td></tr>`).join("") + `</table>` + flt
+    : `<p class="hint" style="margin:0">${d.filter && d.filter.length
+        ? "Nothing else matches that genre filter." : "No other songs stored yet — upload a second one."}</p>`;
+
+  $("nearUsers").innerHTML = d.similar_users.length
+    ? `<table class="rows"><tr><th></th><th>User</th><th>Songs</th><th style="text-align:right">Cosine</th></tr>` +
+      d.similar_users.map(u => `<tr><td class="rk">${u.rank}</td>
+        <td>${esc(u.user_id)}<br><span class="hint" style="margin:0">${esc((u.songs||[]).join(", "))}</span>
+            <br>${genreBadges(u.genres)}</td>
+        <td>${u.n_songs}</td><td class="sim">${u.similarity.toFixed(3)}</td></tr>`).join("") + `</table>` + flt
+    : `<p class="hint" style="margin:0">${d.filter && d.filter.length
+        ? "No other user has songs in that genre." : "Only one user so far. Upload as a different name to compare."}</p>`;
+
+  if (!quiet){ loadModelBox(); loadGenres().then(loadLibrary); loadEmap(); }
+}
+
+// --- library ---
+function loadLibrary(){
+  fetch("/api/songs" + filterQS()).then(r => r.json()).then(d => {
+    if (!d.songs.length){ $("library").innerHTML =
+      `<p class="hint" style="margin:0">${genreFilter.size
+        ? "No songs match that genre filter." : "Nothing stored yet."}</p>`; return; }
+    $("library").innerHTML =
+      `<table class="rows"><tr><th>Song</th><th>User</th><th>Genres</th><th>Win</th><th></th></tr>` +
+      d.songs.map(s => `<tr>
+        <td>${esc(s.title)}<br><span class="hint" style="margin:0">${s.duration_s}s · ${s.dim}d · ${esc(s.model)}</span></td>
+        <td>${esc(s.user_id)}</td><td>${genreBadges(s.genres)}</td>
+        <td>${s.n_windows}</td>
+        <td style="text-align:right;white-space:nowrap">
+          <button class="ghost" style="padding:4px 8px;min-height:0"
+            onclick="simSong('${s.song_id}')">similar</button>
+          <button class="ghost" style="padding:4px 8px;min-height:0"
+            onclick="delSong('${s.song_id}','${esc(s.title)}')"
+            aria-label="Delete ${esc(s.title)}">×</button></td></tr>`).join("") + `</table>`;
+  });
+}
+window.delSong = function(id, title){
+  fetch("/api/delete_song", {method:"POST",headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({song_id:id})}).then(r=>r.json()).then(d=>{
+      upStatus(d.deleted ? `deleted "${title}"` : "not found", d.deleted ? "ok" : "bad");
+      loadLibrary(); loadEmap();
+    });
+};
+window.simSong = function(id){
+  fetch("/api/similar_songs", {method:"POST",headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({song_id:id, k:5, genres:filterList()})}).then(r=>r.json()).then(d=>{
+      if (d.error) return upStatus(d.error, "bad");
+      renderUpload({title:d.song.title, duration_s:d.song.duration_s, model:d.song.model,
+        n_windows:d.song.n_windows, dim:d.song.dim, vector_head:[],
+        genres:d.song.genres, genre_source:d.song.genre_source, filter:d.filter,
+        nearest_songs:d.nearest_songs, similar_users:d.similar_users}, true);
+      upStatus(`nearest to "${d.song.title}"`, "ok");
+    });
+};
+
+// --- embedding map ---
+let emapData = null;
+function loadEmap(){
+  fetch("/api/embed_map" + filterQS()).then(r => r.json()).then(d => { emapData = d; drawEmap(); });
+}
+function drawEmap(){
+  const cv = $("emap"), ctx = cv.getContext("2d");
+  ctx.clearRect(0,0,cv.width,cv.height);
+  if (!emapData || !emapData.songs.length){ return; }
+  const cs = getComputedStyle(document.body);
+  const rule = cs.getPropertyValue("--rule").trim(), ink3 = cs.getPropertyValue("--ink3").trim();
+  const amber = cs.getPropertyValue("--amber").trim();
+  const pts = emapData.songs.map(s=>[s.pc1,s.pc2]).concat(emapData.users.map(u=>[u.pc1,u.pc2]));
+  const xs = pts.map(p=>p[0]), ys = pts.map(p=>p[1]), pad = 52;
+  const x0=Math.min(...xs), x1=Math.max(...xs), y0=Math.min(...ys), y1=Math.max(...ys);
+  const sx = v => pad + (v-x0)/((x1-x0)||1)*(cv.width-2*pad);
+  const sy = v => cv.height - pad - (v-y0)/((y1-y0)||1)*(cv.height-2*pad);
+
+  ctx.strokeStyle = rule; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(pad*0.5, sy(0)); ctx.lineTo(cv.width-pad*0.5, sy(0));
+  ctx.moveTo(sx(0), pad*0.5); ctx.lineTo(sx(0), cv.height-pad*0.5); ctx.stroke();
+
+  ctx.font = "500 16px 'IBM Plex Mono', monospace";
+  emapData.songs.forEach(s => {
+    ctx.beginPath(); ctx.arc(sx(s.pc1), sy(s.pc2), 9, 0, Math.PI*2);
+    ctx.fillStyle = COLORS[s.cluster % COLORS.length]; ctx.fill();
+    ctx.fillStyle = ink3;
+    ctx.fillText(s.title.slice(0,18), sx(s.pc1)+13, sy(s.pc2)+5);
+  });
+  emapData.users.forEach(u => {
+    ctx.beginPath(); ctx.arc(sx(u.pc1), sy(u.pc2), 15, 0, Math.PI*2);
+    ctx.strokeStyle = amber; ctx.lineWidth = 3.5; ctx.stroke();
+    ctx.fillStyle = amber; ctx.font = "600 16px 'IBM Plex Mono', monospace";
+    ctx.fillText(u.user_id, sx(u.pc1)+19, sy(u.pc2)-16);
+    ctx.font = "500 16px 'IBM Plex Mono', monospace";
+  });
+  $("emapNote").innerHTML = `${emapData.n_songs} songs · model <b>${esc(emapData.model||"—")}</b>` +
+    (emapData.k ? ` · K-Means k=${emapData.k}, silhouette ${emapData.silhouette}` : "") +
+    (emapData.explained ? ` · PC1+PC2 hold ${(emapData.explained*100).toFixed(0)}% of variance` : "") +
+    ((emapData.filter||[]).length
+      ? `<br><span class="pill warn">filtered: ${emapData.filter.map(esc).join(", ")}</span>
+         <span class="hint" style="margin:0">PCA refit on this subset, so the axes separate <i>these</i> songs.</span>` : "");
+}
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", drawEmap);
+</script>
+</body>
+</html>
