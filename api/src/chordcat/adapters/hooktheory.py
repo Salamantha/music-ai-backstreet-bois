@@ -43,7 +43,9 @@ class OfflineError(HooktheoryError):
 
 
 class HooktheoryClient(Protocol):
-    async def nodes(self, cp: str | None = None) -> list[dict[str, Any]]: ...
+    async def nodes(
+        self, cp: str | None = None, *, allow_fetch: bool = True
+    ) -> list[dict[str, Any]]: ...
     async def songs(self, cp: str, page: int = 1) -> list[dict[str, Any]]: ...
 
 
@@ -152,11 +154,19 @@ class HttpHooktheoryClient:
             return payload if isinstance(payload, list) else []
         raise HooktheoryError(f"Hooktheory rate limit not clearing for {path}")
 
-    async def nodes(self, cp: str | None = None) -> list[dict[str, Any]]:
+    async def nodes(
+        self, cp: str | None = None, *, allow_fetch: bool = True
+    ) -> list[dict[str, Any]]:
         if self.cache is not None:
             cached = self.cache.get_nodes(cp)
             if cached is not None:
                 return cached
+        if not allow_fetch:
+            # The chord-transition tree is global and static, so it is warmed
+            # offline by scripts/warm_nodes_tree.py. Fetching it inside a
+            # request would spend the shared quota on an optimisation and starve
+            # the song search that actually produces results.
+            return []
         rows = await self._get("trends/nodes", {"cp": cp} if cp else {})
         if self.cache is not None:
             self.cache.put_nodes(cp, rows)
@@ -200,7 +210,9 @@ class FakeHooktheoryClient:
             return None
         return json.loads(path.read_text())
 
-    async def nodes(self, cp: str | None = None) -> list[dict[str, Any]]:
+    async def nodes(
+        self, cp: str | None = None, *, allow_fetch: bool = True
+    ) -> list[dict[str, Any]]:
         if self.calls is not None:
             self.calls.append(("nodes", cp or "", 0))
         data = self._load("nodes", cp or "_root")

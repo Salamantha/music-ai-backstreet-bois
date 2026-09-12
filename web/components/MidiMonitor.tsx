@@ -35,9 +35,10 @@ export default function MidiMonitor({
       </div>
 
       <p className="sub" style={{ margin: "8px 0 10px" }}>
-        The ChordCat streams every running track at once. Only channels carrying
-        harmony should feed the chord analysis — untick anything that is drums,
-        bass, or a single-note lead.
+        The ChordCat streams every running sequencer track at once. Only the
+        chord track should feed the analysis — merging a melody or bass line into
+        it produces confident nonsense. &ldquo;Notes per onset&rdquo; is the giveaway:
+        harmony lands several notes at the same instant, a melody lands one.
       </p>
 
       <table>
@@ -45,13 +46,13 @@ export default function MidiMonitor({
           <tr>
             <th style={{ width: 30 }}></th>
             <th>Ch</th><th>Note ons</th><th>Range</th>
-            <th>Max together</th><th>Reads as</th>
+            <th>Notes per onset</th><th>Reads as</th>
           </tr>
         </thead>
         <tbody>
           {stats.map((s) => {
             const isDrum = s.channel === DRUM_CHANNEL;
-            const poly = s.maxSimultaneous >= 3;
+            const poly = s.modalGroupSize >= 3;
             return (
               <tr key={s.channel} style={{ opacity: selected.has(s.channel) ? 1 : 0.45 }}>
                 <td>
@@ -67,12 +68,17 @@ export default function MidiMonitor({
                 <td className="mono">
                   {s.noteOns ? `${noteName(s.lowPitch)}–${noteName(s.highPitch)}` : "—"}
                 </td>
-                <td className="mono">{s.maxSimultaneous}</td>
+                <td className="mono">
+                  {s.modalGroupSize}
+                  <span style={{ color: "var(--muted)" }}>
+                    {" "}({Math.round(s.chordalRatio * 100)}% chordal)
+                  </span>
+                </td>
                 <td style={{ color: "var(--muted)" }}>
                   {isDrum ? "percussion (GM ch10)"
-                    : poly ? "chords"
-                    : s.maxSimultaneous === 2 ? "dyads"
-                    : "single notes"}
+                    : poly ? `chords (${s.modalGroupSize}-note voicings)`
+                    : s.modalGroupSize === 2 ? "dyads"
+                    : "single notes — melody, bass or perc"}
                 </td>
               </tr>
             );

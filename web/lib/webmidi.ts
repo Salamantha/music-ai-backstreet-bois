@@ -38,7 +38,16 @@ export interface ChannelStats {
   highPitch: number;
   /** Largest number of notes sounding together on this channel. */
   maxSimultaneous: number;
+  /** Distinct onsets, after grouping notes that start together. */
+  onsetGroups: number;
+  /** Most common number of notes sharing an onset -- the real chord signal. */
+  modalGroupSize: number;
+  /** Share of onsets that carry three or more notes. */
+  chordalRatio: number;
 }
+
+/** Notes starting within this of each other are one voicing, not several. */
+const ONSET_GROUP_MS = 15;
 
 /** General MIDI reserves channel 10 for percussion. */
 export const DRUM_CHANNEL = 10;
@@ -225,10 +234,19 @@ export function noteName(pitch: number): string {
 }
 
 
-/** Per-channel summary of a take, so a flooded or drum-heavy stream is obvious. */
+/**
+ * Per-channel summary of a take.
+ *
+ * The load-bearing statistic is `modalGroupSize` -- how many notes usually share
+ * an onset. Sustained overlap is not a usable signal: a legato melody line keeps
+ * several notes ringing at once and looks every bit as "polyphonic" as a chord
+ * track, which is exactly how a lead line can be mistaken for harmony.
+ */
 export function channelStats(events: MidiEvent[]): ChannelStats[] {
   const byChannel = new Map<number, ChannelStats>();
   const sounding = new Map<number, Set<number>>();
+  const groupSizes = new Map<number, number[]>();
+  const lastOnset = new Map<number, number>();
 
   for (const e of events) {
     const ch = e.c ?? 1;
@@ -237,11 +255,14 @@ export function channelStats(events: MidiEvent[]): ChannelStats[] {
       s = {
         channel: ch, noteOns: 0, noteOffs: 0, ccs: 0,
         lowPitch: 127, highPitch: 0, maxSimultaneous: 0,
+        onsetGroups: 0, modalGroupSize: 0, chordalRatio: 0,
       };
       byChannel.set(ch, s);
       sounding.set(ch, new Set());
+      groupSizes.set(ch, []);
     }
     const held = sounding.get(ch)!;
+    const sizes = groupSizes.get(ch)!;
 
     if (e.k === "cc") { s.ccs++; continue; }
     if (e.p === undefined) continue;
@@ -252,10 +273,35 @@ export function channelStats(events: MidiEvent[]): ChannelStats[] {
       s.highPitch = Math.max(s.highPitch, e.p);
       held.add(e.p);
       s.maxSimultaneous = Math.max(s.maxSimultaneous, held.size);
+
+      const previous = lastOnset.get(ch);
+      if (previous !== undefined && e.t - previous <= ONSET_GROUP_MS) {
+        sizes[sizes.length - 1] += 1;
+      } else {
+        sizes.push(1);
+        lastOnset.set(ch, e.t);
+      }
     } else {
       s.noteOffs++;
       held.delete(e.p);
     }
+  }
+
+  for (const [ch, sizes] of groupSizes) {
+    const s = byChannel.get(ch)!;
+    s.onsetGroups = sizes.length;
+    const histogram = new Map<number, number>();
+    for (const n of sizes) histogram.set(n, (histogram.get(n) ?? 0) + 1);
+    let best = 0, bestCount = -1;
+    for (const [size, count] of histogram) {
+      if (count > bestCount || (count === bestCount && size > best)) {
+        best = size;
+        bestCount = count;
+      }
+    }
+    s.modalGroupSize = best;
+    const chordal = sizes.filter((n) => n >= 3).reduce((a, b) => a + b, 0);
+    s.chordalRatio = s.noteOns ? chordal / s.noteOns : 0;
   }
 
   return [...byChannel.values()].sort((a, b) => a.channel - b.channel);
@@ -269,14 +315,22 @@ export function filterChannels(events: MidiEvent[], keep: Set<number>): MidiEven
 /**
  * Guess which channels carry harmony.
  *
- * Excludes GM channel 10 (percussion) and channels that never sound more than
- * one note at a time, which are melody or bass lines rather than chords.
+ * A channel qualifies when its *typical* onset carries three or more notes.
+ * Verified against a real ChordCat capture: of eight running sequencer tracks,
+ * only the chord track had a modal onset size above one -- every other track was
+ * a melody, bass or percussion line, and merging them into the chord track is
+ * what makes identification produce nonsense.
  */
 export function suggestHarmonyChannels(stats: ChannelStats[]): Set<number> {
   const musical = stats.filter(
     (s) => s.channel !== DRUM_CHANNEL && s.noteOns > 0,
   );
-  const polyphonic = musical.filter((s) => s.maxSimultaneous >= 3);
-  const chosen = polyphonic.length > 0 ? polyphonic : musical;
-  return new Set(chosen.map((s) => s.channel));
+  const chordal = musical.filter((s) => s.modalGroupSize >= 3);
+  if (chordal.length > 0) return new Set(chordal.map((s) => s.channel));
+  // Nothing is clearly chordal; fall back to whatever is most nearly so, so the
+  // user has something selected rather than an empty analysis.
+  const best = musical
+    .slice()
+    .sort((a, b) => b.chordalRatio - a.chordalRatio)[0];
+  return new Set(best ? [best.channel] : []);
 }

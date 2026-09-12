@@ -51,19 +51,31 @@ class SearchOutcome:
 
 
 async def build_transition_table(
-    client: HooktheoryClient, sequences: Sequence[tuple[str, ...]]
+    client: HooktheoryClient,
+    sequences: Sequence[tuple[str, ...]],
+    *,
+    allow_fetch: bool = False,
+    max_lookups: int = 64,
 ) -> dict[tuple[str, ...], float]:
-    """Look up transition probabilities from the (cached) global nodes tree.
+    """Look up transition probabilities from the cached global nodes tree.
 
-    After `scripts/warm_nodes_tree.py` has run once these are all cache hits and
-    cost nothing, which is the whole point: rarity scoring should not compete
-    with song search for the live request budget.
+    Cache-only by default, and deliberately so. The tree is identical for every
+    user and never changes, so `scripts/warm_nodes_tree.py` fetches it once
+    offline. Fetching it here instead turns one analysis into a hundred-plus
+    requests against a 10-per-10-second account-wide limit -- spending minutes
+    of a shared quota on a ranking refinement while the song search that
+    actually produces matches waits behind it.
+
+    With a cold cache this simply returns nothing and rarity falls back to
+    neutral, which every caller already handles.
     """
     table: dict[tuple[str, ...], float] = {}
     prefixes = {seq[:i] for seq in sequences for i in range(1, len(seq))}
-    for prefix in sorted(prefixes, key=len):
+    for prefix in sorted(prefixes, key=len)[:max_lookups]:
         try:
-            rows = await client.nodes(",".join(prefix) if prefix else None)
+            rows = await client.nodes(
+                ",".join(prefix) if prefix else None, allow_fetch=allow_fetch
+            )
         except Exception as exc:  # noqa: BLE001 - rarity is an optimisation
             log.debug("nodes lookup failed for %s: %s", prefix, exc)
             continue
