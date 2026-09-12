@@ -151,8 +151,9 @@ export default function ChordSteps({
       </div>
 
       <p className="sub" style={{ margin: "8px 0 12px" }}>
-        Play one chord at a time — each is captured when you release it. Pick a
-        chord up and move it to change the order.
+        Play one chord after another — each is captured the moment you play it,
+        so you don&apos;t need to release before the next. Pick a chord up and move
+        it to change the order.
       </p>
 
       <div className="chords">

@@ -19,10 +19,16 @@ interface Props {
   busy: boolean;
 }
 
-/** A held chord is committed once every note has been released. */
-const RELEASE_COMMIT_MS = 90;
-/** Wait for the voicing to settle before asking the server what it is. */
-const IDENTIFY_DEBOUNCE_MS = 120;
+/**
+ * How long after a chord's first note we keep listening for the rest of it.
+ *
+ * The ChordCat fires every note of a chord within a millisecond or two, and a
+ * hand on a keyboard spreads them by a few tens of milliseconds. Once this
+ * window closes the chord is known, so it commits immediately. Waiting for
+ * release instead would mean holding each chord to the end before the next
+ * could be played, which is not how anyone plays a progression.
+ */
+const ONSET_WINDOW_MS = 70;
 const MIN_NOTES_PER_STEP = 2;
 
 export default function MidiConnect({ onChords, onReset, busy }: Props) {
@@ -54,61 +60,62 @@ export default function MidiConnect({ onChords, onReset, busy }: Props) {
   // The MIDI subscription is registered once, so its closure would capture
   // stale state. Everything the handler reads lives in a ref.
   const recordingRef = useRef(false);
-  const pendingRef = useRef<number[]>([]);
-  const identifyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const commitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** Notes gathered since the current onset window opened. */
+  const chordBuffer = useRef<number[]>([]);
+  const onsetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const nextId = useRef(1);
 
   useEffect(() => { recordingRef.current = recording; }, [recording]);
 
-  const commitPending = useCallback(() => {
-    const pitches = pendingRef.current;
-    pendingRef.current = [];
-    setPending([]);
-    setLive(null);
+  /** Add a finished chord to the progression, identifying it in the background. */
+  const commitChord = useCallback((pitches: number[]) => {
     if (pitches.length < MIN_NOTES_PER_STEP) return;
-    // Identify asynchronously; the step appears immediately either way, so a
-    // slow or failed lookup never costs the player their chord.
     const id = nextId.current++;
+    // The block appears at once; a slow or failed lookup only leaves its name
+    // blank for a moment, it never costs the player the chord.
     setSteps((prev) => [...prev, { id, pitches, chord: null }]);
     identify(pitches)
       .then((chord) =>
-        setSteps((prev) =>
-          prev.map((s) => (s.id === id ? { ...s, chord } : s)),
-        ),
+        setSteps((prev) => prev.map((s) => (s.id === id ? { ...s, chord } : s))),
       )
       .catch(() => undefined);
   }, []);
 
-  const onHeldChange = useCallback(
-    (held: number[]) => {
+  /** Close the current onset window and commit whatever it gathered. */
+  const flushChord = useCallback(() => {
+    if (onsetTimer.current) {
+      clearTimeout(onsetTimer.current);
+      onsetTimer.current = null;
+    }
+    const pitches = [...chordBuffer.current].sort((a, b) => a - b);
+    chordBuffer.current = [];
+    setPending([]);
+    setLive(null);
+    commitChord(pitches);
+  }, [commitChord]);
+
+  /**
+   * Handle one note-on.
+   *
+   * The first note opens a window; anything arriving inside it belongs to the
+   * same chord. When the window closes the chord commits, so the next one can
+   * be played straight away -- and may overlap the previous, since only
+   * note-ons are considered here.
+   */
+  const onNoteOn = useCallback(
+    (pitch: number) => {
       if (!recordingRef.current) return;
 
-      if (commitTimer.current) clearTimeout(commitTimer.current);
-
-      if (held.length === 0) {
-        // Everything released. Wait a moment first: the ChordCat staggers its
-        // note-offs by a few ms, and a re-voicing can briefly pass through zero.
-        commitTimer.current = setTimeout(commitPending, RELEASE_COMMIT_MS);
-        return;
+      if (onsetTimer.current === null) {
+        chordBuffer.current = [pitch];
+        setPending([pitch]);
+        onsetTimer.current = setTimeout(flushChord, ONSET_WINDOW_MS);
+      } else if (!chordBuffer.current.includes(pitch)) {
+        chordBuffer.current.push(pitch);
+        setPending([...chordBuffer.current].sort((a, b) => a - b));
       }
-
-      // Keep the fullest voicing seen while this chord was held, so a chord
-      // whose notes land a few ms apart is captured whole rather than clipped.
-      if (held.length >= pendingRef.current.length) {
-        pendingRef.current = held;
-        setPending(held);
-      }
-
-      if (identifyTimer.current) clearTimeout(identifyTimer.current);
-      identifyTimer.current = setTimeout(() => {
-        const current = pendingRef.current;
-        if (current.length >= MIN_NOTES_PER_STEP) {
-          identify(current).then(setLive).catch(() => setLive(null));
-        }
-      }, IDENTIFY_DEBOUNCE_MS);
     },
-    [commitPending],
+    [flushChord],
   );
 
   useEffect(() => {
@@ -144,11 +151,10 @@ export default function MidiConnect({ onChords, onReset, busy }: Props) {
         setOutputId(preferredOut.id);
         capture.selectOutput(preferredOut.id);
       }
-      capture.subscribe((_e, all) => {
-        const currentlyHeld = heldNotes(all);
-        setHeld(currentlyHeld);
+      capture.subscribe((e, all) => {
+        setHeld(heldNotes(all));
         setCount(all.length);
-        onHeldChange(currentlyHeld);
+        if (e.k === "on" && e.p !== undefined) onNoteOn(e.p);
       });
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -169,7 +175,11 @@ export default function MidiConnect({ onChords, onReset, busy }: Props) {
     setSteps([]);
     setPending([]);
     setLive(null);
-    pendingRef.current = [];
+    chordBuffer.current = [];
+    if (onsetTimer.current) {
+      clearTimeout(onsetTimer.current);
+      onsetTimer.current = null;
+    }
     onReset();
   }
 
@@ -302,8 +312,9 @@ export default function MidiConnect({ onChords, onReset, busy }: Props) {
               <button
                 className="danger"
                 onClick={() => {
-                  // Flush a chord still being held, so the last one is not lost.
-                  if (pendingRef.current.length >= MIN_NOTES_PER_STEP) commitPending();
+                  // Commit a chord still inside its onset window, so the last
+                  // one played is not lost to the stop.
+                  flushChord();
                   setRecording(false);
                   setHasStoppedCapture(true);
                 }}
