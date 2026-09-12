@@ -178,3 +178,49 @@ class AnalyzeResponse(BaseModel):
         default_factory=list,
         description="Human-readable caveats about this analysis.",
     )
+
+
+class HelperTurnRequest(BaseModel):
+    """A take, plus whatever the player said about it."""
+
+    events: list[NoteEventIn] = Field(default_factory=list)
+    elapsed_ms: float = 0.0
+    #: Which MIDI channel carries the harmony. The ChordCat interleaves all
+    #: eight sequencer tracks, so without this the analysis sees eight tracks
+    #: at once. The browser works it out; 0 or null keeps every channel.
+    harmony_channel: int | None = Field(default=None, ge=0, le=16)
+    user_text: str | None = None
+    intent_tags: list[str] = Field(default_factory=list)
+    #: Carried by the client so the helper does not repeat itself across turns.
+    suggested_nodes: list[str] = Field(default_factory=list)
+    tried_nodes: list[str] = Field(default_factory=list)
+
+
+class HelperFactOut(BaseModel):
+    id: str
+    kind: str
+    value: object
+    n_observations: int
+    confidence: float
+
+
+class HelperTurnResponse(BaseModel):
+    #: Empty when nothing was played, or when nothing sits on the frontier.
+    node_id: str | None
+    plain_name: str | None
+    text: str
+    #: Lit nodes the suggestion hangs off: "why are you telling me this?"
+    why: list[str]
+    distance: int
+    #: False when no fact backs this node's detector -- the absence is
+    #: unobserved rather than measured.
+    measured: bool
+    #: Frontier nodes that scored identically. Surfaced, not hidden.
+    tied_with: list[str]
+    #: True while the node's prose is still engineer-written placeholder text.
+    draft: bool
+    #: True when the turn came from the template rather than the model.
+    templated: bool
+    facts: list[HelperFactOut]
+    chords: list[str]
+    key: str | None

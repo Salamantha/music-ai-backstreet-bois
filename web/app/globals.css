@@ -147,3 +147,23 @@ td a:hover { text-decoration: underline; }
 .error { color: var(--danger); }
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
 @media (max-width: 760px) { .grid2 { grid-template-columns: 1fr; } }
+
+/* Helper page: the teaching path. Shares the tokens above, nothing else. */
+.helper { max-width: 640px; }
+.ask {
+  width: 100%; padding: 18px; font-size: 17px; border-radius: var(--radius);
+}
+.tag {
+  padding: 6px 13px; border-radius: 999px; font-size: 13px; font-weight: 500;
+}
+.tag.on { background: var(--accent); color: #0b1220; border-color: var(--accent); }
+.turn p { font-size: 15px; line-height: 1.6; }
+.turn p:first-child { font-size: 16px; color: var(--text); }
+.draft-warning {
+  color: var(--warn); border: 1px solid #5d4f2f; border-radius: 8px;
+  padding: 10px 12px; font-size: 13px;
+}
+.facts { width: 100%; font-size: 13px; border-collapse: collapse; }
+.facts td { padding: 4px 8px; border-top: 1px solid var(--line); vertical-align: top; }
+.facts td:first-child { color: var(--muted); white-space: nowrap; }
+.facts td:last-child { color: var(--muted); text-align: right; white-space: nowrap; }

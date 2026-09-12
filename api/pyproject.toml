@@ -13,6 +13,7 @@ dependencies = [
     "numpy>=2.1",
     "scikit-learn>=1.6",
     "sse-starlette>=2.1",
+    "pyyaml>=6.0",
 ]
 
 [project.optional-dependencies]
@@ -27,7 +28,7 @@ build-backend = "setuptools.build_meta"
 where = ["src"]
 
 [tool.setuptools.package-data]
-chordcat = ["data/*.json", "seed/*.json"]
+chordcat = ["data/*.json", "seed/*.json", "helper/concepts/*.yaml"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
