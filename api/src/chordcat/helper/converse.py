@@ -113,6 +113,64 @@ class LayeredVoice:
 
 
 @dataclass(slots=True)
+class OpenAICompatibleVoice:
+    """Any provider that speaks /chat/completions.
+
+    Groq, Together, OpenRouter and a local Ollama are all the same wire format,
+    so one class covers every option and swapping provider is a config change.
+    Uses httpx, which the project already depends on, rather than pulling in a
+    vendor SDK for one POST.
+
+    A small open model is safe in this position specifically because
+    :mod:`chordcat.helper.validator` rejects any chord, key or number that is
+    not in the FactSet. The worst a weak model can do here is get rejected and
+    fall through to the template.
+    """
+
+    base_url: str = ""
+    model: str = ""
+    api_key: str = ""
+    max_tokens: int = 600
+    timeout_s: float = 30.0
+
+    def speak(self, prompt: str) -> str:
+        import httpx
+
+        from ..config import get_settings
+
+        settings = get_settings()
+        base = (self.base_url or settings.llm_base_url).rstrip("/")
+        model = self.model or settings.llm_model
+        key = self.api_key or settings.llm_api_key
+        if not base or not model:
+            raise RuntimeError("no LLM endpoint configured")
+        if settings.chordcat_offline:
+            raise RuntimeError("offline mode forbids the network")
+
+        headers = {"Content-Type": "application/json"}
+        # Ollama needs no key; hosted providers do. Sending an empty bearer
+        # token upsets some of them, so only set it when there is one.
+        if key:
+            headers["Authorization"] = f"Bearer {key}"
+
+        response = httpx.post(
+            f"{base}/chat/completions",
+            headers=headers,
+            json={
+                "model": model,
+                "max_tokens": self.max_tokens or settings.llm_max_tokens,
+                # Low, not zero: the phrasing should vary between turns, but
+                # this is not the place for invention.
+                "temperature": 0.4,
+                "messages": [{"role": "user", "content": prompt}],
+            },
+            timeout=self.timeout_s,
+        )
+        response.raise_for_status()
+        return response.json()["choices"][0]["message"]["content"]
+
+
+@dataclass(slots=True)
 class ClaudeVoice:
     """Live phrasing. Optional: used only when an API key is configured."""
 
@@ -134,3 +192,24 @@ class ClaudeVoice:
             messages=[{"role": "user", "content": prompt}],
         )
         return "".join(block.text for block in message.content if block.type == "text")
+
+
+def build_voice() -> TemplateVoice | LayeredVoice:
+    """Pick the best available voice, with the template as the floor.
+
+    Order is deliberate: a configured open-source endpoint wins, because that
+    is the helper's own setting; Anthropic is the fallback only because a key
+    may already be present for genre labelling. If neither is configured the
+    app still answers -- from a template, and it says so -- rather than going
+    silent, which is the one outcome that makes it useless.
+    """
+    from ..config import get_settings
+
+    settings = get_settings()
+    if settings.chordcat_offline:
+        return TemplateVoice()
+    if settings.has_llm:
+        return LayeredVoice(OpenAICompatibleVoice())
+    if settings.has_anthropic:
+        return LayeredVoice(ClaudeVoice())
+    return TemplateVoice()

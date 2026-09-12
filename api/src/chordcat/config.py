@@ -31,6 +31,17 @@ class Settings(BaseSettings):
     chordcat_offline: bool = False
 
     claude_model: str = "claude-opus-5"
+
+    #: An OpenAI-compatible chat endpoint for the helper's phrasing layer.
+    #: Any provider works -- Groq, Together, OpenRouter, or a local Ollama --
+    #: because they all speak the same /chat/completions shape. Kept separate
+    #: from the Anthropic key: genre labelling and the helper's voice are
+    #: different jobs and need not run on the same model.
+    llm_base_url: str = ""
+    llm_model: str = ""
+    llm_api_key: str = ""
+    #: Small models ramble. The turn contract asks for four short paragraphs.
+    llm_max_tokens: int = 600
     #: Bump to invalidate every cached genre label after a prompt change.
     genre_prompt_version: str = "v1"
     genre_taxonomy_version: str = "v1"
@@ -54,6 +65,10 @@ class Settings(BaseSettings):
     @property
     def has_anthropic(self) -> bool:
         return bool(self.anthropic_api_key)
+
+    @property
+    def has_llm(self) -> bool:
+        return bool(self.llm_base_url and self.llm_model)
 
 
 @lru_cache

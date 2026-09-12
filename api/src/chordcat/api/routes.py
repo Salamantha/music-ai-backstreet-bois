@@ -25,7 +25,7 @@ from ..domain.pitch import (
 from ..helper.analysis import run_all
 from ..helper.concepts.graph import choose
 from ..helper.concepts.schema import APPROVED, load_nodes
-from ..helper.converse import ClaudeVoice, LayeredVoice, TemplateVoice
+from ..helper.converse import build_voice
 from ..helper.prepare import prepare
 from ..helper.session import Session
 from ..services.pipeline import analyse
@@ -504,10 +504,7 @@ async def helper_turn(req: HelperTurnRequest) -> HelperTurnResponse:
             key=str(key_fact.value) if key_fact else None,
         )
 
-    settings = get_services().settings if hasattr(get_services(), "settings") else None
-    use_model = settings.has_anthropic and not settings.chordcat_offline if settings else False
-    voice = LayeredVoice(ClaudeVoice()) if use_model else TemplateVoice()
-    response = voice.respond(facts, choice, session.user_text)
+    response = build_voice().respond(facts, choice, session.user_text)
 
     return HelperTurnResponse(
         node_id=choice.node.id,
