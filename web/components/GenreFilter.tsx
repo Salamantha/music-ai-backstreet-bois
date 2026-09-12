@@ -75,9 +75,7 @@ export default function GenreFilter({
         </span>
       </div>
       <p className="sub" style={{ margin: "0 0 16px" }}>
-        Major sounds bright and happy; minor sounds darker and sadder. The
-        very same chords can be heard either way, so tell us which you meant
-        and the matches will lean that way.
+        Major sounds bright and happy; minor sounds darker and sadder.
       </p>
 
       <div className="row spread">
