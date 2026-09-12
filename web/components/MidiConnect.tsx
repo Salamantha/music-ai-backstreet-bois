@@ -55,6 +55,7 @@ export default function MidiConnect({ onChords, onReset, busy }: Props) {
   const [outputs, setOutputs] = useState<MidiPort[]>([]);
   const [outputId, setOutputId] = useState("");
   const [playing, setPlaying] = useState(false);
+  const [traffic, setTraffic] = useState(0);
   const playTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // The MIDI subscription is registered once, so its closure would capture
@@ -140,7 +141,7 @@ export default function MidiConnect({ onChords, onReset, busy }: Props) {
       const preferred = found.find(looksLikeChordcat) ?? found[0];
       if (preferred) {
         setSelected(preferred.id);
-        capture.select(preferred.id);
+        await capture.select(preferred.id);
       }
 
       // Pick an output too, so the progression can be played back to the device.
@@ -149,11 +150,12 @@ export default function MidiConnect({ onChords, onReset, busy }: Props) {
       const preferredOut = outs.find(looksLikeChordcat) ?? outs[0];
       if (preferredOut) {
         setOutputId(preferredOut.id);
-        capture.selectOutput(preferredOut.id);
+        await capture.selectOutput(preferredOut.id);
       }
       capture.subscribe((e, all) => {
         setHeld(heldNotes(all));
         setCount(all.length);
+        setTraffic(capture.traffic().count);
         if (e.k === "on" && e.p !== undefined) onNoteOn(e.p);
       });
     } catch (e) {
@@ -161,10 +163,10 @@ export default function MidiConnect({ onChords, onReset, busy }: Props) {
     }
   }
 
-  function choose(id: string) {
+  async function choose(id: string) {
     setSelected(id);
     try {
-      captureRef.current!.select(id);
+      await captureRef.current!.select(id);
       setError("");
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -290,12 +292,13 @@ export default function MidiConnect({ onChords, onReset, busy }: Props) {
           <button className="primary" onClick={connect}>Connect MIDI</button>
         ) : (
           <>
-            <select value={selected} onChange={(e) => choose(e.target.value)}>
+            <select value={selected} onChange={(e) => void choose(e.target.value)}>
               {ports.length === 0 && <option value="">No MIDI inputs found</option>}
               {ports.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name}{p.manufacturer ? ` — ${p.manufacturer}` : ""}
                   {looksLikeChordcat(p) ? "  ✓ ChordCat" : ""}
+                  {p.state !== "connected" ? `  (${p.state})` : ""}
                 </option>
               ))}
             </select>
@@ -340,6 +343,22 @@ export default function MidiConnect({ onChords, onReset, busy }: Props) {
 
       {connected && (
         <div style={{ marginTop: 14 }}>
+          {/* Whether anything is arriving at all. Without this, a port that is
+              selected but silent -- a virtual bus with nothing routed to it --
+              is indistinguishable from one that is working. */}
+          <div className="row" style={{ gap: 8, marginBottom: 8 }}>
+            <span className={`pill ${traffic > 0 ? "ok" : ""}`}>
+              {traffic > 0
+                ? `${traffic} MIDI message${traffic === 1 ? "" : "s"} received`
+                : "no MIDI received yet on this port"}
+            </span>
+            {traffic === 0 && (
+              <span className="sub" style={{ margin: 0, fontSize: 12 }}>
+                Play something. If this stays at zero, the port is not the one
+                carrying your notes.
+              </span>
+            )}
+          </div>
           <div className="live">
             {held.length === 0 ? (
               <span className="pill">
@@ -420,11 +439,11 @@ export default function MidiConnect({ onChords, onReset, busy }: Props) {
             value={outputId}
             onChange={(e) => {
               setOutputId(e.target.value);
-              try {
-                captureRef.current!.selectOutput(e.target.value);
-              } catch (err) {
-                setError(err instanceof Error ? err.message : String(err));
-              }
+              captureRef.current!
+                .selectOutput(e.target.value)
+                .catch((err) =>
+                  setError(err instanceof Error ? err.message : String(err)),
+                );
             }}
           >
             {outputs.map((o) => (

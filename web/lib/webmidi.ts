@@ -56,6 +56,10 @@ export interface MidiPort {
   id: string;
   name: string;
   manufacturer: string;
+  /** "connected" once the device is present; virtual ports can be absent. */
+  state: string;
+  /** "open" once we are actually receiving from it. */
+  connection: string;
 }
 
 export type MidiSupport =
@@ -106,6 +110,8 @@ export class MidiCapture {
   /** Notes currently scheduled or sounding from playback, for a clean stop. */
   private playing: { pitch: number; channel: number }[] = [];
   private playbackEndsAt = 0;
+  private messageCount = 0;
+  private lastMessageAt = 0;
   private input: MIDIInput | null = null;
   private events: MidiEvent[] = [];
   private raw: RawMessage[] = [];
@@ -130,6 +136,8 @@ export class MidiCapture {
       id: i.id,
       name: i.name ?? "unnamed",
       manufacturer: i.manufacturer ?? "",
+      state: i.state,
+      connection: i.connection,
     }));
   }
 
@@ -140,13 +148,16 @@ export class MidiCapture {
       id: o.id,
       name: o.name ?? "unnamed",
       manufacturer: o.manufacturer ?? "",
+      state: o.state,
+      connection: o.connection,
     }));
   }
 
-  selectOutput(portId: string): void {
+  async selectOutput(portId: string): Promise<void> {
     if (!this.access) throw new Error("call connect() first");
     const port = this.access.outputs.get(portId);
     if (!port) throw new Error(`no MIDI output with id ${portId}`);
+    await port.open();
     this.output = port;
   }
 
@@ -205,13 +216,36 @@ export class MidiCapture {
     if (this.access) this.access.onstatechange = () => cb();
   }
 
-  select(portId: string): void {
+  /**
+   * Listen to an input port.
+   *
+   * The port is opened explicitly. Setting `onmidimessage` opens a port
+   * implicitly in most browsers, but a virtual port -- an IAC bus, or whatever
+   * a DAW exposes -- can be sitting in the "closed" connection state, and then
+   * the handler is installed on something that never delivers anything.
+   */
+  async select(portId: string): Promise<void> {
     if (!this.access) throw new Error("call connect() first");
-    if (this.input) this.input.onmidimessage = null;
+    if (this.input) {
+      this.input.onmidimessage = null;
+      try {
+        await this.input.close();
+      } catch {
+        // Closing a port that is already gone is not a problem.
+      }
+    }
     const port = this.access.inputs.get(portId);
     if (!port) throw new Error(`no MIDI input with id ${portId}`);
+    await port.open();
     this.input = port;
+    this.lastMessageAt = 0;
+    this.messageCount = 0;
     port.onmidimessage = (msg) => this.handle(msg);
+  }
+
+  /** Messages seen on the selected port, so "nothing is arriving" is visible. */
+  traffic(): { count: number; lastAt: number } {
+    return { count: this.messageCount, lastAt: this.lastMessageAt };
   }
 
   subscribe(cb: (e: MidiEvent, all: MidiEvent[]) => void): () => void {
@@ -281,6 +315,9 @@ export class MidiCapture {
   private handle(msg: MIDIMessageEvent): void {
     const data = msg.data;
     if (!data || data.length < 2) return;
+
+    this.messageCount++;
+    this.lastMessageAt = performance.now();
 
     const status = data[0] & 0xf0;
     const channel = (data[0] & 0x0f) + 1;
