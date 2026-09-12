@@ -143,7 +143,12 @@ def score_songs(
         SongHit(
             artist=display[k].artist,
             song=display[k].song,
-            section=", ".join(sorted(sections[k])),
+            # `section` stays the one whose chords are on display; the rest are
+            # listed separately. A song can match in several sections and they
+            # do not share a progression, so conflating them would label the
+            # displayed chords with a section they did not come from.
+            section=display[k].section,
+            sections=tuple(sorted(sections[k])),
             url=display[k].url,
             video_url=display[k].video_url,
             genres=display[k].genres,

@@ -90,6 +90,27 @@ def test_songs_without_chord_data_sort_after_measurable_ones():
     assert [s.song for s in songs] == ["Measured", "Unmeasured"]
 
 
+def test_matched_section_matches_the_chords_on_display():
+    """Sections have different progressions, so the label must match the chords.
+
+    Joining every matched section into one string labelled the displayed chords
+    with sections they did not come from -- 505's Chorus is `i ii` four times
+    and its Instrumental is twice.
+    """
+    from chordcat.domain.events import SongHit
+
+    g = Ngram(("i", "ii"), 1, 1.0)
+    chorus = SongHit("Arctic Monkeys", "505", "Chorus", "u",
+                     song_chords=("i", "ii") * 4)
+    instrumental = SongHit("Arctic Monkeys", "505", "Instrumental", "u",
+                           song_chords=("i", "ii") * 2)
+    songs = score_songs([NgramResult(g, (chorus, instrumental), total_hits=2)])
+    assert len(songs) == 1
+    assert songs[0].section == "Chorus"
+    assert songs[0].sections == ("Chorus", "Instrumental")
+    assert songs[0].song_chords == ("i", "ii") * 4
+
+
 def test_empty_results_are_safe():
     assert score_songs([]) == ()
     assert rollup_artists([]) == ()

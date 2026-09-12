@@ -97,7 +97,7 @@ export function SongMatches({ result }: { result: AnalyzeResponse }) {
       <table style={{ marginTop: 12 }}>
         <thead>
           <tr>
-            <th>Artist</th><th>Song</th><th>Key</th>
+            <th>Artist</th><th>Song · section</th><th>Key</th>
             <th>Their chords · yours in green</th>
             <th style={{ width: 62 }} title="How much of the song is the progression you played. Results are ordered by this.">
               Match ↓
@@ -121,6 +121,20 @@ export function SongMatches({ result }: { result: AnalyzeResponse }) {
                 </a>
                 {!s.video_url && (
                   <span style={{ color: "var(--muted)", fontSize: 11 }}> ↗ theory</span>
+                )}
+                {s.section && (
+                  <div style={{ color: "var(--muted)", fontSize: 11, marginTop: 2 }}>
+                    {s.section}
+                    {s.sections.length > 1 && (
+                      <span
+                        title={`also matches: ${s.sections
+                          .filter((x) => x !== s.section)
+                          .join(", ")}`}
+                      >
+                        {" "}+{s.sections.length - 1} more
+                      </span>
+                    )}
+                  </div>
                 )}
               </td>
               <td style={{ color: "var(--muted)", whiteSpace: "nowrap" }}>

@@ -350,6 +350,7 @@ async def analyze(req: AnalyzeRequest) -> AnalyzeResponse:
                 song_chords=list(s.song_chords),
                 matched_chords=list(s.matched_chords),
                 song_key=s.song_key, coverage=s.coverage,
+                sections=list(s.sections),
             )
             for s in result.search.songs[:40]
         ],

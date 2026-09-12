@@ -108,6 +108,8 @@ class SongOut(BaseModel):
     matched_chords: list[str] = Field(default_factory=list)
     song_key: str = ""
     coverage: float = 0.0
+    #: All sections of the song that matched; `section` is the one shown.
+    sections: list[str] = Field(default_factory=list)
 
 
 class ArtistOut(BaseModel):

@@ -22,6 +22,8 @@ export interface Song {
   matched_chords: string[];
   song_key: string;
   coverage: number;
+  /** Every section that matched; `section` is the one the chords come from. */
+  sections: string[];
 }
 export interface Artist { artist: string; score: number; songs: string[] }
 export interface Harmonic {

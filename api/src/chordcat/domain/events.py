@@ -178,6 +178,9 @@ class SongHit:
     song_key: str = ""
     #: Share of the song's progression the played pattern accounts for.
     coverage: float = 0.0
+    #: Every section of this song that matched. `section` is the one the
+    #: displayed chords belong to, since sections have different progressions.
+    sections: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
