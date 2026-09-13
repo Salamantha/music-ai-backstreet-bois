@@ -66,7 +66,10 @@ body {
 }
 .skip-link:focus { left: 8px; top: 8px; }
 
-main { max-width: 60rem; margin: 0 auto; padding: 2rem 1.25rem 6rem; }
+/* Wide enough for the songs table, which is the widest thing here: five
+   columns of artist, title, key, chords and match. The panels of prose stay
+   readable because they are panels, not full-bleed text. */
+main { max-width: 72rem; margin: 0 auto; padding: 2rem 1.25rem 6rem; }
 
 h1 { font-size: 1.6rem; font-weight: 700; margin: 0 0 0.25rem; letter-spacing: -0.01em; }
 h2 { font-size: 1.25rem; font-weight: 700; margin: 0 0 0.5rem; }
@@ -572,3 +575,13 @@ main { position: relative; z-index: 1; }
 .facts td { padding: 4px 8px; border-top: 1px solid var(--line); vertical-align: top; }
 .facts td:first-child { color: var(--muted); white-space: nowrap; }
 .facts td:last-child { color: var(--muted); text-align: right; white-space: nowrap; }
+
+/* Wide tables scroll inside their own panel rather than pushing past its edge
+   -- the page itself must never scroll sideways. */
+.table-wrap {
+  overflow-x: auto;
+  margin-top: 12px;
+  border-radius: 8px;
+}
+.table-wrap:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.table-wrap > table { min-width: 40rem; }

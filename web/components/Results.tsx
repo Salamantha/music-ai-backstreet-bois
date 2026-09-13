@@ -130,7 +130,17 @@ export function SongMatches({ result, filter }: {
           No songs left with that genre chosen. Pick another, or clear it above.
         </p>
       ) : (
-      <table style={{ marginTop: 12 }}>
+        // A table never shrinks below its min-content width, so width:100%
+        // cannot hold it and it spills out of the panel. Give it somewhere to
+        // scroll instead -- focusable and labelled, because a region that
+        // scrolls has to be reachable without a pointer.
+        <div
+          className="table-wrap"
+          tabIndex={0}
+          role="region"
+          aria-label="Matching songs"
+        >
+      <table>
         <thead>
           <tr>
             <th>Artist</th><th>Song · section</th><th>Key</th>
@@ -196,6 +206,7 @@ export function SongMatches({ result, filter }: {
           ))}
         </tbody>
       </table>
+      </div>
       )}
       {result.songs.length > INITIAL && (
         <button
