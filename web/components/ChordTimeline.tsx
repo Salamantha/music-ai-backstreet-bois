@@ -67,8 +67,8 @@ function ReadingBlock({
 
 export default function ChordTimeline({ result, next }: {
   result: AnalyzeResponse;
-  /** The step's forward action, repeated here so it is reachable from the top
-      of a long results page as well as the bottom. */
+  /** The step's forward action, sat beside the heading so it is reachable at
+      the top of a long results page as well as at its foot. */
   next?: React.ReactNode;
 }) {
   const holes = new Map(result.unmapped.map((u) => [u.index, u]));
@@ -92,10 +92,12 @@ export default function ChordTimeline({ result, next }: {
   if (!alternate) {
     return (
       <div className="panel">
-        <h2 style={{ marginTop: 0 }}>Chord progression</h2>
+        <div className="row spread" style={{ marginBottom: 12 }}>
+          <h2 style={{ margin: 0 }}>Chord progression</h2>
+          {next}
+        </div>
         <ReadingBlock reading={primary} symbols={symbols} holes={holes} />
         <Caveats result={result} />
-        {next && <div className="card-nav">{next}</div>}
       </div>
     );
   }
@@ -119,7 +121,10 @@ export default function ChordTimeline({ result, next }: {
 
   return (
     <div className="panel">
-      <h2 style={{ marginTop: 0 }}>Chord progression</h2>
+      <div className="row spread" style={{ marginBottom: 12 }}>
+        <h2 style={{ margin: 0 }}>Chord progression</h2>
+        {next}
+      </div>
 
       {sections.map((s) => (
         <details key={s.title} className="reading" open={s.open}>
@@ -134,7 +139,6 @@ export default function ChordTimeline({ result, next }: {
       ))}
 
       <Caveats result={result} />
-      {next && <div className="card-nav">{next}</div>}
     </div>
   );
 }
