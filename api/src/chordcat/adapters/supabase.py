@@ -18,6 +18,8 @@ class RoomStore(Protocol):
 
     async def list_members(self) -> list[dict]: ...
 
+    async def count_members(self) -> int | None: ...
+
 
 @dataclass(slots=True)
 class SupabaseRoom:
@@ -55,6 +57,25 @@ class SupabaseRoom:
         res.raise_for_status()
         body = res.json()
         return body[0] if isinstance(body, list) and body else {}
+
+    async def count_members(self) -> int | None:
+        """How many people have submitted a progression.
+
+        Asks PostgREST for the count alone rather than counting rows we fetch:
+        every row carries a whole taste profile, and selecting all of them just
+        to take a length times out. Returns None when the count cannot be read,
+        so a caller can say "unknown" rather than "none".
+        """
+        http = await self._http()
+        res = await http.get(
+            f"/{self.table}",
+            params={"select": "client_id", "profile": "not.is.null"},
+            headers={"Prefer": "count=exact", "Range": "0-0"},
+        )
+        res.raise_for_status()
+        # PostgREST reports it as "0-0/57", or "*/0" when nothing matched.
+        total = res.headers.get("content-range", "").rsplit("/", 1)[-1]
+        return int(total) if total.isdigit() else None
 
     async def list_members(self) -> list[dict]:
         http = await self._http()

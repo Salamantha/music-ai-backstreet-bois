@@ -23,6 +23,22 @@ import { loadMember, memberId } from "@/lib/room";
 
 type InputMode = "midi" | "voice";
 
+/**
+ * How many people are actually in the room.
+ *
+ * Counts real submissions from the room store. It falls back to the seed pool
+ * only when the room cannot be read at all -- claiming forty when seven people
+ * have played would be a number nobody could act on.
+ */
+function roomLabel(backend: Record<string, unknown>): string {
+  const live = backend.room_members;
+  const n =
+    typeof live === "number" ? live : (backend.personas as number | undefined);
+  if (typeof n !== "number") return "room unavailable";
+  if (n === 0) return "be the first to jam";
+  return `${n} musician${n === 1 ? "" : "s"} looking to jam`;
+}
+
 export default function Page() {
   const [inputMode, setInputMode] = useState<InputMode>("midi");
   const [step, setStep] = useState(0);
@@ -191,9 +207,7 @@ export default function Page() {
           </div>
         </div>
         <span className={`pill ${backend ? "ok" : "bad"}`}>
-          {backend
-            ? `${backend.personas} musicians looking to jam`
-            : "backend unreachable"}
+          {backend ? roomLabel(backend) : "backend unreachable"}
         </span>
       </header>
 

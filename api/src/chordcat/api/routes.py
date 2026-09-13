@@ -73,6 +73,15 @@ _QUALITY_SYMBOL = {
 @router.get("/health")
 async def health() -> dict:
     s = get_services()
+    # The room is a live count, so it can fail in ways the rest of this cannot.
+    # A health check that 500s because Supabase is slow is worse than one that
+    # reports the room as unknown.
+    members: int | None = None
+    if s.room is not None:
+        try:
+            members = await s.room.count_members()
+        except Exception:
+            log.warning("could not count room members", exc_info=True)
     return {
         "ok": True,
         "hooktheory": s.client is not None,
@@ -80,6 +89,7 @@ async def health() -> dict:
         "personas": len(s.pool.personas),
         "offline": s.settings.chordcat_offline,
         "room": s.room is not None,
+        "room_members": members,
     }
 
 
