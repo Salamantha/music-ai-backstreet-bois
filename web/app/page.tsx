@@ -329,7 +329,16 @@ export default function Page() {
 
       {step === 2 && result && (
         <>
-          {SHOW_CHORD_PROGRESSION && <ChordTimeline result={result} />}
+          {SHOW_CHORD_PROGRESSION && (
+            <ChordTimeline
+              result={result}
+              next={
+                <button className="primary" onClick={() => setStep(3)}>
+                  Next: find musicians
+                </button>
+              }
+            />
+          )}
 
           {SHOW_WORTH_KNOWING && result.notes.length > 0 && (
             <div className="panel">

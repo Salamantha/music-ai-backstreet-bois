@@ -65,7 +65,12 @@ function ReadingBlock({
   );
 }
 
-export default function ChordTimeline({ result }: { result: AnalyzeResponse }) {
+export default function ChordTimeline({ result, next }: {
+  result: AnalyzeResponse;
+  /** The step's forward action, repeated here so it is reachable from the top
+      of a long results page as well as the bottom. */
+  next?: React.ReactNode;
+}) {
   const holes = new Map(result.unmapped.map((u) => [u.index, u]));
   const symbols = result.chords.map((c) => c.symbol);
 
@@ -90,6 +95,7 @@ export default function ChordTimeline({ result }: { result: AnalyzeResponse }) {
         <h2 style={{ marginTop: 0 }}>Chord progression</h2>
         <ReadingBlock reading={primary} symbols={symbols} holes={holes} />
         <Caveats result={result} />
+        {next && <div className="card-nav">{next}</div>}
       </div>
     );
   }
@@ -128,6 +134,7 @@ export default function ChordTimeline({ result }: { result: AnalyzeResponse }) {
       ))}
 
       <Caveats result={result} />
+      {next && <div className="card-nav">{next}</div>}
     </div>
   );
 }
