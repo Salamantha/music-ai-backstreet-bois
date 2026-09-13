@@ -46,6 +46,10 @@ export default function Page() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [backend, setBackend] = useState<Record<string, unknown> | null>(null);
+  // Distinct from `backend === null`, which cannot tell "not answered yet"
+  // from "answered badly" -- so the pill used to flash red on every load.
+  const [backendState, setBackendState] =
+    useState<"loading" | "up" | "down">("loading");
   const [connected, setConnected] = useState(false);
   const [lastChords, setLastChords] = useState<ChordStep[] | null>(null);
   const [genres, setGenres] = useState<string[]>([]);
@@ -63,7 +67,15 @@ export default function Page() {
   const firstRender = useRef(true);
 
   useEffect(() => {
-    health().then(setBackend).catch(() => setBackend(null));
+    health()
+      .then((h) => {
+        setBackend(h);
+        setBackendState("up");
+      })
+      .catch(() => {
+        setBackend(null);
+        setBackendState("down");
+      });
     selectableGenres().then(setGenreOptions).catch(() => setGenreOptions([]));
   }, []);
 
@@ -206,8 +218,18 @@ export default function Page() {
           </p>
           </div>
         </div>
-        <span className={`pill ${backend ? "ok" : "bad"}`}>
-          {backend ? roomLabel(backend) : "backend unreachable"}
+        {/* Neutral until we know: an unanswered health check is not a failed
+            one, and colouring it red on load reads as something being broken. */}
+        <span
+          className={`pill ${
+            backendState === "up" ? "ok" : backendState === "down" ? "bad" : ""
+          }`}
+        >
+          {backendState === "loading"
+            ? "checking the room…"
+            : backend
+              ? roomLabel(backend)
+              : "backend unreachable"}
         </span>
       </header>
 

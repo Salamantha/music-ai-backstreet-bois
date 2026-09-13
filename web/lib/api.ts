@@ -60,6 +60,26 @@ export interface AnalyzeResponse {
 
 export type Tonality = "any" | "major" | "minor";
 
+/**
+ * fetch, with a network failure reported as something actionable.
+ *
+ * A dead or restarting API makes fetch reject with a bare "Failed to fetch",
+ * which says nothing about which server or why. Distinguishing "we never
+ * reached it" from "it answered and refused" is the difference between
+ * restarting the API and debugging a payload.
+ */
+async function call(path: string, init?: RequestInit): Promise<Response> {
+  try {
+    return await fetch(`${BASE}${path}`, init);
+  } catch {
+    throw new Error(
+      `Could not reach the ChordLink server at ${BASE}. Is the API running?`,
+    );
+  }
+}
+
+const JSON_POST = { "Content-Type": "application/json" };
+
 export async function analyze(
   events: MidiEvent[],
   opts: { sessionEndMs?: number; keyTonicPc?: number; keyMode?: string; budget?: number } = {},
@@ -132,9 +152,9 @@ export async function analyzeChords(
     tonality?: Tonality;
   } = {},
 ): Promise<AnalyzeResponse> {
-  const res = await fetch(`${BASE}/api/analyze`, {
+  const res = await call("/api/analyze", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: JSON_POST,
     body: JSON.stringify({
       chords,
       key_tonic_pc: opts.keyTonicPc,
@@ -167,9 +187,9 @@ export interface JoinRoomResponse {
 
 /** Store the player's profile in the room and rank them against everyone else. */
 export async function joinRoom(req: JoinRoomRequest): Promise<JoinRoomResponse> {
-  const res = await fetch(`${BASE}/api/room/join`, {
+  const res = await call("/api/room/join", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: JSON_POST,
     body: JSON.stringify(req),
   });
   if (!res.ok) {
