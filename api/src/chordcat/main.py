@@ -14,7 +14,7 @@ settings = get_settings()
 logging.basicConfig(level=settings.chordcat_log_level)
 
 app = FastAPI(
-    title="ChordCat Connect",
+    title="ChordLink",
     description="Match musicians by the chord progressions they play.",
     version="0.1.0",
 )

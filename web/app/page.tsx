@@ -181,7 +181,7 @@ export default function Page() {
             <CatFace cat={BAND[1]} size={54} decorative />
           </span>
           <div>
-          <h1>ChordCat Connect</h1>
+          <h1>ChordLink</h1>
           <p className="lede">
             Play some chords. Find musicians who hear music the same way you
             do. Brought to you by The HackStreet Bois.

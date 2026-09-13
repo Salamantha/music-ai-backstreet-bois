@@ -254,8 +254,8 @@ export function MatchList({
         <>
           <p className="sub">
             {others !== undefined
-              ? `${others} other musician${others === 1 ? " has" : "s have"} played their own progression into ChordCat Connect. `
-              : "Everyone here has played their own progression into ChordCat Connect. "}
+              ? `${others} other musician${others === 1 ? " has" : "s have"} played their own progression into ChordLink. `
+              : "Everyone here has played their own progression into ChordLink. "}
             We compared what you played to what they played — the chords you
             reach for, the keys you sit in, the songs you both turn out to share
             — and these are the closest. Find them and play something.

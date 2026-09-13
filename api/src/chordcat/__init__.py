@@ -1,1 +1,1 @@
-"""ChordCat Connect backend."""
+"""ChordLink backend."""
