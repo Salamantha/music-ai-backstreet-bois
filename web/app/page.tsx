@@ -62,8 +62,10 @@ export default function Page() {
   const steps: StepDef[] = [
     {
       id: "plug-in",
-      label: "Plug in",
-      hint: "Choose your MIDI input",
+      label: inputMode === "voice" ? "Enable microphone" : "Plug in",
+      hint: inputMode === "voice"
+        ? "Let the browser hear you"
+        : "Choose your MIDI input",
       complete: connected || lastChords !== null,
       reachable: true,
     },
@@ -286,7 +288,7 @@ export default function Page() {
               onClick={() => setStep(1)}
               disabled={!steps[1].reachable}
             >
-              Next: play your chords
+              Next: sing a melody
             </button>
           ) : null
         }

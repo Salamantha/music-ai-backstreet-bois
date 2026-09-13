@@ -203,7 +203,7 @@ export default function VoiceSing({
   if (!supported) {
     return (
       <div className="panel">
-        <h2>Sing a melody</h2>
+        <h2>Enable your microphone</h2>
         <p className="error">
           This browser cannot record from a microphone. Try Chrome, Firefox, or Edge.
         </p>
@@ -215,7 +215,7 @@ export default function VoiceSing({
     return (
       <div className="panel">
         <div className="row spread">
-          <h2 style={{ margin: 0 }}>Sing a melody</h2>
+          <h2 style={{ margin: 0 }}>Enable your microphone</h2>
           <span className={`pill ${connected ? "ok" : ""}`}>
             {connected ? "microphone ready" : "not enabled"}
           </span>
