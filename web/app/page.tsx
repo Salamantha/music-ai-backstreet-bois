@@ -107,7 +107,7 @@ export default function Page() {
     {
       id: "results",
       label: "Results",
-      hint: "Your key, songs and taste",
+      hint: "Your key, similar songs",
       complete: result !== null,
       reachable: result !== null,
     },
