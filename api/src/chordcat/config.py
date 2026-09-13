@@ -47,10 +47,12 @@ class Settings(BaseSettings):
     #: sanctioned Trends API and can be turned off independently.
     theorytab_enabled: bool = True
 
-    #: Supabase project holding the room of real musicians. Without it the API
-    #: falls back to the synthetic persona pool.
-    supabase_url: str = ""
-    supabase_key: str = ""
+    #: Supabase project holding the room of real musicians. Hardcoded so every
+    #: checkout talks to the same room without needing a `.env`; the key is the
+    #: publishable (anon) key, which is safe to ship. Set the env vars to point
+    #: at a different project. Blank both out to fall back to the seed pool.
+    supabase_url: str = "https://softndxfnmjcdpbalnlf.supabase.co"
+    supabase_key: str = "sb_publishable_GLl4erVwqYFgykDMWVCARw_EgUgkdKm"
 
     @property
     def has_hooktheory(self) -> bool:
