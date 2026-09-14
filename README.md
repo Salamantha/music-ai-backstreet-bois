@@ -50,14 +50,14 @@ repeating itself.
 
 ## Team
 
-| | LinkedIn |
+| | |
 |---|---|
-| Vishnu Sriram | <!-- add link --> |
-| Omar Kassem | <!-- add link --> |
-| Malcolm Malik | <!-- add link --> |
-| Zoha | <!-- add link --> |
-| Samantha Geller | <!-- add link --> |
-| Viet Duc Kieu | <!-- add link --> |
+| Vishnu Sriram | [linkedin.com/in/vishnary](https://www.linkedin.com/in/vishnary/) |
+| Omar Kassem | [linkedin.com/in/omarkassem1](https://www.linkedin.com/in/omarkassem1/) |
+| Malcolm | [linkedin.com/in/malcolm-jackson-930m](https://www.linkedin.com/in/malcolm-jackson-930m) |
+| Fathia Fairuz Zoha | [linkedin.com/in/fathia-fairuz-zoha-41a159202](https://www.linkedin.com/in/fathia-fairuz-zoha-41a159202) |
+| Samantha Geller | [linkedin.com/in/samantha-geller-42517a278](https://www.linkedin.com/in/samantha-geller-42517a278/) |
+| Viet Duc Kieu | [linkedin.com/in/duc-kieu](https://www.linkedin.com/in/duc-kieu/) |
 
 ## Run it
 
